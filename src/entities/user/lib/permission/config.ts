@@ -25,3 +25,7 @@ export const isRole = (value: string | null | undefined): value is TRole => {
 
   return value in rolePermissions;
 };
+
+export const getPermissionSetByRole = (role: TRole): TPermissionSet => {
+  return rolePermissions[role];
+};

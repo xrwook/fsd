@@ -12,3 +12,9 @@ export interface TPermissionSet {
 	pages: TPagePermission[];
 	actions: TActionPermission[];
 }
+
+export interface TPermissionApiResponse {
+	userId: string;
+	role: TRole;
+	permissions: TPermissionSet;
+}

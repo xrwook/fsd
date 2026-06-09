@@ -1,30 +1,37 @@
-import { isRole, rolePermissions } from "@/entities/user/lib/permission/config";
+import {
+  getPermissionSetByRole,
+  isRole,
+} from "@/entities/user/lib/permission/config";
 import { useUserStore } from "@/entities/user/model/userStore";
 import type {
   TActionPermission,
   TPagePermission,
+  TPermissionSet,
   TRole,
 } from "@/entities/user/lib/permission/types";
 
 export const usePermission = () => {
   const role = useUserStore((state) => state.currentUser?.role);
+  const permissionSet = useUserStore((state) => state.permissionSet);
 
   const resolvedRole: TRole | null = isRole(role) ? role : null;
+  const resolvedPermissionSet: TPermissionSet | null =
+    permissionSet ?? (resolvedRole ? getPermissionSetByRole(resolvedRole) : null);
 
   const canAccessPage = (permission: TPagePermission) => {
-    if (!resolvedRole) {
+    if (!resolvedPermissionSet) {
       return false;
     }
 
-    return rolePermissions[resolvedRole].pages.includes(permission);
+    return resolvedPermissionSet.pages.includes(permission);
   };
 
   const canAccessAction = (permission: TActionPermission) => {
-    if (!resolvedRole) {
+    if (!resolvedPermissionSet) {
       return false;
     }
 
-    return rolePermissions[resolvedRole].actions.includes(permission);
+    return resolvedPermissionSet.actions.includes(permission);
   };
 
   return {
