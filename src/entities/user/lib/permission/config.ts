@@ -292,12 +292,12 @@ export const permissionMenuMock: TMenuPermission[] = [
 ];
 
 // 권한 체크는 menu id 기준으로 하므로 중첩 메뉴를 평탄화해서 탐색합니다.
-export const flattenMenuPermissions = (
+export const flatMenuPermissions = (
   menus: TMenuPermission[],
 ): TMenuPermission[] => {
   return menus.flatMap((menu) => [
     menu,
-    ...flattenMenuPermissions(menu.children ?? []),
+    ...flatMenuPermissions(menu.children ?? []),
   ]);
 };
 
@@ -306,7 +306,7 @@ export const findMenuPermission = (
   menuId: string,
 ): TMenuPermission | null => {
   return (
-    flattenMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null
+    flatMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null
   );
 };
 
@@ -337,7 +337,7 @@ export const hasDescendantMenuPermission = (
     return false;
   }
 
-  return flattenMenuPermissions([menu]).some(
+  return flatMenuPermissions([menu]).some(
     (item) => item.permissions[permissionKey],
   );
 };
