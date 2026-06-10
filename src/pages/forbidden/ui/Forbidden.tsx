@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 // 접근 권한이 없을 때 안내 메시지와 복귀 액션을 제공합니다.
 const Forbidden = () => {

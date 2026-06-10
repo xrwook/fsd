@@ -6,7 +6,14 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["app", "build", ".history", ".react-router", "node_modules"],
+    ignores: [
+      "app",
+      "build",
+      "dist",
+      ".history",
+      ".react-router",
+      "node_modules",
+    ],
   },
   {
     files: ["**/*.{ts,tsx}"],

@@ -1,5 +1,5 @@
 export const enableMocking = async () => {
-  const shouldUseMockApi = import.meta.env.VITE_USE_MOCK_API === "true";
+  const shouldUseMockApi = import.meta.env.VITE_USE_MOCK_API !== "false";
 
   if (!shouldUseMockApi || typeof window === "undefined") {
     return;

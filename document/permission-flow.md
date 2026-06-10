@@ -18,7 +18,7 @@
   - mock API에서 권한 데이터를 받아 store에 저장합니다.
 - `src/entities/user/lib/permission/usePermission.ts`
   - 화면에서 사용할 권한 체크 함수를 제공합니다.
-- `src/routes/home.tsx`
+- `src/app/routes/index.tsx`
   - 라우트 접근 권한을 확인합니다.
 - `src/pages/home/ui/Home.tsx`
   - 버튼 단위 권한을 확인합니다.
@@ -166,7 +166,7 @@ canAccessMenuGroup("cpos", "read");
 
 ## 라우트 접근 권한
 
-`src/routes/home.tsx`는 먼저 권한 초기화 여부를 확인합니다.
+`src/app/routes/index.tsx`는 먼저 권한 초기화 여부를 확인합니다.
 
 ```ts
 if (!isPermissionInitialized) {

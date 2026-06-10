@@ -11,7 +11,11 @@ export const getUserPermissionApi = async () => {
       return getUserPermissionMockApi();
     }
 
-    return axiosInstance.get<TPermissionApiResponse>("/api/permissions");
+    try {
+      return await axiosInstance.get<TPermissionApiResponse>("/api/permissions");
+    } catch {
+      return getUserPermissionMockApi();
+    }
   }
 
   return axiosInstance.get<TPermissionApiResponse>("/api/permissions");
