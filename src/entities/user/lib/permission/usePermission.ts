@@ -1,22 +1,16 @@
 import {
   hasDescendantMenuPermission,
   hasMenuPermission,
-  isRole,
 } from "@/entities/user/lib/permission/config";
 import { useUserStore } from "@/entities/user/model/userStore";
-import type {
-  TPermissionKey,
-  TRole,
-} from "@/entities/user/lib/permission/types";
+import type { TPermissionKey } from "@/entities/user/lib/permission/types";
 
 export const usePermission = () => {
-  const role = useUserStore((state) => state.currentUser?.role);
   const permissionMenus = useUserStore((state) => state.permissionMenus);
   const isPermissionInitialized = useUserStore(
     (state) => state.isPermissionInitialized,
   );
 
-  const resolvedRole: TRole | null = isRole(role) ? role : null;
   const resolvedPermissionMenus = permissionMenus ?? [];
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
@@ -48,7 +42,6 @@ export const usePermission = () => {
   };
 
   return {
-    role: resolvedRole,
     permissionMenus: resolvedPermissionMenus,
     isPermissionInitialized,
     canAccessMenu,

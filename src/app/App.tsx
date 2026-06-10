@@ -5,7 +5,6 @@ import routes from "~react-pages";
 
 const App = () => {
   useInitializePermission();
-
   return <Suspense fallback={null}>{useRoutes(routes)}</Suspense>;
 };
 

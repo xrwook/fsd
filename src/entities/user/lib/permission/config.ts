@@ -1,10 +1,7 @@
 import type {
   TMenuPermission,
   TPermissionKey,
-  TRole,
 } from "@/entities/user/lib/permission/types";
-
-const roles = ["admin", "editor", "viewer"] satisfies TRole[];
 
 // 실제 API가 내려주는 메뉴 트리 형태를 유지한 권한 mock 데이터입니다.
 export const permissionMenuMock: TMenuPermission[] = [
@@ -293,14 +290,6 @@ export const permissionMenuMock: TMenuPermission[] = [
     children: [],
   },
 ];
-
-export const isRole = (value: string | null | undefined): value is TRole => {
-  if (!value) {
-    return false;
-  }
-
-  return roles.some((role) => role === value);
-};
 
 // 권한 체크는 menu id 기준으로 하므로 중첩 메뉴를 평탄화해서 탐색합니다.
 export const flattenMenuPermissions = (

@@ -4,5 +4,4 @@ export { usePermission } from "@/entities/user/lib/permission";
 export type {
   TMenuPermission,
   TPermissionKey,
-  TRole,
 } from "@/entities/user/lib/permission";

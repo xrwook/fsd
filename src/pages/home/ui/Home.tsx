@@ -3,16 +3,14 @@ import { usePermission } from "@/entities/user";
 import PermissionGate from "@/shared/ui/permission-gate";
 
 const Home = () => {
-  const { role, canAccessMenu } = usePermission();
+  const { canAccessMenu } = usePermission();
 
   return (
     <div className="space-y-4">
       <WelcomeWidget />
 
       <section className="mx-auto max-w-[320px] rounded-2xl border border-gray-200 p-4">
-        <p className="text-sm text-gray-600">현재 역할: {role ?? "guest"}</p>
-
-        <div className="mt-3 flex gap-2">
+        <div className="flex gap-2">
           <PermissionGate
             allow={canAccessMenu("station-management", "write")}
             fallback={
