@@ -3,7 +3,7 @@ import { usePermission } from "@/entities/user";
 import PermissionGate from "@/shared/ui/permission-gate";
 
 const Home = () => {
-  const { role, canAccessAction } = usePermission();
+  const { role, canAccessMenu } = usePermission();
 
   return (
     <div className="space-y-4">
@@ -14,14 +14,14 @@ const Home = () => {
 
         <div className="mt-3 flex gap-2">
           <PermissionGate
-            allow={canAccessAction("post:create")}
+            allow={canAccessMenu("station-management", "write")}
             fallback={
               <button
                 type="button"
                 className="rounded-md bg-gray-200 px-3 py-2 text-sm text-gray-500"
                 disabled
               >
-                글 생성 불가
+                충전소 수정 불가
               </button>
             }
           >
@@ -29,11 +29,12 @@ const Home = () => {
               type="button"
               className="rounded-md bg-blue-600 px-3 py-2 text-sm text-white"
             >
-              글 생성
+              충전소 수정
             </button>
           </PermissionGate>
 
-          <PermissionGate allow={canAccessAction("button:export")}
+          <PermissionGate
+            allow={canAccessMenu("dashboard", "download")}
             fallback={
               <button
                 type="button"

@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type { TRole } from "@/entities/user/lib/permission";
-import { getPermissionSetByRole } from "@/entities/user/lib/permission/config";
-import type { TPermissionSet } from "@/entities/user/lib/permission/types";
+import type { TMenuPermission } from "@/entities/user/lib/permission/types";
 
 type TUser = {
   id: string;
@@ -10,17 +9,20 @@ type TUser = {
 
 interface TUserState {
   currentUser: TUser | null;
-  permissionSet: TPermissionSet | null;
+  permissionMenus: TMenuPermission[] | null;
+  isPermissionInitialized: boolean;
   setCurrentUser: (user: TUser | null) => void;
-  setPermissionSet: (permissionSet: TPermissionSet | null) => void;
+  setPermissionMenus: (permissionMenus: TMenuPermission[] | null) => void;
+  setPermissionInitialized: (isPermissionInitialized: boolean) => void;
 }
 
 export const useUserStore = create<TUserState>((set) => ({
-  currentUser: {
-    id: "demo-user",
-    role: "viewer",
-  },
-  permissionSet: getPermissionSetByRole("viewer"),
+  currentUser: null,
+  permissionMenus: null,
+  // 권한을 mock API에서 받아오기 전까지 라우트 가드 판단을 보류하기 위한 플래그입니다.
+  isPermissionInitialized: false,
   setCurrentUser: (currentUser) => set({ currentUser }),
-  setPermissionSet: (permissionSet) => set({ permissionSet }),
+  setPermissionMenus: (permissionMenus) => set({ permissionMenus }),
+  setPermissionInitialized: (isPermissionInitialized) =>
+    set({ isPermissionInitialized }),
 }));

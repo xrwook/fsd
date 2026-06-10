@@ -1,42 +1,57 @@
 import {
-  getPermissionSetByRole,
+  hasDescendantMenuPermission,
+  hasMenuPermission,
   isRole,
 } from "@/entities/user/lib/permission/config";
 import { useUserStore } from "@/entities/user/model/userStore";
 import type {
-  TActionPermission,
-  TPagePermission,
-  TPermissionSet,
+  TPermissionKey,
   TRole,
 } from "@/entities/user/lib/permission/types";
 
 export const usePermission = () => {
   const role = useUserStore((state) => state.currentUser?.role);
-  const permissionSet = useUserStore((state) => state.permissionSet);
+  const permissionMenus = useUserStore((state) => state.permissionMenus);
+  const isPermissionInitialized = useUserStore(
+    (state) => state.isPermissionInitialized,
+  );
 
   const resolvedRole: TRole | null = isRole(role) ? role : null;
-  const resolvedPermissionSet: TPermissionSet | null =
-    permissionSet ?? (resolvedRole ? getPermissionSetByRole(resolvedRole) : null);
+  const resolvedPermissionMenus = permissionMenus ?? [];
 
-  const canAccessPage = (permission: TPagePermission) => {
-    if (!resolvedPermissionSet) {
+  // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
+  const canAccessMenu = (
+    menuId: string,
+    permissionKey: TPermissionKey = "read",
+  ) => {
+    if (!isPermissionInitialized) {
       return false;
     }
 
-    return resolvedPermissionSet.pages.includes(permission);
+    return hasMenuPermission(resolvedPermissionMenus, menuId, permissionKey);
   };
 
-  const canAccessAction = (permission: TActionPermission) => {
-    if (!resolvedPermissionSet) {
+  // 사이드바/상위 폴더처럼 하위 메뉴 권한까지 포함해서 판단할 때 사용합니다.
+  const canAccessMenuGroup = (
+    menuId: string,
+    permissionKey: TPermissionKey = "read",
+  ) => {
+    if (!isPermissionInitialized) {
       return false;
     }
 
-    return resolvedPermissionSet.actions.includes(permission);
+    return hasDescendantMenuPermission(
+      resolvedPermissionMenus,
+      menuId,
+      permissionKey,
+    );
   };
 
   return {
     role: resolvedRole,
-    canAccessPage,
-    canAccessAction,
+    permissionMenus: resolvedPermissionMenus,
+    isPermissionInitialized,
+    canAccessMenu,
+    canAccessMenuGroup,
   };
 };

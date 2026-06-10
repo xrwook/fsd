@@ -1,31 +1,267 @@
 import type {
-  TPermissionSet,
+  TMenuPermission,
+  TPermissionKey,
   TRole,
 } from "@/entities/user/lib/permission/types";
 
-export const rolePermissions: Record<TRole, TPermissionSet> = {
-  admin: {
-    pages: ["home", "post-list", "admin"],
-    actions: ["post:create", "post:filter", "post:delete", "button:export"],
+const roles = ["admin", "editor", "viewer"] satisfies TRole[];
+
+// 실제 API가 내려주는 메뉴 트리 형태를 유지한 권한 mock 데이터입니다.
+export const permissionMenuMock: TMenuPermission[] = [
+  {
+    id: "dashboard",
+    parentId: null,
+    depth: 1,
+    name: "Dashboard",
+    type: "folder",
+    expanded: true,
+    checked: true,
+    permissions: {
+      read: true,
+      write: true,
+      download: true,
+    },
+    children: [],
   },
-  editor: {
-    pages: ["home", "post-list"],
-    actions: ["post:create", "post:filter"],
+  {
+    id: "cpos",
+    parentId: null,
+    depth: 1,
+    name: "CPOS",
+    type: "folder",
+    expanded: true,
+    checked: false,
+    permissions: {
+      read: true,
+      write: true,
+      download: true,
+    },
+    children: [
+      {
+        id: "station-root",
+        parentId: "cpos",
+        depth: 2,
+        name: "충전소 관리",
+        type: "folder",
+        expanded: true,
+        checked: false,
+        permissions: {
+          read: true,
+          write: true,
+          download: true,
+        },
+        children: [
+          {
+            id: "station-management",
+            parentId: "station-root",
+            depth: 3,
+            name: "충전소 관리",
+            type: "menu",
+            checked: true,
+            permissions: {
+              read: true,
+              write: true,
+              download: true,
+            },
+          },
+          {
+            id: "station-fee-management",
+            parentId: "station-root",
+            depth: 3,
+            name: "충전소 요금 관리",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "power-bank-management",
+            parentId: "station-root",
+            depth: 3,
+            name: "파워 뱅크 관리",
+            type: "menu",
+            checked: true,
+            permissions: {
+              read: true,
+              write: true,
+              download: true,
+            },
+          },
+        ],
+      },
+      {
+        id: "charger-root",
+        parentId: "cpos",
+        depth: 2,
+        name: "충전기 관리",
+        type: "folder",
+        expanded: true,
+        checked: true,
+        permissions: {
+          read: true,
+          write: true,
+          download: true,
+        },
+        children: [
+          {
+            id: "m2m-modem-management",
+            parentId: "charger-root",
+            depth: 3,
+            name: "M2M모뎀 관리",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "charger-status",
+            parentId: "charger-root",
+            depth: 3,
+            name: "충전기 상태",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "charger-control",
+            parentId: "charger-root",
+            depth: 3,
+            name: "충전기 제어",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "charger-error-management",
+            parentId: "charger-root",
+            depth: 3,
+            name: "충전기 고장 관리",
+            type: "menu",
+            checked: true,
+            permissions: {
+              read: true,
+              write: true,
+              download: true,
+            },
+          },
+        ],
+      },
+    ],
   },
-  viewer: {
-    pages: ["home", "post-list"],
-    actions: ["post:filter"],
+  {
+    id: "clearing-house",
+    parentId: null,
+    depth: 1,
+    name: "Clearing House",
+    type: "folder",
+    expanded: false,
+    checked: false,
+    permissions: {
+      read: false,
+      write: false,
+      download: false,
+    },
+    children: [],
   },
-};
+  {
+    id: "emsp",
+    parentId: null,
+    depth: 1,
+    name: "eMSP",
+    type: "folder",
+    expanded: false,
+    checked: false,
+    permissions: {
+      read: false,
+      write: false,
+      download: false,
+    },
+    children: [],
+  },
+  {
+    id: "platform-management",
+    parentId: null,
+    depth: 1,
+    name: "Platform Mgt.",
+    type: "folder",
+    expanded: false,
+    checked: false,
+    permissions: {
+      read: false,
+      write: false,
+      download: false,
+    },
+    children: [],
+  },
+];
 
 export const isRole = (value: string | null | undefined): value is TRole => {
   if (!value) {
     return false;
   }
 
-  return value in rolePermissions;
+  return roles.some((role) => role === value);
 };
 
-export const getPermissionSetByRole = (role: TRole): TPermissionSet => {
-  return rolePermissions[role];
+// 권한 체크는 menu id 기준으로 하므로 중첩 메뉴를 평탄화해서 탐색합니다.
+export const flattenMenuPermissions = (
+  menus: TMenuPermission[],
+): TMenuPermission[] => {
+  return menus.flatMap((menu) => [
+    menu,
+    ...flattenMenuPermissions(menu.children ?? []),
+  ]);
+};
+
+export const findMenuPermission = (
+  menus: TMenuPermission[],
+  menuId: string,
+): TMenuPermission | null => {
+  return flattenMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null;
+};
+
+// 단일 메뉴는 checked와 요청한 권한 키가 모두 true일 때만 허용합니다.
+export const hasMenuPermission = (
+  menus: TMenuPermission[],
+  menuId: string,
+  permissionKey: TPermissionKey = "read",
+) => {
+  const menu = findMenuPermission(menus, menuId);
+
+  if (!menu) {
+    return false;
+  }
+
+  return menu.checked && menu.permissions[permissionKey];
+};
+
+// 폴더 메뉴는 자신 또는 하위 메뉴 중 하나라도 허용되면 그룹 접근 허용으로 봅니다.
+export const hasDescendantMenuPermission = (
+  menus: TMenuPermission[],
+  menuId: string,
+  permissionKey: TPermissionKey = "read",
+) => {
+  const menu = findMenuPermission(menus, menuId);
+
+  if (!menu) {
+    return false;
+  }
+
+  return flattenMenuPermissions([menu]).some(
+    (item) => item.checked && item.permissions[permissionKey],
+  );
 };

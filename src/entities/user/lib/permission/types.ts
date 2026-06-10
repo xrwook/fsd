@@ -1,20 +1,21 @@
 export type TRole = "admin" | "editor" | "viewer";
 
-export type TPagePermission = "home" | "post-list" | "admin";
+export type TPermissionKey = "read" | "write" | "download";
 
-export type TActionPermission =
-	| "post:create"
-	| "post:filter"
-	| "post:delete"
-	| "button:export";
-
-export interface TPermissionSet {
-	pages: TPagePermission[];
-	actions: TActionPermission[];
+export interface TMenuPermission {
+  id: string;
+  parentId: string | null;
+  depth: number;
+  name: string;
+  type: "folder" | "menu";
+  expanded?: boolean;
+  checked: boolean;
+  permissions: Record<TPermissionKey, boolean>;
+  children?: TMenuPermission[];
 }
 
 export interface TPermissionApiResponse {
-	userId: string;
-	role: TRole;
-	permissions: TPermissionSet;
+  userId: string;
+  role: TRole;
+  permissions: TMenuPermission[];
 }
