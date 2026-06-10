@@ -14,6 +14,10 @@ interface TUserState {
   setCurrentUser: (user: TUser | null) => void;
   setPermissionMenus: (permissionMenus: TMenuPermission[] | null) => void;
   setPermissionInitialized: (isPermissionInitialized: boolean) => void;
+  initializePermission: (payload: {
+    currentUser: TUser | null;
+    permissionMenus: TMenuPermission[] | null;
+  }) => void;
 }
 
 export const useUserStore = create<TUserState>((set) => ({
@@ -25,4 +29,10 @@ export const useUserStore = create<TUserState>((set) => ({
   setPermissionMenus: (permissionMenus) => set({ permissionMenus }),
   setPermissionInitialized: (isPermissionInitialized) =>
     set({ isPermissionInitialized }),
+  initializePermission: ({ currentUser, permissionMenus }) =>
+    set({
+      currentUser,
+      permissionMenus,
+      isPermissionInitialized: true,
+    }),
 }));

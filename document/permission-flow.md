@@ -139,10 +139,9 @@ return structuredClone(demoUserPermission);
 
 ## 권한 판단 기준
 
-단일 메뉴 권한은 아래 조건을 모두 만족해야 허용됩니다.
+단일 메뉴 권한은 API가 내려준 `permissions` 값을 기준으로 허용됩니다.
 
 ```ts
-menu.checked === true
 menu.permissions[permissionKey] === true
 ```
 
@@ -152,7 +151,7 @@ menu.permissions[permissionKey] === true
 canAccessMenu("station-management", "write");
 ```
 
-이 호출은 `station-management` 메뉴를 찾고, 해당 메뉴가 `checked: true`이며 `permissions.write: true`인지 확인합니다.
+이 호출은 `station-management` 메뉴를 찾고, 해당 메뉴의 `permissions.write`가 true인지 확인합니다.
 
 ## 메뉴 그룹 권한
 
@@ -162,7 +161,7 @@ canAccessMenu("station-management", "write");
 canAccessMenuGroup("cpos", "read");
 ```
 
-이 함수는 `cpos` 자신 또는 하위 메뉴 중 하나라도 `checked: true`이고 `read: true`이면 허용합니다.
+이 함수는 `cpos` 자신 또는 하위 메뉴 중 하나라도 `read: true`이면 허용합니다.
 
 ## 라우트 접근 권한
 
@@ -251,5 +250,5 @@ canAccessMenu("dashboard", "download");
 
 - 현재 권한 체크는 데모용 클라이언트 권한 체크입니다.
 - 실제 서비스에서는 서버 API에서도 동일한 권한 검증이 필요합니다.
-- `checked`가 false이면 `permissions.read`가 true여도 접근은 거부됩니다.
+- `checked`는 권한 판단 기준이 아니라 메뉴 트리 UI 상태로 취급합니다.
 - 권한 API 응답 전에는 `isPermissionInitialized`가 false이므로 접근 판단을 하지 않습니다.

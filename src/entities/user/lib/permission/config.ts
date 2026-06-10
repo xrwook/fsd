@@ -18,8 +18,8 @@ export const permissionMenuMock: TMenuPermission[] = [
     checked: true,
     permissions: {
       read: true,
-      write: true,
-      download: true,
+      write: false,
+      download: false,
     },
     children: [],
   },
@@ -234,7 +234,7 @@ export const findMenuPermission = (
   return flattenMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null;
 };
 
-// 단일 메뉴는 checked와 요청한 권한 키가 모두 true일 때만 허용합니다.
+// 단일 메뉴는 API가 내려준 permissions 값을 기준으로 허용 여부를 판단합니다.
 export const hasMenuPermission = (
   menus: TMenuPermission[],
   menuId: string,
@@ -246,10 +246,10 @@ export const hasMenuPermission = (
     return false;
   }
 
-  return menu.checked && menu.permissions[permissionKey];
+  return menu.permissions[permissionKey];
 };
 
-// 폴더 메뉴는 자신 또는 하위 메뉴 중 하나라도 허용되면 그룹 접근 허용으로 봅니다.
+// 폴더 메뉴는 자신 또는 하위 메뉴 중 하나라도 해당 권한이 있으면 그룹 접근 허용으로 봅니다.
 export const hasDescendantMenuPermission = (
   menus: TMenuPermission[],
   menuId: string,
@@ -262,6 +262,6 @@ export const hasDescendantMenuPermission = (
   }
 
   return flattenMenuPermissions([menu]).some(
-    (item) => item.checked && item.permissions[permissionKey],
+    (item) => item.permissions[permissionKey],
   );
 };
