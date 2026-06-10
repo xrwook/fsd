@@ -2,37 +2,51 @@
 
 이 문서는 현재 프로젝트의 데모 권한 흐름을 설명합니다.
 
-현재 권한은 실제 서버 API가 아니라 mock API에서 받아오는 메뉴 트리 데이터를 기준으로 판단합니다. 권한 판단 기준은 메뉴 ID와 `read`, `write`, `download` 권한 키입니다.
+현재 권한은 실제 서버 API 대신 mock API/MSW에서 받아오는 메뉴 트리 데이터를 기준으로 판단합니다. 권한 판단 기준은 메뉴 ID와 `read`, `write`, `download` 권한 키입니다.
 
 ## 핵심 파일
 
-- `src/root.tsx`
-  - 앱 시작 시 `useInitializePermission()`을 호출합니다.
+- `src/main.tsx`
+  - 앱 시작 전에 mock API 사용 여부를 확인하고 MSW를 활성화합니다.
+  - `BrowserRouter`로 SPA 라우팅을 감쌉니다.
+- `src/app/App.tsx`
+  - 앱 진입 시 `useInitializePermission()`으로 권한을 초기화합니다.
+  - `vite-plugin-pages`가 만든 `~react-pages` 라우트를 `useRoutes()`에 연결합니다.
+- `src/app/routes`
+  - 파일 시스템 기반 라우팅 디렉터리입니다.
+  - 페이지 라우트 파일에서 `PermissionRoute`로 접근 권한을 공통 체크합니다.
+- `src/app/routes/_guards/PermissionRoute.tsx`
+  - 라우트 접근 권한을 판단하는 공통 guard입니다.
+  - 권한이 없으면 `/403`으로 이동합니다.
+- `vite.config.ts`
+  - `vite-plugin-pages`가 `src/app/routes`를 읽도록 설정합니다.
+  - `_guards` 폴더는 라우트로 생성되지 않도록 제외합니다.
+- `src/shared/mocks`
+  - MSW worker와 `/api/permissions` mock handler를 관리합니다.
 - `src/entities/user/api/getUserPermissionApi.ts`
-  - mock API처럼 300ms 후 권한 데이터를 반환합니다.
+  - mock 모드에서는 `/api/permissions`를 호출하고, MSW 실패 시 직접 mock 응답으로 fallback합니다.
+  - mock 모드가 아니면 실제 API 경로로 요청합니다.
+- `src/entities/user/api/mocks/getUserPermissionMockApi.ts`
+  - 실제 API처럼 300ms 지연 후 권한 mock 데이터를 반환합니다.
 - `src/entities/user/lib/permission/config.ts`
-  - `permissionMenuMock` 데이터와 메뉴 권한 판단 helper를 관리합니다.
+  - `permissionMenuMock` 데이터와 권한 판단 helper를 관리합니다.
 - `src/entities/user/model/userStore.ts`
   - 현재 유저, 메뉴 권한, 권한 초기화 완료 여부를 저장합니다.
 - `src/entities/user/model/useInitializePermission.ts`
-  - mock API에서 권한 데이터를 받아 store에 저장합니다.
+  - 권한 API를 호출하고 응답을 store에 저장합니다.
 - `src/entities/user/lib/permission/usePermission.ts`
-  - 화면에서 사용할 권한 체크 함수를 제공합니다.
-- `src/app/routes/index.tsx`
-  - 라우트 접근 권한을 확인합니다.
-- `src/pages/home/ui/Home.tsx`
-  - 버튼 단위 권한을 확인합니다.
+  - 화면과 route guard에서 사용할 권한 체크 함수를 제공합니다.
 - `src/shared/ui/permission-gate/index.tsx`
-  - 권한이 없을 때 fallback UI를 렌더링합니다.
+  - 버튼/기능 단위 권한에 따라 children 또는 fallback을 렌더링합니다.
 
 ## 권한 데이터 형태
 
 권한 데이터는 메뉴 트리 형태입니다.
 
 ```ts
-type PermissionKey = "read" | "write" | "download";
+type TPermissionKey = "read" | "write" | "download";
 
-type MenuPermission = {
+type TMenuPermission = {
   id: string;
   parentId: string | null;
   depth: number;
@@ -40,8 +54,8 @@ type MenuPermission = {
   type: "folder" | "menu";
   expanded?: boolean;
   checked: boolean;
-  permissions: Record<PermissionKey, boolean>;
-  children?: MenuPermission[];
+  permissions: Record<TPermissionKey, boolean>;
+  children?: TMenuPermission[];
 };
 ```
 
@@ -63,23 +77,41 @@ type MenuPermission = {
 }
 ```
 
+`checked`는 권한 판단 기준으로 사용하지 않습니다. 접근 허용 여부는 항상 `permissions[permissionKey]` 값을 기준으로 판단합니다.
+
 ## 전체 흐름
 
 ```text
-root.tsx
+src/main.tsx
+  -> enableMocking()
+    -> VITE_USE_MOCK_API !== "false" 이고 브라우저 환경이면 MSW worker 시작
+  -> <BrowserRouter>
+  -> <App />
+
+src/app/App.tsx
   -> useInitializePermission()
     -> getUserPermissionApi()
-      -> 300ms 지연
-      -> permissionMenuMock 복사본 반환
-    -> userStore 저장
+      -> mock mode
+        -> axios GET /api/permissions
+        -> MSW handler
+        -> getUserPermissionMockApi()
+        -> permissionMenuMock 복사본 반환
+        -> MSW 실패 시 직접 getUserPermissionMockApi() fallback
+      -> real mode
+        -> axios GET /api/permissions
+    -> userStore.initializePermission()
       -> currentUser
       -> permissionMenus
       -> isPermissionInitialized = true
+  -> useRoutes(routes)
+    -> routes는 vite-plugin-pages가 src/app/routes에서 생성
 
-route/page
-  -> usePermission()
+route file
+  -> <PermissionRoute menuId="..." permissionKey="read">
+    -> 초기화 전이면 null
     -> canAccessMenu(menuId, permissionKey)
-    -> canAccessMenuGroup(menuId, permissionKey)
+    -> 권한 없음이면 /403
+    -> 권한 있으면 page 렌더링
 ```
 
 ## 초기 상태
@@ -87,62 +119,88 @@ route/page
 `userStore`는 처음에 권한을 모르는 상태로 시작합니다.
 
 ```ts
-currentUser: null
-permissionMenus: null
-isPermissionInitialized: false
+currentUser: null;
+permissionMenus: null;
+isPermissionInitialized: false;
 ```
 
-`isPermissionInitialized`가 `false`인 동안에는 라우트/버튼 권한 판단을 보류합니다. 이 값이 없으면 mock API 응답이 오기 전에 권한 없음으로 판단되어 화면이 잘못 차단될 수 있습니다.
+`isPermissionInitialized`가 `false`인 동안에는 route guard와 버튼 권한 판단을 보류합니다. 이 값이 없으면 mock API 응답이 오기 전에 권한 없음으로 판단되어 화면이 잘못 차단될 수 있습니다.
 
-## 권한 초기화 흐름
-
-`src/root.tsx`에서 앱이 렌더링될 때 `useInitializePermission()`을 실행합니다.
-
-`useInitializePermission`은 mock API를 호출합니다.
+권한 응답을 받으면 `initializePermission`으로 한 번에 저장합니다.
 
 ```ts
-const response = await getUserPermissionApi();
-```
-
-응답을 받으면 store에 저장합니다.
-
-```ts
-setCurrentUser({
-  id: response.userId,
-  role: response.role,
+initializePermission({
+  currentUser: {
+    id: response.userId,
+    role: response.role,
+  },
+  permissionMenus: response.permissions,
 });
-
-setPermissionMenus(response.permissions);
-setPermissionInitialized(true);
 ```
 
-API 호출 실패 시에는 유저와 권한을 비우고, 초기화 완료 상태만 true로 둡니다.
+API 호출 실패 시에도 초기화는 완료 상태로 둡니다.
 
 ```ts
-setCurrentUser(null);
-setPermissionMenus(null);
-setPermissionInitialized(true);
+initializePermission({
+  currentUser: null,
+  permissionMenus: null,
+});
 ```
 
 이렇게 하면 실패 상태에서도 라우트가 무한 대기하지 않고 접근 거부 흐름으로 넘어갑니다.
 
 ## mock API 흐름
 
-`getUserPermissionApi`는 실제 fetch를 호출하지 않습니다. 대신 mock API처럼 비동기로 응답합니다.
+`src/main.tsx`는 앱 렌더링 전에 `enableMocking()`을 실행합니다.
 
 ```ts
-await delay(300);
-return structuredClone(demoUserPermission);
+void enableMocking().then(() => {
+  createRoot(rootElement).render(
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>,
+  );
+});
 ```
 
-`structuredClone`을 사용하는 이유는 store나 화면에서 권한 데이터를 수정해도 원본 mock 데이터가 오염되지 않게 하기 위해서입니다.
+`VITE_USE_MOCK_API !== "false"`이면 브라우저에서 MSW worker가 시작됩니다.
+
+```ts
+await worker.start({
+  onUnhandledRequest: "bypass",
+});
+```
+
+권한 API는 mock 모드에서 먼저 HTTP 요청 흐름을 유지합니다.
+
+```ts
+return await axiosInstance.get<TPermissionApiResponse>("/api/permissions");
+```
+
+MSW handler가 이 요청을 가로채서 mock 응답을 반환합니다.
+
+```ts
+http.get("/api/permissions", async () => {
+  const response = await getUserPermissionMockApi();
+
+  return HttpResponse.json(response);
+});
+```
+
+MSW 요청이 실패하면 직접 mock 함수로 fallback합니다.
+
+```ts
+return getUserPermissionMockApi();
+```
+
+`getUserPermissionMockApi`는 실제 API처럼 300ms 지연 후 `structuredClone`으로 복사본을 반환합니다. store나 화면에서 권한 데이터를 수정해도 원본 mock 데이터가 오염되지 않게 하기 위함입니다.
 
 ## 권한 판단 기준
 
 단일 메뉴 권한은 API가 내려준 `permissions` 값을 기준으로 허용됩니다.
 
 ```ts
-menu.permissions[permissionKey] === true
+menu.permissions[permissionKey] === true;
 ```
 
 예시:
@@ -165,45 +223,96 @@ canAccessMenuGroup("cpos", "read");
 
 ## 라우트 접근 권한
 
-`src/app/routes/index.tsx`는 먼저 권한 초기화 여부를 확인합니다.
+라우트 접근 권한은 `src/app/routes/_guards/PermissionRoute.tsx`에서 공통으로 처리합니다.
 
-```ts
-if (!isPermissionInitialized) {
-  return null;
-}
+```tsx
+const PermissionRoute = ({
+  menuId,
+  permissionKey = "read",
+  children,
+}: Props) => {
+  const { canAccessMenu, isPermissionInitialized } = usePermission();
+
+  if (!isPermissionInitialized) {
+    return null;
+  }
+
+  if (!canAccessMenu(menuId, permissionKey)) {
+    return <Navigate to="/403" replace />;
+  }
+
+  return <>{children}</>;
+};
 ```
 
-초기화가 끝나면 `dashboard` 메뉴의 read 권한으로 홈 라우트 접근을 판단합니다.
+각 라우트 파일은 직접 `Navigate` 조건을 작성하지 않고 `PermissionRoute`로 page를 감쌉니다.
 
-```ts
-if (!canAccessMenu("dashboard")) {
-  return <NotFoundPage />;
-}
+```tsx
+import PermissionRoute from "@/app/routes/_guards/PermissionRoute";
+import HomePage from "@/pages/home";
+
+const HomeRoute = () => {
+  return (
+    <PermissionRoute menuId="dashboard">
+      <HomePage />
+    </PermissionRoute>
+  );
+};
+
+export default HomeRoute;
 ```
 
-`canAccessMenu("dashboard")`는 기본 권한 키가 `read`이므로 아래와 같습니다.
+`permissionKey`를 생략하면 기본값은 `read`입니다.
 
-```ts
-canAccessMenu("dashboard", "read");
+```tsx
+<PermissionRoute menuId="dashboard">
+  <HomePage />
+</PermissionRoute>
 ```
 
-## 버튼 권한
+쓰기 권한이 필요한 라우트라면 명시적으로 지정합니다.
 
-`src/pages/home/ui/Home.tsx`에서는 버튼별로 메뉴 권한을 확인합니다.
+```tsx
+<PermissionRoute menuId="station-management" permissionKey="write">
+  <StationEditPage />
+</PermissionRoute>
+```
+
+## 파일 시스템 기반 라우팅
+
+라우트 파일은 `src/app/routes` 아래에 둡니다.
+
+```text
+src/app/routes/index.tsx
+src/app/routes/403.tsx
+src/app/routes/[...notFound].tsx
+src/app/routes/eMSP/corporate-member/corporate-join.tsx
+src/app/routes/eMSP/corporate-member/payment-settlement.tsx
+src/app/routes/eMSP/member-management/member-info.tsx
+src/app/routes/eMSP/member-management/member-payment.tsx
+```
+
+`vite.config.ts`의 `Pages` 설정이 이 디렉터리를 라우트 소스로 사용합니다.
+
+```ts
+Pages({
+  dirs: [{ dir: "src/app/routes", baseRoute: "" }],
+  exclude: ["**/_guards/**"],
+  importMode: "async",
+});
+```
+
+`_guards` 폴더는 공통 guard를 보관하는 곳이고 실제 URL 라우트가 아니므로 `exclude`에 포함합니다.
+
+## 버튼/기능 권한
+
+버튼이나 기능 단위 권한은 `PermissionGate`와 `usePermission`을 함께 사용합니다.
+
+```tsx
+const { canAccessMenu } = usePermission();
+```
 
 충전소 수정 버튼:
-
-```ts
-canAccessMenu("station-management", "write");
-```
-
-내보내기 버튼:
-
-```ts
-canAccessMenu("dashboard", "download");
-```
-
-권한이 없으면 `PermissionGate`가 fallback UI를 렌더링합니다.
 
 ```tsx
 <PermissionGate
@@ -214,41 +323,68 @@ canAccessMenu("dashboard", "download");
 </PermissionGate>
 ```
 
+내보내기 버튼:
+
+```tsx
+<PermissionGate
+  allow={canAccessMenu("dashboard", "download")}
+  fallback={<button disabled>내보내기 불가</button>}
+>
+  <button>내보내기</button>
+</PermissionGate>
+```
+
 ## 현재 데모 결과
 
 현재 mock 데이터 기준:
 
 - `dashboard`
-  - `checked: true`
   - `read/write/download: true`
   - 홈 라우트 접근 가능
   - 내보내기 버튼 표시
 - `station-management`
-  - `checked: true`
   - `read/write/download: true`
   - 충전소 수정 버튼 표시
 - `station-fee-management`
-  - `checked: false`
   - `read/write/download: false`
   - 접근 거부
+- `emsp-corporate-join-management`
+  - `read: true`
+  - 법인회원 가입관리 라우트 접근 가능
+- `emsp-corporate-payment-settlement`
+  - `read/write/download: false`
+  - 법인 결제/정산 라우트 접근 시 `/403`
+- `emsp-member-info`
+  - `read/write/download: false`
+  - 회원정보 라우트 접근 시 `/403`
+- `emsp-member-payment`
+  - `read/write/download: false`
+  - 회원 결제 라우트 접근 시 `/403`
 
-## 확장 방법
+## 새 화면 추가 방법
 
-새 메뉴 권한을 추가할 때:
+새 권한 화면을 추가할 때:
 
-1. mock API 응답 데이터에 새 메뉴를 추가합니다.
-2. 화면이나 라우트에서 `canAccessMenu("menu-id", "read")` 형태로 체크합니다.
-3. 상위 폴더 노출 여부가 필요하면 `canAccessMenuGroup("folder-id", "read")`를 사용합니다.
+1. API 또는 `permissionMenuMock`에 새 메뉴 ID와 권한을 추가합니다.
+2. `src/app/routes` 아래에 라우트 파일을 생성합니다.
+3. 라우트 컴포넌트에서 page를 `PermissionRoute`로 감쌉니다.
+4. `menuId`에는 권한 데이터의 메뉴 ID를 넣습니다.
+5. 기본 조회 권한이면 `permissionKey`를 생략하고, 쓰기/다운로드 권한이면 명시합니다.
+6. 페이지 내부 버튼/기능 권한은 `PermissionGate`로 처리합니다.
 
-새 권한 키를 추가할 때:
+예시:
 
-1. `TPermissionKey` 타입에 새 키를 추가합니다.
-2. 모든 메뉴의 `permissions` 객체에 새 키를 추가합니다.
-3. `canAccessMenu("menu-id", "new-key")` 형태로 사용합니다.
+```tsx
+import PermissionRoute from "@/app/routes/_guards/PermissionRoute";
+import SomePage from "@/pages/some";
 
-## 주의 사항
+const SomeRoute = () => {
+  return (
+    <PermissionRoute menuId="some-menu-id">
+      <SomePage />
+    </PermissionRoute>
+  );
+};
 
-- 현재 권한 체크는 데모용 클라이언트 권한 체크입니다.
-- 실제 서비스에서는 서버 API에서도 동일한 권한 검증이 필요합니다.
-- `checked`는 권한 판단 기준이 아니라 메뉴 트리 UI 상태로 취급합니다.
-- 권한 API 응답 전에는 `isPermissionInitialized`가 false이므로 접근 판단을 하지 않습니다.
+export default SomeRoute;
+```
