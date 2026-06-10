@@ -1,5 +1,4 @@
 const UserInfo = () => {
-//   const { role } = usePermission();
 
   return (
     <div className="space-y-4">

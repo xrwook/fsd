@@ -18,8 +18,8 @@ export const permissionMenuMock: TMenuPermission[] = [
     checked: true,
     permissions: {
       read: true,
-      write: false,
-      download: false,
+      write: true,
+      download: true,
     },
     children: [],
   },
@@ -183,14 +183,99 @@ export const permissionMenuMock: TMenuPermission[] = [
     depth: 1,
     name: "eMSP",
     type: "folder",
-    expanded: false,
+    expanded: true,
     checked: false,
     permissions: {
       read: false,
       write: false,
       download: false,
     },
-    children: [],
+    children: [
+      {
+        id: "emsp-member-management",
+        parentId: "emsp",
+        depth: 2,
+        name: "회원관리",
+        type: "folder",
+        expanded: true,
+        checked: false,
+        permissions: {
+          read: false,
+          write: false,
+          download: false,
+        },
+        children: [
+          {
+            id: "emsp-member-info",
+            parentId: "emsp-member-management",
+            depth: 3,
+            name: "회원정보",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "emsp-member-payment",
+            parentId: "emsp-member-management",
+            depth: 3,
+            name: "결제",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+        ],
+      },
+      {
+        id: "emsp-corporate-member",
+        parentId: "emsp",
+        depth: 2,
+        name: "법인회원",
+        type: "folder",
+        expanded: true,
+        checked: false,
+        permissions: {
+          read: true,
+          write: false,
+          download: false,
+        },
+        children: [
+          {
+            id: "emsp-corporate-join-management",
+            parentId: "emsp-corporate-member",
+            depth: 3,
+            name: "가입관리",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: true,
+              write: false,
+              download: false,
+            },
+          },
+          {
+            id: "emsp-corporate-payment-settlement",
+            parentId: "emsp-corporate-member",
+            depth: 3,
+            name: "법인 결제/정산",
+            type: "menu",
+            checked: false,
+            permissions: {
+              read: false,
+              write: false,
+              download: false,
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     id: "platform-management",
@@ -231,7 +316,9 @@ export const findMenuPermission = (
   menus: TMenuPermission[],
   menuId: string,
 ): TMenuPermission | null => {
-  return flattenMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null;
+  return (
+    flattenMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null
+  );
 };
 
 // 단일 메뉴는 API가 내려준 permissions 값을 기준으로 허용 여부를 판단합니다.

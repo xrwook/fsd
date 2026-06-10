@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       Pages({
         dirs: [{ dir: "src/app/routes", baseRoute: "" }],
+        exclude: ["**/_guards/**"],
         importMode: "async",
       }),
       react(),
