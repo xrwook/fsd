@@ -1,21 +1,8 @@
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { getUserPermissionMockApi } from "@/entities/user/api/mocks/getUserPermissionMockApi";
 import { permissionApiResponseSchema } from "@/entities/user/lib/permission/schema";
 import { axiosInstance } from "@/shared/lib/axios";
-import type { TPermissionApiResponse } from "@/entities/user/lib/permission/types";
-
-const validateUserPermissionResponse = (
-  response: unknown,
-): TPermissionApiResponse => {
-  const result = permissionApiResponseSchema.safeParse(response);
-
-  if (!result.success) {
-    throw new Error(
-      `[permission-api] invalid response data: ${result.error.message}`,
-    );
-  }
-
-  return result.data;
-};
+import type { TPermissionApiResponse } from "../lib/permission";
 
 // 사용자 권한 조회 API를 모사해 라우트/화면 가드에서 공통으로 사용합니다.
 export const getUserPermissionApi = async () => {
@@ -23,23 +10,34 @@ export const getUserPermissionApi = async () => {
 
   if (shouldUseMockApi) {
     if (typeof window === "undefined") {
-      const response = await getUserPermissionMockApi();
-
-      return validateUserPermissionResponse(response);
+      const xxx = permissionApiResponseSchema.parse(await getUserPermissionMockApi());
+      return xxx
     }
 
     try {
-      const response = await axiosInstance.get<unknown>("/api/permissions");
-
-      return validateUserPermissionResponse(response);
+      return permissionApiResponseSchema.parse(
+        await axiosInstance.get<TPermissionApiResponse>("/api/permissions"),
+      );
     } catch {
-      const response = await getUserPermissionMockApi();
-
-      return validateUserPermissionResponse(response);
+      return permissionApiResponseSchema.parse(await getUserPermissionMockApi());
     }
   }
+  const res =  await axiosInstance.get<TPermissionApiResponse>("/api/permissions");
+  return permissionApiResponseSchema.parse(res);
+};
 
-  const response = await axiosInstance.get<unknown>("/api/permissions");
+export const userPermissionQueryFactory = {
+  all: () => ["user-permission"] as const,
+  current: () =>
+    queryOptions({
+      queryKey: [...userPermissionQueryFactory.all(), "current"] as const,
+      queryFn: getUserPermissionApi,
+      staleTime: Infinity,
+      gcTime: Infinity,
+      retry: false,
+    }),
+};
 
-  return validateUserPermissionResponse(response);
+export const useGetUserPermissionQuery = () => {
+  return useQuery(userPermissionQueryFactory.current());
 };

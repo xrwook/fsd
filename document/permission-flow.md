@@ -28,8 +28,7 @@
   - mock 모드에서는 `/api/permissions`를 호출하고, MSW 실패 시 직접 mock 응답으로 fallback합니다.
   - mock 모드가 아니면 실제 API 경로로 요청합니다.
   - 응답 데이터는 store에 넣기 전에 zod schema로 검증합니다.
-- `src/entities/user/api/userPermissionQueryFactory.ts`
-  - 권한 조회 React Query 옵션을 query factory 형태로 제공합니다.
+  - 권한 조회 React Query query factory와 `useGetUserPermissionQuery()`를 함께 제공합니다.
 - `src/entities/user/api/mocks/getUserPermissionMockApi.ts`
   - 실제 API처럼 300ms 지연 후 권한 mock 데이터를 반환합니다.
 - `src/entities/user/lib/permission/schema.ts`
@@ -37,7 +36,7 @@
 - `src/entities/user/lib/permission/config.ts`
   - `permissionMenuMock` 데이터와 권한 판단 helper를 관리합니다.
 - `src/entities/user/model/userStore.ts`
-  - 현재 유저, 메뉴 권한, 권한 초기화 완료 여부를 저장합니다.
+  - 메뉴 권한과 권한 초기화 완료 여부를 저장합니다.
 - `src/entities/user/model/useInitializePermission.ts`
   - 권한 API를 호출하고 응답을 store에 저장합니다.
 - `src/entities/user/lib/permission/usePermission.ts`
@@ -120,7 +119,8 @@ src/main.tsx
 
 src/app/App.tsx
   -> useInitializePermission()
-    -> useQuery(userPermissionQueryFactory.current())
+    -> useGetUserPermissionQuery()
+      -> useQuery(userPermissionQueryFactory.current())
       -> getUserPermissionApi()
         -> mock mode
           -> axios GET /api/permissions
@@ -130,7 +130,7 @@ src/app/App.tsx
           -> MSW 실패 시 직접 getUserPermissionMockApi() fallback
         -> real mode
           -> axios GET /api/permissions
-        -> permissionApiResponseSchema.safeParse(response)
+        -> permissionApiResponseSchema.parse(response)
       -> success
         -> userStore.initializePermission()
           -> permissionMenus
@@ -202,7 +202,9 @@ await worker.start({
 권한 API는 mock 모드에서 먼저 HTTP 요청 흐름을 유지합니다.
 
 ```ts
-return await axiosInstance.get<unknown>("/api/permissions");
+return permissionApiResponseSchema.parse(
+  await axiosInstance.get<unknown>("/api/permissions"),
+);
 ```
 
 MSW handler가 이 요청을 가로채서 mock 응답을 반환합니다.
@@ -228,24 +230,22 @@ return getUserPermissionMockApi();
 권한 API 응답은 TypeScript 타입만 믿지 않고 `zod`로 런타임 검증합니다. schema가 타입과 런타임 검증의 기준입니다.
 
 ```ts
-const result = permissionApiResponseSchema.safeParse(response);
-
-if (!result.success) {
-  throw new Error("[permission-api] invalid response data");
-}
+return permissionApiResponseSchema.parse(
+  await axiosInstance.get<unknown>("/api/permissions"),
+);
 ```
 
 검증을 통과한 메뉴 배열만 `TPermissionApiResponse`로 사용하고 store에 저장합니다.
 
 ```ts
-return result.data;
+return permissionApiResponseSchema.parse(await getUserPermissionMockApi());
 ```
 
-검증 실패 시 `getUserPermissionApi`가 throw하고, React Query는 해당 요청을 error 상태로 처리합니다. 이후 `useInitializePermission`이 유저와 권한을 비운 상태로 초기화를 완료합니다.
+검증 실패 시 `parse`가 zod error를 throw하고, React Query는 해당 요청을 error 상태로 처리합니다. 이후 `useInitializePermission`이 권한을 비운 상태로 초기화를 완료합니다.
 
 ## React Query 흐름
 
-권한 조회는 컴포넌트에서 API 함수를 직접 호출하지 않고 query factory를 통해 실행합니다.
+권한 조회는 컴포넌트에서 API 함수를 직접 호출하지 않고 `getUserPermissionApi.ts`에 함께 둔 query hook을 통해 실행합니다.
 
 ```ts
 export const userPermissionQueryFactory = {
@@ -259,12 +259,16 @@ export const userPermissionQueryFactory = {
       retry: false,
     }),
 };
+
+export const useGetUserPermissionQuery = () => {
+  return useQuery(userPermissionQueryFactory.current());
+};
 ```
 
 `useInitializePermission`은 query 결과를 구독하고, 성공/실패 상태만 store에 반영합니다.
 
 ```ts
-const permissionQuery = useQuery(userPermissionQueryFactory.current());
+const permissionQuery = useGetUserPermissionQuery();
 ```
 
 성공 시에는 API 응답을 store에 저장합니다.

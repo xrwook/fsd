@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { userPermissionQueryFactory } from "@/entities/user/api";
+import { useGetUserPermissionQuery } from "@/entities/user/api";
 import { useUserStore } from "@/entities/user/model/userStore";
 
 export const useInitializePermission = () => {
   const setInitializePermission = useUserStore(
     (state) => state.setInitializePermission,
   );
-  const permissionQuery = useQuery(userPermissionQueryFactory.current());
+  const permissionQuery = useGetUserPermissionQuery();
 
   useEffect(() => {
     if (!permissionQuery.isSuccess) {

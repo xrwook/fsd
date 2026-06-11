@@ -1,5 +1,5 @@
 export { useUserStore } from "@/entities/user/model/userStore";
-export { useInitializePermission } from "@/entities/user/model/useInitializePermission";
+export { useInitializePermission } from "@/entities/user/lib/permission/useInitializePermission";
 export { usePermission } from "@/entities/user/lib/permission";
 export type {
   TMenuPermission,
