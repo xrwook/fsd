@@ -252,7 +252,7 @@ export const permissionMenuMock: TMenuPermission[] = [
             type: "menu",
             checked: false,
             permissions: {
-              read: true,
+              read: false,
               write: false,
               download: false,
             },
