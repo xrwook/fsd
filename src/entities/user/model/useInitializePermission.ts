@@ -4,8 +4,8 @@ import { userPermissionQueryFactory } from "@/entities/user/api";
 import { useUserStore } from "@/entities/user/model/userStore";
 
 export const useInitializePermission = () => {
-  const initializePermission = useUserStore(
-    (state) => state.initializePermission,
+  const setInitializePermission = useUserStore(
+    (state) => state.setInitializePermission,
   );
   const permissionQuery = useQuery(userPermissionQueryFactory.current());
 
@@ -15,9 +15,9 @@ export const useInitializePermission = () => {
     }
 
     // 권한 응답이 들어온 뒤에만 라우트/버튼 가드가 실제 판단을 시작합니다.
-    initializePermission(permissionQuery.data);
+    setInitializePermission(permissionQuery.data);
   }, [
-    initializePermission,
+    setInitializePermission,
     permissionQuery.data,
     permissionQuery.isSuccess,
   ]);
@@ -28,6 +28,6 @@ export const useInitializePermission = () => {
     }
 
     // 실패해도 초기화는 끝난 상태로 두어 라우트가 무한 대기하지 않게 합니다.
-    initializePermission(null);
-  }, [initializePermission, permissionQuery.isError]);
+    setInitializePermission(null);
+  }, [setInitializePermission, permissionQuery.isError]);
 };

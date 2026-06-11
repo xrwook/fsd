@@ -326,7 +326,7 @@ export const hasMenuPermission = (
 };
 
 // 폴더 메뉴는 자신 또는 하위 메뉴 중 하나라도 해당 권한이 있으면 그룹 접근 허용으로 봅니다.
-export const hasDescendantMenuPermission = (
+export const hasChildrenMenuPermission = (
   menus: TMenuPermission[],
   menuId: string,
   permissionKey: TPermissionKey = "read",

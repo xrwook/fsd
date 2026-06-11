@@ -1,5 +1,5 @@
 import {
-  hasDescendantMenuPermission,
+  hasChildrenMenuPermission,
   hasMenuPermission,
 } from "@/entities/user/lib/permission/config";
 import { useUserStore } from "@/entities/user/model/userStore";
@@ -34,7 +34,7 @@ export const usePermission = () => {
       return false;
     }
 
-    return hasDescendantMenuPermission(
+    return hasChildrenMenuPermission(
       resolvedPermissionMenus,
       menuId,
       permissionKey,
