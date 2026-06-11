@@ -1,7 +1,7 @@
 import { permissionMenuMock } from "@/entities/user/lib/permission/config";
 
 // 실제 API 호출 흐름을 유지하기 위한 mock 응답 지연 시간입니다.
-const MOCK_API_DELAY_MS = 300;
+const MOCK_API_DELAY_MS = 5000;
 
 // fetch를 쓰지 않고도 컴포넌트에서는 비동기 API처럼 다룰 수 있게 합니다.
 const delay = (ms: number) => {

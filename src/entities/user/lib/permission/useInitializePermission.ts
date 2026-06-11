@@ -7,7 +7,7 @@ export const useInitializePermission = () => {
     (state) => state.setInitializePermission,
   );
   const permissionQuery = useGetUserPermissionQuery();
-
+  console.log("useInitializePermission", permissionQuery.data)
   useEffect(() => {
     if (!permissionQuery.isSuccess) {
       return;

@@ -5,7 +5,12 @@ import routes from "~react-pages";
 
 const App = () => {
   useInitializePermission();
-  return <Suspense fallback={null}>{useRoutes(routes)}</Suspense>;
+  return (
+    <div>
+      <span>asdasd</span>
+      <Suspense fallback={null}>{useRoutes(routes)}</Suspense>
+    </div>
+  );
 };
 
 export default App;
