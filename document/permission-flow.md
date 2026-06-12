@@ -75,7 +75,11 @@ export const menuPermissionSchema: z.ZodType<TMenuPermissionSchema> = z.lazy(
     }),
 );
 
-export const menuPermissionApiResponseSchema = z.array(menuPermissionSchema);
+export const menuPermissionApiResponseSchema = z.object({
+  permissionName: z.string(),
+  permissionDescription: z.string(),
+  permissions: z.array(menuPermissionSchema),
+});
 ```
 
 `types.ts`는 schema를 원본으로 사용합니다.
@@ -133,11 +137,11 @@ src/app/App.tsx
         -> menuPermissionApiResponseSchema.parse(response)
       -> success
         -> menuPermissionStore.setInitializePermission()
-          -> permissionMenus
+          -> menuPermission
           -> isPermissionInitialized = true
       -> error
         -> menuPermissionStore.setInitializePermission()
-          -> permissionMenus = null
+          -> menuPermission = null
           -> isPermissionInitialized = true
   -> useRoutes(routes)
     -> routes는 vite-plugin-pages가 src/app/routes에서 생성
@@ -155,13 +159,13 @@ route file
 `menuPermissionStore`는 처음에 권한을 모르는 상태로 시작합니다.
 
 ```ts
-permissionMenus: null;
+menuPermission: null;
 isPermissionInitialized: false;
 ```
 
 `isPermissionInitialized`가 `false`인 동안에는 route guard와 버튼 권한 판단을 보류합니다. 이 값이 없으면 mock API 응답이 오기 전에 권한 없음으로 판단되어 화면이 잘못 차단될 수 있습니다.
 
-권한 응답을 받으면 `initializePermission`으로 한 번에 저장합니다.
+권한 응답을 받으면 `setInitializePermission`으로 한 번에 저장합니다.
 
 ```ts
 setInitializePermission(response);
@@ -235,7 +239,7 @@ return menuPermissionApiResponseSchema.parse(
 );
 ```
 
-검증을 통과한 메뉴 배열만 `TMenuPermissionApiResponse`로 사용하고 store에 저장합니다.
+검증을 통과한 응답 객체만 `TMenuPermissionApiResponse`로 사용하고 store에 저장합니다. 실제 권한 체크는 응답 객체의 `permissions` 배열을 사용합니다.
 
 ```ts
 return menuPermissionApiResponseSchema.parse(await getMenuPermissionMockApi());

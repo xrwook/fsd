@@ -12,14 +12,15 @@ import type {
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
 
 export const useMenuPermission = () => {
-  const permissionMenus = useMenuPermissionStore(
-    (state) => state.permissionMenus,
+  const menuPermission = useMenuPermissionStore(
+    (state) => state.menuPermission,
   );
   const isPermissionInitialized = useMenuPermissionStore(
     (state) => state.isPermissionInitialized,
   );
 
-  const resolvedPermissionMenus = permissionMenus ?? EMPTY_PERMISSION_MENUS;
+  const resolvedPermissionMenus =
+    menuPermission?.permissions ?? EMPTY_PERMISSION_MENUS;
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
@@ -51,6 +52,9 @@ export const useMenuPermission = () => {
   );
 
   return {
+    menuPermission,
+    permissionName: menuPermission?.permissionName ?? null,
+    permissionDescription: menuPermission?.permissionDescription ?? null,
     permissionMenus: resolvedPermissionMenus,
     isPermissionInitialized,
     canAccessMenu,
