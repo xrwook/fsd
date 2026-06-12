@@ -28,4 +28,4 @@ export const menuPermissionSchema: z.ZodType<TMenuPermissionSchema> = z.lazy(
     }),
 );
 
-export const permissionApiResponseSchema = z.array(menuPermissionSchema);
+export const menuPermissionApiResponseSchema = z.array(menuPermissionSchema);

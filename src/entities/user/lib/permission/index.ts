@@ -1,11 +1,11 @@
-export { usePermission } from "@/entities/user/lib/permission/usePermission";
+export { useMenuPermission } from "@/entities/user/lib/permission/useMenuPermission";
 export {
   menuPermissionSchema,
-  permissionApiResponseSchema,
+  menuPermissionApiResponseSchema,
   permissionKeySchema,
 } from "@/entities/user/lib/permission/schema";
 export type {
   TMenuPermission,
   TPermissionKey,
-  TPermissionApiResponse,
+  TMenuPermissionApiResponse,
 } from "@/entities/user/lib/permission/types";

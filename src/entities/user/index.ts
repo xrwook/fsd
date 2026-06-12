@@ -1,6 +1,6 @@
-export { useUserStore } from "@/entities/user/model/userStore";
-export { useInitializePermission } from "@/entities/user/lib/permission/useInitializePermission";
-export { usePermission } from "@/entities/user/lib/permission";
+export { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
+export { useInitializeMenuPermission } from "@/entities/user/lib/permission/useInitializeMenuPermission";
+export { useMenuPermission } from "@/entities/user/lib/permission";
 export type {
   TMenuPermission,
   TPermissionKey,

@@ -11,7 +11,7 @@
   - `QueryProvider`로 React Query 환경을 제공합니다.
   - `BrowserRouter`로 SPA 라우팅을 감쌉니다.
 - `src/app/App.tsx`
-  - 앱 진입 시 `useInitializePermission()`으로 권한을 초기화합니다.
+  - 앱 진입 시 `useInitializeMenuPermission()`으로 권한을 초기화합니다.
   - `vite-plugin-pages`가 만든 `~react-pages` 라우트를 `useRoutes()`에 연결합니다.
 - `src/app/routes`
   - 파일 시스템 기반 라우팅 디렉터리입니다.
@@ -24,22 +24,22 @@
   - `_guards` 폴더는 라우트로 생성되지 않도록 제외합니다.
 - `src/shared/mocks`
   - MSW worker와 `/api/permissions` mock handler를 관리합니다.
-- `src/entities/user/api/getUserPermissionApi.ts`
+- `src/entities/user/api/getMenuPermissionApi.ts`
   - mock 모드에서는 `/api/permissions`를 호출하고, MSW 실패 시 직접 mock 응답으로 fallback합니다.
   - mock 모드가 아니면 실제 API 경로로 요청합니다.
   - 응답 데이터는 store에 넣기 전에 zod schema로 검증합니다.
-  - 권한 조회 React Query query factory와 `useGetUserPermissionQuery()`를 함께 제공합니다.
-- `src/entities/user/api/mocks/getUserPermissionMockApi.ts`
+  - 권한 조회 React Query query factory와 `useGetMenuPermissionQuery()`를 함께 제공합니다.
+- `src/entities/user/api/mocks/getMenuPermissionMockApi.ts`
   - 실제 API처럼 300ms 지연 후 권한 mock 데이터를 반환합니다.
 - `src/entities/user/lib/permission/schema.ts`
   - 권한 API 응답과 메뉴 권한 데이터의 zod schema를 관리합니다.
 - `src/entities/user/lib/permission/config.ts`
   - `permissionMenuMock` 데이터와 권한 판단 helper를 관리합니다.
-- `src/entities/user/model/userStore.ts`
+- `src/entities/user/model/menuPermissionStore.ts`
   - 메뉴 권한과 권한 초기화 완료 여부를 저장합니다.
-- `src/entities/user/model/useInitializePermission.ts`
+- `src/entities/user/lib/permission/useInitializeMenuPermission.ts`
   - 권한 API를 호출하고 응답을 store에 저장합니다.
-- `src/entities/user/lib/permission/usePermission.ts`
+- `src/entities/user/lib/permission/useMenuPermission.ts`
   - 화면과 route guard에서 사용할 권한 체크 함수를 제공합니다.
 - `src/shared/ui/permission-gate/index.tsx`
   - 버튼/기능 단위 권한에 따라 children 또는 fallback을 렌더링합니다.
@@ -75,15 +75,15 @@ export const menuPermissionSchema: z.ZodType<TMenuPermissionSchema> = z.lazy(
     }),
 );
 
-export const permissionApiResponseSchema = z.array(menuPermissionSchema);
+export const menuPermissionApiResponseSchema = z.array(menuPermissionSchema);
 ```
 
 `types.ts`는 schema를 원본으로 사용합니다.
 
 ```ts
 export type TMenuPermission = z.infer<typeof menuPermissionSchema>;
-export type TPermissionApiResponse = z.infer<
-  typeof permissionApiResponseSchema
+export type TMenuPermissionApiResponse = z.infer<
+  typeof menuPermissionApiResponseSchema
 >;
 ```
 
@@ -118,25 +118,25 @@ src/main.tsx
   -> <App />
 
 src/app/App.tsx
-  -> useInitializePermission()
-    -> useGetUserPermissionQuery()
-      -> useQuery(userPermissionQueryFactory.current())
-      -> getUserPermissionApi()
+  -> useInitializeMenuPermission()
+    -> useGetMenuPermissionQuery()
+      -> useQuery(menuPermissionQueryFactory.current())
+      -> getMenuPermissionApi()
         -> mock mode
           -> axios GET /api/permissions
           -> MSW handler
-          -> getUserPermissionMockApi()
+          -> getMenuPermissionMockApi()
           -> permissionMenuMock 복사본 반환
-          -> MSW 실패 시 직접 getUserPermissionMockApi() fallback
+          -> MSW 실패 시 직접 getMenuPermissionMockApi() fallback
         -> real mode
           -> axios GET /api/permissions
-        -> permissionApiResponseSchema.parse(response)
+        -> menuPermissionApiResponseSchema.parse(response)
       -> success
-        -> userStore.initializePermission()
+        -> menuPermissionStore.setInitializePermission()
           -> permissionMenus
           -> isPermissionInitialized = true
       -> error
-        -> userStore.initializePermission()
+        -> menuPermissionStore.setInitializePermission()
           -> permissionMenus = null
           -> isPermissionInitialized = true
   -> useRoutes(routes)
@@ -152,7 +152,7 @@ route file
 
 ## 초기 상태
 
-`userStore`는 처음에 권한을 모르는 상태로 시작합니다.
+`menuPermissionStore`는 처음에 권한을 모르는 상태로 시작합니다.
 
 ```ts
 permissionMenus: null;
@@ -164,13 +164,13 @@ isPermissionInitialized: false;
 권한 응답을 받으면 `initializePermission`으로 한 번에 저장합니다.
 
 ```ts
-initializePermission(response);
+setInitializePermission(response);
 ```
 
 API 호출 실패 시에도 초기화는 완료 상태로 둡니다.
 
 ```ts
-initializePermission(null);
+setInitializePermission(null);
 ```
 
 이렇게 하면 실패 상태에서도 라우트가 무한 대기하지 않고 접근 거부 흐름으로 넘어갑니다.
@@ -202,7 +202,7 @@ await worker.start({
 권한 API는 mock 모드에서 먼저 HTTP 요청 흐름을 유지합니다.
 
 ```ts
-return permissionApiResponseSchema.parse(
+return menuPermissionApiResponseSchema.parse(
   await axiosInstance.get<unknown>("/api/permissions"),
 );
 ```
@@ -211,7 +211,7 @@ MSW handler가 이 요청을 가로채서 mock 응답을 반환합니다.
 
 ```ts
 http.get("/api/permissions", async () => {
-  const response = await getUserPermissionMockApi();
+  const response = await getMenuPermissionMockApi();
 
   return HttpResponse.json(response);
 });
@@ -220,67 +220,67 @@ http.get("/api/permissions", async () => {
 MSW 요청이 실패하면 직접 mock 함수로 fallback합니다.
 
 ```ts
-return getUserPermissionMockApi();
+return getMenuPermissionMockApi();
 ```
 
-`getUserPermissionMockApi`는 실제 API처럼 300ms 지연 후 `structuredClone`으로 복사본을 반환합니다. store나 화면에서 권한 데이터를 수정해도 원본 mock 데이터가 오염되지 않게 하기 위함입니다.
+`getMenuPermissionMockApi`는 실제 API처럼 300ms 지연 후 `structuredClone`으로 복사본을 반환합니다. store나 화면에서 권한 데이터를 수정해도 원본 mock 데이터가 오염되지 않게 하기 위함입니다.
 
 ## 응답 데이터 검증
 
 권한 API 응답은 TypeScript 타입만 믿지 않고 `zod`로 런타임 검증합니다. schema가 타입과 런타임 검증의 기준입니다.
 
 ```ts
-return permissionApiResponseSchema.parse(
+return menuPermissionApiResponseSchema.parse(
   await axiosInstance.get<unknown>("/api/permissions"),
 );
 ```
 
-검증을 통과한 메뉴 배열만 `TPermissionApiResponse`로 사용하고 store에 저장합니다.
+검증을 통과한 메뉴 배열만 `TMenuPermissionApiResponse`로 사용하고 store에 저장합니다.
 
 ```ts
-return permissionApiResponseSchema.parse(await getUserPermissionMockApi());
+return menuPermissionApiResponseSchema.parse(await getMenuPermissionMockApi());
 ```
 
-검증 실패 시 `parse`가 zod error를 throw하고, React Query는 해당 요청을 error 상태로 처리합니다. 이후 `useInitializePermission`이 권한을 비운 상태로 초기화를 완료합니다.
+검증 실패 시 `parse`가 zod error를 throw하고, React Query는 해당 요청을 error 상태로 처리합니다. 이후 `useInitializeMenuPermission`이 권한을 비운 상태로 초기화를 완료합니다.
 
 ## React Query 흐름
 
-권한 조회는 컴포넌트에서 API 함수를 직접 호출하지 않고 `getUserPermissionApi.ts`에 함께 둔 query hook을 통해 실행합니다.
+권한 조회는 컴포넌트에서 API 함수를 직접 호출하지 않고 `getMenuPermissionApi.ts`에 함께 둔 query hook을 통해 실행합니다.
 
 ```ts
-export const userPermissionQueryFactory = {
-  all: () => ["user-permission"] as const,
+export const menuPermissionQueryFactory = {
+  all: () => ["menu-permission"] as const,
   current: () =>
     queryOptions({
-      queryKey: [...userPermissionQueryFactory.all(), "current"] as const,
-      queryFn: getUserPermissionApi,
+      queryKey: [...menuPermissionQueryFactory.all(), "current"] as const,
+      queryFn: getMenuPermissionApi,
       staleTime: Infinity,
       gcTime: Infinity,
       retry: false,
     }),
 };
 
-export const useGetUserPermissionQuery = () => {
-  return useQuery(userPermissionQueryFactory.current());
+export const useGetMenuPermissionQuery = () => {
+  return useQuery(menuPermissionQueryFactory.current());
 };
 ```
 
-`useInitializePermission`은 query 결과를 구독하고, 성공/실패 상태만 store에 반영합니다.
+`useInitializeMenuPermission`은 query 결과를 구독하고, 성공/실패 상태만 store에 반영합니다.
 
 ```ts
-const permissionQuery = useGetUserPermissionQuery();
+const permissionQuery = useGetMenuPermissionQuery();
 ```
 
 성공 시에는 API 응답을 store에 저장합니다.
 
 ```ts
-initializePermission(permissionQuery.data);
+setInitializePermission(permissionQuery.data);
 ```
 
 실패 시에는 권한을 비우고 초기화 완료 상태로 둡니다.
 
 ```ts
-initializePermission(null);
+setInitializePermission(null);
 ```
 
 ## 권한 판단 기준
@@ -319,7 +319,7 @@ const PermissionRoute = ({
   permissionKey = "read",
   children,
 }: Props) => {
-  const { canAccessMenu, isPermissionInitialized } = usePermission();
+  const { canAccessMenu, isPermissionInitialized } = useMenuPermission();
 
   if (!isPermissionInitialized) {
     return null;
@@ -394,10 +394,10 @@ Pages({
 
 ## 버튼/기능 권한
 
-버튼이나 기능 단위 권한은 `PermissionGate`와 `usePermission`을 함께 사용합니다.
+버튼이나 기능 단위 권한은 `PermissionGate`와 `useMenuPermission`을 함께 사용합니다.
 
 ```tsx
-const { canAccessMenu } = usePermission();
+const { canAccessMenu } = useMenuPermission();
 ```
 
 충전소 수정 버튼:

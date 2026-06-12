@@ -1,5 +1,5 @@
 export {
-  getUserPermissionApi,
-  useGetUserPermissionQuery,
-  userPermissionQueryFactory,
-} from "@/entities/user/api/getUserPermissionApi";
+  getMenuPermissionApi,
+  useGetMenuPermissionQuery,
+  menuPermissionQueryFactory,
+} from "@/entities/user/api/getMenuPermissionApi";

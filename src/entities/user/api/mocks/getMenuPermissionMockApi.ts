@@ -10,7 +10,7 @@ const delay = (ms: number) => {
   });
 };
 
-export const getUserPermissionMockApi = async () => {
+export const getMenuPermissionMockApi = async () => {
   await delay(MOCK_API_DELAY_MS);
 
   // store에서 권한 데이터를 변경해도 원본 mock이 오염되지 않도록 복사본을 반환합니다.

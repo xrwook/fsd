@@ -1,9 +1,9 @@
 import { WelcomeWidget } from "@/widgets/welcome";
-import { usePermission } from "@/entities/user";
+import { useMenuPermission } from "@/entities/user";
 import PermissionGate from "@/shared/ui/permission-gate";
 
 const Home = () => {
-  const { canAccessMenu } = usePermission();
+  const { canAccessMenu } = useMenuPermission();
 
   return (
     <div className="space-y-4">

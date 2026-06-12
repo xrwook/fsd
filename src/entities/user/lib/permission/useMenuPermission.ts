@@ -3,7 +3,7 @@ import {
   hasChildrenMenuPermission,
   hasMenuPermission,
 } from "@/entities/user/lib/permission/config";
-import { useUserStore } from "@/entities/user/model/userStore";
+import { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
 import type {
   TMenuPermission,
   TPermissionKey,
@@ -11,9 +11,11 @@ import type {
 
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
 
-export const usePermission = () => {
-  const permissionMenus = useUserStore((state) => state.permissionMenus);
-  const isPermissionInitialized = useUserStore(
+export const useMenuPermission = () => {
+  const permissionMenus = useMenuPermissionStore(
+    (state) => state.permissionMenus,
+  );
+  const isPermissionInitialized = useMenuPermissionStore(
     (state) => state.isPermissionInitialized,
   );
 

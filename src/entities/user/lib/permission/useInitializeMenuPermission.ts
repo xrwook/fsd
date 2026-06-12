@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useGetUserPermissionQuery } from "@/entities/user/api";
-import { useUserStore } from "@/entities/user/model/userStore";
+import { useGetMenuPermissionQuery } from "@/entities/user/api";
+import { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
 
-export const useInitializePermission = () => {
-  const setInitializePermission = useUserStore(
+export const useInitializeMenuPermission = () => {
+  const setInitializePermission = useMenuPermissionStore(
     (state) => state.setInitializePermission,
   );
-  const permissionQuery = useGetUserPermissionQuery();
-  console.log("useInitializePermission", permissionQuery.data)
+  const permissionQuery = useGetMenuPermissionQuery();
+
   useEffect(() => {
     if (!permissionQuery.isSuccess) {
       return;

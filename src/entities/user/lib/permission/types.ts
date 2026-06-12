@@ -1,7 +1,7 @@
 import type { z } from "zod";
 import type {
   menuPermissionSchema,
-  permissionApiResponseSchema,
+  menuPermissionApiResponseSchema,
   permissionKeySchema,
 } from "@/entities/user/lib/permission/schema";
 
@@ -18,4 +18,6 @@ export type TMenuPermission = z.infer<typeof menuPermissionSchema>;
 /**
  * 사용자 권한 조회 API의 응답 타입입니다.
  */
-export type TPermissionApiResponse = z.infer<typeof permissionApiResponseSchema>;
+export type TMenuPermissionApiResponse = z.infer<
+  typeof menuPermissionApiResponseSchema
+>;

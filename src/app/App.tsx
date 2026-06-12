@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { useRoutes } from "react-router-dom";
-import { useInitializePermission } from "@/entities/user";
+import { useInitializeMenuPermission } from "@/entities/user";
 import routes from "~react-pages";
 
 const App = () => {
-  useInitializePermission();
+  useInitializeMenuPermission();
   return (
     <div>
       <span>asdasd</span>

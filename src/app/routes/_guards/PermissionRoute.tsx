@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-import { usePermission } from "@/entities/user";
+import { useMenuPermission } from "@/entities/user";
 import type { TPermissionKey } from "@/entities/user";
 
 interface Props {
@@ -14,7 +14,7 @@ const PermissionRoute = ({
   permissionKey = "read",
   children,
 }: Props) => {
-  const { canAccessMenu, isPermissionInitialized } = usePermission();
+  const { canAccessMenu, isPermissionInitialized } = useMenuPermission();
 
   if (!isPermissionInitialized) {
     return null;
