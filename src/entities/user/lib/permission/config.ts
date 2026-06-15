@@ -214,7 +214,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               type: "menu",
               checked: false,
               permissions: {
-                read: false,
+                read: true,
                 write: false,
                 download: false,
               },
