@@ -3,6 +3,7 @@ import type {
   TMenuPermissionApiResponse,
   TPermissionKey,
 } from "@/entities/user/lib/permission/types";
+import { flattenTree } from "@/shared/lib/utils";
 
 // 실제 API가 내려주는 메뉴 트리 형태를 유지한 권한 mock 데이터입니다.
 export const permissionMenuMock: TMenuPermissionApiResponse = {
@@ -296,21 +297,11 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
   ],
 };
 
-// 권한 체크는 menu id 기준으로 하므로 중첩 메뉴를 평탄화해서 탐색합니다.
-export const flatMenuPermissions = (
-  menus: TMenuPermission[],
-): TMenuPermission[] => {
-  return menus.flatMap((menu) => [
-    menu,
-    ...flatMenuPermissions(menu.children ?? []),
-  ]);
-};
-
 export const findMenuPermission = (
   menus: TMenuPermission[],
   menuId: string,
 ): TMenuPermission | null => {
-  return flatMenuPermissions(menus).find((menu) => menu.id === menuId) ?? null;
+  return flattenTree(menus).find((menu) => menu.id === menuId) ?? null;
 };
 
 // 단일 메뉴는 API가 내려준 permissions 값을 기준으로 허용 여부를 판단합니다.
@@ -341,7 +332,7 @@ export const hasChildrenMenuPermission = (
     return false;
   }
 
-  return flatMenuPermissions([menu]).some(
+  return flattenTree([menu]).some(
     (item) => item.permissions[permissionKey],
   );
 };
