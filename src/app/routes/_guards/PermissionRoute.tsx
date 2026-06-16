@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 import { useMenuPermission } from "@/entities/user";
-import type { TPermissionKey } from "@/entities/user";
+import type { TMenuId, TPermissionKey } from "@/entities/user";
 
 interface Props {
-  menuId: string;
+  menuId: TMenuId;
   permissionKey?: TPermissionKey;
   children: ReactNode;
 }

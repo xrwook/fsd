@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { MENU_ID_VALUES } from "@/entities/user/lib/permission/menuIds";
 
 export const permissionKeySchema = z.enum(["read", "write", "download"]);
+export const menuIdSchema = z.enum(MENU_ID_VALUES);
 
 const menuPermissionBaseSchema = z.object({
-  id: z.string(),
-  parentId: z.string().nullable(),
+  id: menuIdSchema,
+  parentId: menuIdSchema.nullable(),
   depth: z.number(),
   name: z.string(),
   type: z.enum(["folder", "menu"]),

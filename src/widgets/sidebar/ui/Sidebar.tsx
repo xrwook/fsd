@@ -8,39 +8,45 @@ import {
   FolderOutlined,
   GroupsOutlined,
   SettingsOutlined,
+  StarBorderRounded,
+  StarRounded,
 } from "@mui/icons-material";
 import {
   Box,
   Collapse,
   Divider,
+  IconButton,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Skeleton,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useMenuPermission } from "@/entities/user";
-import type { TMenuPermission } from "@/entities/user";
+import { MENU_ID, useMenuPermission } from "@/entities/user";
+import type { TMenuId, TMenuPermission } from "@/entities/user";
+import { flattenTree } from "@/shared/lib/utils";
 import { menuRouteMap } from "@/widgets/sidebar/config/menu-route-map";
+import { useSidebarFavorites } from "@/widgets/sidebar/model/useSidebarFavorites";
 
-const menuIconMap: Record<string, SvgIconComponent> = {
-  dashboard: DashboardOutlined,
-  cpos: BoltOutlined,
-  "station-root": AccountTreeOutlined,
-  "charger-root": SettingsOutlined,
-  emsp: GroupsOutlined,
-  "emsp-member-management": GroupsOutlined,
-  "emsp-corporate-member": BusinessOutlined,
-  "platform-management": SettingsOutlined,
+const menuIconMap: Partial<Record<TMenuId, SvgIconComponent>> = {
+  [MENU_ID.DASHBOARD]: DashboardOutlined,
+  [MENU_ID.CPOS]: BoltOutlined,
+  [MENU_ID.STATION_ROOT]: AccountTreeOutlined,
+  [MENU_ID.CHARGER_ROOT]: SettingsOutlined,
+  [MENU_ID.EMSP]: GroupsOutlined,
+  [MENU_ID.EMSP_MEMBER_MANAGEMENT]: GroupsOutlined,
+  [MENU_ID.EMSP_CORPORATE_MEMBER]: BusinessOutlined,
+  [MENU_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
 };
 
 const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
-  const expandedIds = new Set<string>();
+  const expandedIds = new Set<TMenuId>();
 
   const visit = (items: TMenuPermission[]) => {
     items.forEach((item) => {
@@ -68,7 +74,8 @@ export const Sidebar = () => {
     canAccessMenu,
     canAccessMenuGroup,
   } = useMenuPermission();
-  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<string>>(
+  const { favoriteMenuIds, toggleFavorite } = useSidebarFavorites();
+  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<TMenuId>>(
     () => new Set(),
   );
 
@@ -81,7 +88,26 @@ export const Sidebar = () => {
     setExpandedMenuIds(initialExpandedMenuIds);
   }, [initialExpandedMenuIds]);
 
-  const toggleExpanded = (menuId: string) => {
+  const favoriteMenus = useMemo(() => {
+    const menuById = new Map(
+      flattenTree(permissionMenus, (menu) => menu.children).map((menu) => [
+        menu.id,
+        menu,
+      ]),
+    );
+
+    return [...favoriteMenuIds].flatMap((menuId) => {
+      const menu = menuById.get(menuId);
+
+      if (!menu || !menuRouteMap[menu.id] || !canAccessMenu(menu.id)) {
+        return [];
+      }
+
+      return [menu];
+    });
+  }, [canAccessMenu, favoriteMenuIds, permissionMenus]);
+
+  const toggleExpanded = (menuId: TMenuId) => {
     setExpandedMenuIds((current) => {
       const next = new Set(current);
 
@@ -115,6 +141,7 @@ export const Sidebar = () => {
     const isSelected = route
       ? location.pathname.toLowerCase() === route.toLowerCase()
       : false;
+    const isFavorite = favoriteMenuIds.has(menu.id);
     const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
 
     const handleClick = () => {
@@ -130,54 +157,89 @@ export const Sidebar = () => {
 
     return (
       <Box component="li" key={menu.id} sx={{ listStyle: "none" }}>
-        <ListItemButton
-          disabled={!hasChildren && !route}
-          onClick={handleClick}
-          selected={isSelected}
+        <Box
           sx={{
-            minHeight: 40,
+            display: "flex",
+            alignItems: "center",
             mx: 1,
             mb: 0.25,
-            pl: 1.5 + Math.max(menu.depth - 1, 0) * 1.75,
-            pr: 1.25,
-            borderRadius: 1,
-            color: "text.secondary",
-            "&.Mui-selected": {
-              color: "primary.main",
-              bgcolor: "rgba(37, 99, 235, 0.1)",
-            },
-            "&.Mui-disabled": {
-              opacity: 0.5,
-            },
           }}
         >
-          <ListItemIcon
+          <ListItemButton
+            disabled={!hasChildren && !route}
+            onClick={handleClick}
+            selected={isSelected}
             sx={{
-              minWidth: 32,
-              color: "inherit",
-            }}
-          >
-            <MenuIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText
-            primary={menu.name}
-            slotProps={{
-              primary: {
-                noWrap: true,
-                sx: {
-                  fontSize: 13,
-                  fontWeight: isSelected || hasChildren ? 600 : 500,
-                },
+              minWidth: 0,
+              minHeight: 40,
+              pl: 1.5 + Math.max(menu.depth - 1, 0) * 1.75,
+              pr: 1.25,
+              borderRadius: 1,
+              color: "text.secondary",
+              "&.Mui-selected": {
+                color: "primary.main",
+                bgcolor: "rgba(37, 99, 235, 0.1)",
+              },
+              "&.Mui-disabled": {
+                opacity: 0.5,
               },
             }}
-          />
-          {hasChildren &&
-            (isExpanded ? (
-              <ExpandMore fontSize="small" />
-            ) : (
-              <ChevronRight fontSize="small" />
-            ))}
-        </ListItemButton>
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: 32,
+                color: "inherit",
+              }}
+            >
+              <MenuIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary={menu.name}
+              slotProps={{
+                primary: {
+                  noWrap: true,
+                  sx: {
+                    fontSize: 13,
+                    fontWeight: isSelected || hasChildren ? 600 : 500,
+                  },
+                },
+              }}
+            />
+            {hasChildren &&
+              (isExpanded ? (
+                <ExpandMore fontSize="small" />
+              ) : (
+                <ChevronRight fontSize="small" />
+              ))}
+          </ListItemButton>
+
+          {!hasChildren && route && (
+            <Tooltip title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}>
+              <IconButton
+                aria-label={
+                  isFavorite
+                    ? `${menu.name} 즐겨찾기 해제`
+                    : `${menu.name} 즐겨찾기 추가`
+                }
+                onClick={() => toggleFavorite(menu.id)}
+                size="small"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  ml: 0.25,
+                  flexShrink: 0,
+                  color: isFavorite ? "warning.main" : "text.disabled",
+                }}
+              >
+                {isFavorite ? (
+                  <StarRounded fontSize="small" />
+                ) : (
+                  <StarBorderRounded fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
 
         {hasChildren && (
           <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -225,6 +287,110 @@ export const Sidebar = () => {
           </Stack>
         ) : (
           <List disablePadding>{permissionMenus.map(renderMenu)}</List>
+        )}
+      </Box>
+
+      <Divider />
+
+      <Box
+        component="section"
+        aria-labelledby="sidebar-favorites-title"
+        sx={{ maxHeight: 224, overflowY: "auto", py: 1 }}
+      >
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: "center", px: 2.5, py: 0.75 }}
+        >
+          <StarRounded sx={{ fontSize: 17, color: "warning.main" }} />
+          <Typography
+            id="sidebar-favorites-title"
+            sx={{ fontSize: 12, fontWeight: 700, color: "text.primary" }}
+          >
+            즐겨찾기
+          </Typography>
+        </Stack>
+
+        {favoriteMenus.length > 0 ? (
+          <List disablePadding>
+            {favoriteMenus.map((menu) => {
+              const route = menuRouteMap[menu.id];
+
+              if (!route) {
+                return null;
+              }
+
+              const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
+              const isSelected =
+                location.pathname.toLowerCase() === route.toLowerCase();
+
+              return (
+                <Box
+                  component="li"
+                  key={menu.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mx: 1,
+                    mb: 0.25,
+                    listStyle: "none",
+                  }}
+                >
+                  <ListItemButton
+                    onClick={() => void navigate(route)}
+                    selected={isSelected}
+                    sx={{
+                      minWidth: 0,
+                      minHeight: 36,
+                      px: 1.5,
+                      borderRadius: 1,
+                      color: "text.secondary",
+                      "&.Mui-selected": {
+                        color: "primary.main",
+                        bgcolor: "rgba(37, 99, 235, 0.1)",
+                      },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 32, color: "inherit" }}>
+                      <MenuIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={menu.name}
+                      slotProps={{
+                        primary: {
+                          noWrap: true,
+                          sx: { fontSize: 13, fontWeight: 500 },
+                        },
+                      }}
+                    />
+                  </ListItemButton>
+
+                  <Tooltip title="즐겨찾기 해제">
+                    <IconButton
+                      aria-label={`${menu.name} 즐겨찾기 해제`}
+                      onClick={() => toggleFavorite(menu.id)}
+                      size="small"
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        ml: 0.25,
+                        flexShrink: 0,
+                        color: "warning.main",
+                      }}
+                    >
+                      <StarRounded fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              );
+            })}
+          </List>
+        ) : (
+          <Typography
+            sx={{ px: 2.5, py: 1, fontSize: 12, color: "text.disabled" }}
+          >
+            등록된 즐겨찾기가 없습니다.
+          </Typography>
         )}
       </Box>
 

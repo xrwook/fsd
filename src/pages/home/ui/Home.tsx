@@ -1,5 +1,5 @@
 import { WelcomeWidget } from "@/widgets/welcome";
-import { useMenuPermission } from "@/entities/user";
+import { MENU_ID, useMenuPermission } from "@/entities/user";
 import PermissionGate from "@/shared/ui/permission-gate";
 
 const Home = () => {
@@ -12,7 +12,7 @@ const Home = () => {
       <section className="mx-auto max-w-[320px] rounded-2xl border border-gray-200 p-4">
         <div className="flex gap-2">
           <PermissionGate
-            allow={canAccessMenu("station-management", "write")}
+            allow={canAccessMenu(MENU_ID.STATION_MANAGEMENT, "write")}
             fallback={
               <button
                 type="button"
@@ -32,7 +32,7 @@ const Home = () => {
           </PermissionGate>
 
           <PermissionGate
-            allow={canAccessMenu("dashboard", "download")}
+            allow={canAccessMenu(MENU_ID.DASHBOARD, "download")}
             fallback={
               <button
                 type="button"

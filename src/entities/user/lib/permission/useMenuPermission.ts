@@ -5,6 +5,7 @@ import {
 } from "@/entities/user/lib/permission/config";
 import { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
 import type {
+  TMenuId,
   TMenuPermission,
   TPermissionKey,
 } from "@/entities/user/lib/permission/types";
@@ -24,7 +25,7 @@ export const useMenuPermission = () => {
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
-    (menuId: string, permissionKey: TPermissionKey = "read") => {
+    (menuId: TMenuId, permissionKey: TPermissionKey = "read") => {
       if (!isPermissionInitialized) {
         return false;
       }
@@ -37,7 +38,7 @@ export const useMenuPermission = () => {
   // 사이드바/상위 폴더처럼 하위 메뉴 권한까지 포함해서 판단할 때 사용합니다.
   // #TODO
   const canAccessMenuGroup = useCallback(
-    (menuId: string, permissionKey: TPermissionKey = "read") => {
+    (menuId: TMenuId, permissionKey: TPermissionKey = "read") => {
       if (!isPermissionInitialized) {
         return false;
       }
