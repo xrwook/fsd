@@ -1,482 +1,132 @@
 # 권한 플로우 문서
 
-이 문서는 현재 프로젝트의 데모 권한 흐름을 설명합니다.
+현재 권한/메뉴 구조는 API가 내려준 메뉴 트리와 URL을 기준으로 동작합니다.
 
-현재 권한은 실제 서버 API 대신 mock API/MSW에서 받아오는 메뉴 트리 데이터를 기준으로 판단합니다. 권한 판단 기준은 메뉴 ID와 `read`, `write`, `download` 권한 키입니다.
+`vite-plugin-pages` 파일 시스템 라우팅은 사용하지 않습니다. URL은 API에서 바뀔 수 있으므로, 프론트는 `menuId -> page component` 연결만 고정으로 관리합니다.
 
 ## 핵심 파일
 
-- `src/main.tsx`
-  - 앱 시작 전에 mock API 사용 여부를 확인하고 MSW를 활성화합니다.
-  - `QueryProvider`로 React Query 환경을 제공합니다.
-  - `BrowserRouter`로 SPA 라우팅을 감쌉니다.
 - `src/app/App.tsx`
-  - 앱 진입 시 `useInitializeMenuPermission()`으로 권한을 초기화합니다.
-  - `vite-plugin-pages`가 만든 `~react-pages` 라우트를 `useRoutes()`에 연결합니다.
-- `src/app/routes`
-  - 파일 시스템 기반 라우팅 디렉터리입니다.
-  - 페이지 라우트 파일에서 `PermissionRoute`로 접근 권한을 공통 체크합니다.
-- `src/app/routes/_guards/PermissionRoute.tsx`
-  - 라우트 접근 권한을 판단하는 공통 guard입니다.
-  - 권한이 없으면 `/403`으로 이동합니다.
-- `vite.config.ts`
-  - `vite-plugin-pages`가 `src/app/routes`를 읽도록 설정합니다.
-  - `_guards` 폴더는 라우트로 생성되지 않도록 제외합니다.
-- `src/shared/mocks`
-  - MSW worker와 `/api/permissions` mock handler를 관리합니다.
+  - 앱 시작 시 `useInitializeMenuPermission()`으로 권한 메뉴를 초기화합니다.
+  - `AppRouter`를 렌더링합니다.
+- `src/app/router/AppRouter.tsx`
+  - `/403`과 catch-all route만 선언합니다.
+  - 실제 메뉴 화면 처리는 `DynamicMenuRoute`가 담당합니다.
+- `src/app/router/DynamicMenuRoute.tsx`
+  - 현재 URL과 API 메뉴의 `url`을 비교합니다.
+  - 매칭된 메뉴의 `read` 권한을 확인합니다.
+  - `menuPageMap[menu.id]`에 등록된 화면 컴포넌트를 렌더링합니다.
+- `src/app/router/menu-page-map.ts`
+  - `menuId -> page component`를 관리합니다.
+  - API URL이 바뀌어도 `menuId`가 같으면 같은 화면을 렌더링합니다.
 - `src/entities/user/api/getMenuPermissionApi.ts`
-  - mock 모드에서는 `/api/permissions`를 호출하고, MSW 실패 시 직접 mock 응답으로 fallback합니다.
-  - mock 모드가 아니면 실제 API 경로로 요청합니다.
-  - 응답 데이터는 store에 넣기 전에 zod schema로 검증합니다.
-  - 권한 조회 React Query query factory와 `useGetMenuPermissionQuery()`를 함께 제공합니다.
-- `src/entities/user/api/mocks/getMenuPermissionMockApi.ts`
-  - 실제 API처럼 300ms 지연 후 권한 mock 데이터를 반환합니다.
+  - 권한 메뉴 API를 React Query로 조회합니다.
+  - 응답은 zod schema로 검증합니다.
+- `src/entities/user/lib/permission/menuIds.ts`
+  - 프로젝트에서 지원하는 메뉴 ID를 한 곳에서 관리합니다.
 - `src/entities/user/lib/permission/schema.ts`
-  - 권한 API 응답과 메뉴 권한 데이터의 zod schema를 관리합니다.
-- `src/entities/user/lib/permission/config.ts`
-  - `permissionMenuMock` 데이터와 권한 판단 helper를 관리합니다.
-- `src/entities/user/model/menuPermissionStore.ts`
-  - 메뉴 권한과 권한 초기화 완료 여부를 저장합니다.
-- `src/entities/user/lib/permission/useInitializeMenuPermission.ts`
-  - 권한 API를 호출하고 응답을 store에 저장합니다.
+  - 권한 메뉴 응답 schema를 관리합니다.
 - `src/entities/user/lib/permission/useMenuPermission.ts`
-  - 화면과 route guard에서 사용할 권한 체크 함수를 제공합니다.
-- `src/shared/ui/permission-gate/index.tsx`
-  - 버튼/기능 단위 권한에 따라 children 또는 fallback을 렌더링합니다.
+  - `canAccessMenu`, `canAccessMenuGroup`을 제공합니다.
+- `src/widgets/sidebar/ui/Sidebar.tsx`
+  - 권한 메뉴 트리를 사이드 메뉴로 렌더링합니다.
+  - 이동 경로는 API 메뉴의 `url`을 사용합니다.
 
-## 권한 데이터 형태
-
-권한 데이터는 메뉴 트리 형태입니다. 실제 타입은 직접 작성하지 않고 zod schema에서 `z.infer`로 생성합니다.
-
-```ts
-const menuPermissionBaseSchema = z.object({
-  id: z.string(),
-  parentId: z.string().nullable(),
-  depth: z.number(),
-  name: z.string(),
-  type: z.enum(["folder", "menu"]),
-  expanded: z.boolean().optional(),
-  checked: z.boolean(),
-  permissions: z.object({
-    read: z.boolean(),
-    write: z.boolean(),
-    download: z.boolean(),
-  }),
-});
-
-type TMenuPermissionSchema = z.infer<typeof menuPermissionBaseSchema> & {
-  children?: TMenuPermissionSchema[];
-};
-
-export const menuPermissionSchema: z.ZodType<TMenuPermissionSchema> = z.lazy(
-  () =>
-    menuPermissionBaseSchema.extend({
-      children: z.array(menuPermissionSchema).optional(),
-    }),
-);
-
-export const menuPermissionApiResponseSchema = z.object({
-  permissionName: z.string(),
-  permissionDescription: z.string(),
-  permissions: z.array(menuPermissionSchema),
-});
-```
-
-`types.ts`는 schema를 원본으로 사용합니다.
-
-```ts
-export type TMenuPermission = z.infer<typeof menuPermissionSchema>;
-export type TMenuPermissionApiResponse = z.infer<
-  typeof menuPermissionApiResponseSchema
->;
-```
-
-예시:
+## 데이터 형태
 
 ```ts
 {
-  id: "station-management",
-  parentId: "station-root",
+  id: MENU_ID.EMSP_MEMBER_INFO,
+  parentId: MENU_ID.EMSP_MEMBER_MANAGEMENT,
   depth: 3,
-  name: "충전소 관리",
+  name: "회원정보",
   type: "menu",
-  checked: true,
+  url: "/emsp/member-management/members",
+  checked: false,
   permissions: {
     read: true,
-    write: true,
-    download: true,
+    write: false,
+    download: false,
   },
 }
 ```
 
-`checked`는 권한 판단 기준으로 사용하지 않습니다. 접근 허용 여부는 항상 `permissions[permissionKey]` 값을 기준으로 판단합니다.
+`url`은 API에서 내려주며 변경될 수 있습니다. 단, `id`는 프론트가 지원하는 `MENU_ID` 값이어야 합니다.
 
 ## 전체 흐름
 
 ```text
 src/main.tsx
   -> enableMocking()
-    -> VITE_USE_MOCK_API !== "false" 이고 브라우저 환경이면 MSW worker 시작
-  -> <QueryProvider>
-  -> <BrowserRouter>
-  -> <App />
+  -> QueryProvider
+  -> BrowserRouter
+  -> App
 
-src/app/App.tsx
+App
   -> useInitializeMenuPermission()
     -> useGetMenuPermissionQuery()
-      -> useQuery(menuPermissionQueryFactory.current())
-      -> getMenuPermissionApi()
-        -> mock mode
-          -> axios GET /api/permissions
-          -> MSW handler
-          -> getMenuPermissionMockApi()
-          -> permissionMenuMock 복사본 반환
-          -> MSW 실패 시 직접 getMenuPermissionMockApi() fallback
-        -> real mode
-          -> axios GET /api/permissions
-        -> menuPermissionApiResponseSchema.parse(response)
-      -> success
-        -> menuPermissionStore.setInitializePermission()
-          -> menuPermission
-          -> isPermissionInitialized = true
-      -> error
-        -> menuPermissionStore.setInitializePermission()
-          -> menuPermission = null
-          -> isPermissionInitialized = true
-  -> useRoutes(routes)
-    -> routes는 vite-plugin-pages가 src/app/routes에서 생성
+    -> getMenuPermissionApi()
+    -> zod parse
+    -> menuPermissionStore 저장
+  -> AppRouter
 
-route file
-  -> <PermissionRoute menuId="..." permissionKey="read">
-    -> 초기화 전이면 null
-    -> canAccessMenu(menuId, permissionKey)
-    -> 권한 없음이면 /403
-    -> 권한 있으면 page 렌더링
+AppRouter
+  -> /403: ForbiddenPage
+  -> *: DynamicMenuRoute
+
+DynamicMenuRoute
+  -> 현재 location.pathname 확인
+  -> permissionMenus를 flat하게 변환
+  -> menu.url과 현재 URL 비교
+  -> 매칭 메뉴 없음: NotFoundPage
+  -> read 권한 없음: /403
+  -> menuPageMap[menu.id] 없음: NotFoundPage
+  -> page component 렌더링
 ```
 
-## 초기 상태
+## URL이 바뀌는 경우
 
-`menuPermissionStore`는 처음에 권한을 모르는 상태로 시작합니다.
+API가 아래처럼 URL을 바꿔도 됩니다.
 
 ```ts
-menuPermission: null;
-isPermissionInitialized: false;
+{
+  id: MENU_ID.EMSP_MEMBER_INFO,
+  url: "/emsp/member-management/members",
+}
 ```
 
-`isPermissionInitialized`가 `false`인 동안에는 route guard와 버튼 권한 판단을 보류합니다. 이 값이 없으면 mock API 응답이 오기 전에 권한 없음으로 판단되어 화면이 잘못 차단될 수 있습니다.
-
-권한 응답을 받으면 `setInitializePermission`으로 한 번에 저장합니다.
+프론트는 URL로 메뉴를 찾은 뒤 `MENU_ID.EMSP_MEMBER_INFO`에 연결된 컴포넌트를 렌더링합니다.
 
 ```ts
-setInitializePermission(response);
-```
-
-API 호출 실패 시에도 초기화는 완료 상태로 둡니다.
-
-```ts
-setInitializePermission(null);
-```
-
-이렇게 하면 실패 상태에서도 라우트가 무한 대기하지 않고 접근 거부 흐름으로 넘어갑니다.
-
-## mock API 흐름
-
-`src/main.tsx`는 앱 렌더링 전에 `enableMocking()`을 실행합니다.
-
-```ts
-void enableMocking().then(() => {
-  createRoot(rootElement).render(
-    <QueryProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryProvider>,
-  );
-});
-```
-
-`VITE_USE_MOCK_API !== "false"`이면 브라우저에서 MSW worker가 시작됩니다.
-
-```ts
-await worker.start({
-  onUnhandledRequest: "bypass",
-});
-```
-
-권한 API는 mock 모드에서 먼저 HTTP 요청 흐름을 유지합니다.
-
-```ts
-return menuPermissionApiResponseSchema.parse(
-  await axiosInstance.get<unknown>("/api/permissions"),
-);
-```
-
-MSW handler가 이 요청을 가로채서 mock 응답을 반환합니다.
-
-```ts
-http.get("/api/permissions", async () => {
-  const response = await getMenuPermissionMockApi();
-
-  return HttpResponse.json(response);
-});
-```
-
-MSW 요청이 실패하면 직접 mock 함수로 fallback합니다.
-
-```ts
-return getMenuPermissionMockApi();
-```
-
-`getMenuPermissionMockApi`는 실제 API처럼 300ms 지연 후 `structuredClone`으로 복사본을 반환합니다. store나 화면에서 권한 데이터를 수정해도 원본 mock 데이터가 오염되지 않게 하기 위함입니다.
-
-## 응답 데이터 검증
-
-권한 API 응답은 TypeScript 타입만 믿지 않고 `zod`로 런타임 검증합니다. schema가 타입과 런타임 검증의 기준입니다.
-
-```ts
-return menuPermissionApiResponseSchema.parse(
-  await axiosInstance.get<unknown>("/api/permissions"),
-);
-```
-
-검증을 통과한 응답 객체만 `TMenuPermissionApiResponse`로 사용하고 store에 저장합니다. 실제 권한 체크는 응답 객체의 `permissions` 배열을 사용합니다.
-
-```ts
-return menuPermissionApiResponseSchema.parse(await getMenuPermissionMockApi());
-```
-
-검증 실패 시 `parse`가 zod error를 throw하고, React Query는 해당 요청을 error 상태로 처리합니다. 이후 `useInitializeMenuPermission`이 권한을 비운 상태로 초기화를 완료합니다.
-
-## React Query 흐름
-
-권한 조회는 컴포넌트에서 API 함수를 직접 호출하지 않고 `getMenuPermissionApi.ts`에 함께 둔 query hook을 통해 실행합니다.
-
-```ts
-export const menuPermissionQueryFactory = {
-  all: () => ["menu-permission"] as const,
-  current: () =>
-    queryOptions({
-      queryKey: [...menuPermissionQueryFactory.all(), "current"] as const,
-      queryFn: getMenuPermissionApi,
-      staleTime: Infinity,
-      gcTime: Infinity,
-      retry: false,
-    }),
-};
-
-export const useGetMenuPermissionQuery = () => {
-  return useQuery(menuPermissionQueryFactory.current());
+export const menuPageMap = {
+  [MENU_ID.EMSP_MEMBER_INFO]: lazy(
+    () => import("@/pages/eMSP/member-management/member-info"),
+  ),
 };
 ```
 
-`useInitializeMenuPermission`은 query 결과를 구독하고, 성공/실패 상태만 store에 반영합니다.
+즉, URL은 API에서 관리하고 화면 컴포넌트 연결은 프론트에서 `menuId` 기준으로 관리합니다.
 
-```ts
-const permissionQuery = useGetMenuPermissionQuery();
-```
+## 사이드 메뉴
 
-성공 시에는 API 응답을 store에 저장합니다.
+사이드 메뉴는 API 메뉴 트리를 그대로 사용합니다.
 
-```ts
-setInitializePermission(permissionQuery.data);
-```
+- 권한 없는 메뉴는 숨깁니다.
+- 하위에 접근 가능한 메뉴가 있는 폴더는 표시합니다.
+- 클릭 이동은 `menu.url`을 사용합니다.
+- `url`이 없는 leaf 메뉴는 disabled 상태입니다.
+- 즐겨찾기는 `url`이 있는 메뉴만 추가할 수 있습니다.
 
-실패 시에는 권한을 비우고 초기화 완료 상태로 둡니다.
+## 새 화면 추가 절차
 
-```ts
-setInitializePermission(null);
-```
+1. `MENU_ID`에 새 메뉴 ID를 추가합니다.
+2. API 권한 메뉴 응답에 같은 `id`와 원하는 `url`을 내려줍니다.
+3. `src/pages` 아래에 페이지 컴포넌트를 만듭니다.
+4. `src/app/router/menu-page-map.ts`에 `menuId -> page component`를 추가합니다.
+5. 버튼/기능 단위 권한은 `useMenuPermission()` 또는 `PermissionGate`로 처리합니다.
 
-## 권한 판단 기준
+## 주의사항
 
-단일 메뉴 권한은 API가 내려준 `permissions` 값을 기준으로 허용됩니다.
-
-```ts
-menu.permissions[permissionKey] === true;
-```
-
-예시:
-
-```ts
-canAccessMenu("station-management", "write");
-```
-
-이 호출은 `station-management` 메뉴를 찾고, 해당 메뉴의 `permissions.write`가 true인지 확인합니다.
-
-## 메뉴 그룹 권한
-
-상위 폴더나 사이드바 메뉴처럼 하위 메뉴까지 포함해서 접근 가능 여부를 판단해야 할 때는 `canAccessMenuGroup`을 사용합니다.
-
-```ts
-canAccessMenuGroup("cpos", "read");
-```
-
-이 함수는 `cpos` 자신 또는 하위 메뉴 중 하나라도 `read: true`이면 허용합니다.
-
-## 라우트 접근 권한
-
-라우트 접근 권한은 `src/app/routes/_guards/PermissionRoute.tsx`에서 공통으로 처리합니다.
-
-```tsx
-const PermissionRoute = ({
-  menuId,
-  permissionKey = "read",
-  children,
-}: Props) => {
-  const { canAccessMenu, isPermissionInitialized } = useMenuPermission();
-
-  if (!isPermissionInitialized) {
-    return null;
-  }
-
-  if (!canAccessMenu(menuId, permissionKey)) {
-    return <Navigate to="/403" replace />;
-  }
-
-  return <>{children}</>;
-};
-```
-
-각 라우트 파일은 직접 `Navigate` 조건을 작성하지 않고 `PermissionRoute`로 page를 감쌉니다.
-
-```tsx
-import PermissionRoute from "@/app/routes/_guards/PermissionRoute";
-import HomePage from "@/pages/home";
-
-const HomeRoute = () => {
-  return (
-    <PermissionRoute menuId="dashboard">
-      <HomePage />
-    </PermissionRoute>
-  );
-};
-
-export default HomeRoute;
-```
-
-`permissionKey`를 생략하면 기본값은 `read`입니다.
-
-```tsx
-<PermissionRoute menuId="dashboard">
-  <HomePage />
-</PermissionRoute>
-```
-
-쓰기 권한이 필요한 라우트라면 명시적으로 지정합니다.
-
-```tsx
-<PermissionRoute menuId="station-management" permissionKey="write">
-  <StationEditPage />
-</PermissionRoute>
-```
-
-## 파일 시스템 기반 라우팅
-
-라우트 파일은 `src/app/routes` 아래에 둡니다.
-
-```text
-src/app/routes/index.tsx
-src/app/routes/403.tsx
-src/app/routes/[...notFound].tsx
-src/app/routes/eMSP/corporate-member/corporate-join.tsx
-src/app/routes/eMSP/corporate-member/payment-settlement.tsx
-src/app/routes/eMSP/member-management/member-info.tsx
-src/app/routes/eMSP/member-management/member-payment.tsx
-```
-
-`vite.config.ts`의 `Pages` 설정이 이 디렉터리를 라우트 소스로 사용합니다.
-
-```ts
-Pages({
-  dirs: [{ dir: "src/app/routes", baseRoute: "" }],
-  exclude: ["**/_guards/**"],
-  importMode: "async",
-});
-```
-
-`_guards` 폴더는 공통 guard를 보관하는 곳이고 실제 URL 라우트가 아니므로 `exclude`에 포함합니다.
-
-## 버튼/기능 권한
-
-버튼이나 기능 단위 권한은 `PermissionGate`와 `useMenuPermission`을 함께 사용합니다.
-
-```tsx
-const { canAccessMenu } = useMenuPermission();
-```
-
-충전소 수정 버튼:
-
-```tsx
-<PermissionGate
-  allow={canAccessMenu("station-management", "write")}
-  fallback={<button disabled>충전소 수정 불가</button>}
->
-  <button>충전소 수정</button>
-</PermissionGate>
-```
-
-내보내기 버튼:
-
-```tsx
-<PermissionGate
-  allow={canAccessMenu("dashboard", "download")}
-  fallback={<button disabled>내보내기 불가</button>}
->
-  <button>내보내기</button>
-</PermissionGate>
-```
-
-## 현재 데모 결과
-
-현재 mock 데이터 기준:
-
-- `dashboard`
-  - `read/write/download: true`
-  - 홈 라우트 접근 가능
-  - 내보내기 버튼 표시
-- `station-management`
-  - `read/write/download: true`
-  - 충전소 수정 버튼 표시
-- `station-fee-management`
-  - `read/write/download: false`
-  - 접근 거부
-- `emsp-corporate-join-management`
-  - `read: true`
-  - 법인회원 가입관리 라우트 접근 가능
-- `emsp-corporate-payment-settlement`
-  - `read/write/download: false`
-  - 법인 결제/정산 라우트 접근 시 `/403`
-- `emsp-member-info`
-  - `read/write/download: false`
-  - 회원정보 라우트 접근 시 `/403`
-- `emsp-member-payment`
-  - `read/write/download: false`
-  - 회원 결제 라우트 접근 시 `/403`
-
-## 새 화면 추가 방법
-
-새 권한 화면을 추가할 때:
-
-1. API 또는 `permissionMenuMock`에 새 메뉴 ID와 권한을 추가합니다.
-2. `src/app/routes` 아래에 라우트 파일을 생성합니다.
-3. 라우트 컴포넌트에서 page를 `PermissionRoute`로 감쌉니다.
-4. `menuId`에는 권한 데이터의 메뉴 ID를 넣습니다.
-5. 기본 조회 권한이면 `permissionKey`를 생략하고, 쓰기/다운로드 권한이면 명시합니다.
-6. 페이지 내부 버튼/기능 권한은 `PermissionGate`로 처리합니다.
-
-예시:
-
-```tsx
-import PermissionRoute from "@/app/routes/_guards/PermissionRoute";
-import SomePage from "@/pages/some";
-
-const SomeRoute = () => {
-  return (
-    <PermissionRoute menuId="some-menu-id">
-      <SomePage />
-    </PermissionRoute>
-  );
-};
-
-export default SomeRoute;
-```
+- API가 새로운 URL을 내려줘도 `menuId`에 연결된 page component가 없으면 화면을 렌더링할 수 없습니다.
+- URL 자유 입력 화면이 있다면 `menuId`는 프론트가 지원하는 값만 선택하도록 제한해야 합니다.
+- `checked`는 접근 판단 기준이 아닙니다. 실제 판단은 `permissions[permissionKey]`입니다.

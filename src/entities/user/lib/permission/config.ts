@@ -18,6 +18,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       depth: 1,
       name: "Dashboard",
       type: "folder",
+      url: "/",
       expanded: true,
       checked: true,
       permissions: {
@@ -215,6 +216,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               depth: 3,
               name: "회원정보",
               type: "menu",
+              url: "/emsp/member-management/members",
               checked: false,
               permissions: {
                 read: true,
@@ -228,6 +230,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               depth: 3,
               name: "결제",
               type: "menu",
+              url: "/emsp/member-management/member-payment",
               checked: false,
               permissions: {
                 read: false,
@@ -257,6 +260,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               depth: 3,
               name: "가입관리",
               type: "menu",
+              url: "/emsp/corporate-member/corporate-join",
               checked: false,
               permissions: {
                 read: true,
@@ -270,6 +274,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               depth: 3,
               name: "법인 결제/정산",
               type: "menu",
+              url: "/emsp/corporate-member/payment-settlement",
               checked: false,
               permissions: {
                 read: true,

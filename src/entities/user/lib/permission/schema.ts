@@ -10,6 +10,7 @@ const menuPermissionBaseSchema = z.object({
   depth: z.number(),
   name: z.string(),
   type: z.enum(["folder", "menu"]),
+  url: z.string().nullable().optional(),
   expanded: z.boolean().optional(),
   checked: z.boolean(),
   permissions: z.object({

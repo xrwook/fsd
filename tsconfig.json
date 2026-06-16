@@ -1,12 +1,8 @@
 {
-  "include": [
-    "**/*",
-    "**/.server/**/*",
-    "**/.client/**/*"
-  ],
+  "include": ["**/*", "**/.server/**/*", "**/.client/**/*"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["node", "vite/client", "vite-plugin-pages/client-react"],
+    "types": ["node", "vite/client"],
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",

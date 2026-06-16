@@ -42,33 +42,26 @@ MENU_ID.EMSP_CORPORATE_JOIN_MANAGEMENT;
 
 ## 페이지 접근 권한
 
-라우트 파일에서는 `PermissionRoute`로 페이지 전체 접근을 막습니다.
+API가 내려준 `url`과 현재 브라우저 URL을 비교해서 접근할 메뉴를 찾습니다.
 
-```tsx
-import PermissionRoute from "@/app/routes/_guards/PermissionRoute";
-import { MENU_ID } from "@/entities/user";
-import CorporateJoinPage from "@/pages/eMSP/corporate-member/corporate-join";
+```text
+현재 URL
+  -> API 메뉴 트리에서 같은 url을 가진 메뉴 검색
+  -> 해당 menuId의 read 권한 확인
+  -> menuPageMap[menuId] 화면 렌더링
+```
 
-const CorporateJoinRoute = () => {
-  return (
-    <PermissionRoute menuId={MENU_ID.EMSP_CORPORATE_JOIN_MANAGEMENT}>
-      <CorporateJoinPage />
-    </PermissionRoute>
-  );
+권한 초기화 전에는 아무것도 렌더링하지 않고, 권한이 없으면 `/403`으로 이동합니다. API URL에 매칭되는 메뉴가 없거나 `menuId`에 연결된 화면 컴포넌트가 없으면 404 화면을 렌더링합니다.
+
+화면 컴포넌트 연결은 `src/app/router/menu-page-map.ts`에서 관리합니다.
+
+```ts
+export const menuPageMap = {
+  [MENU_ID.EMSP_MEMBER_INFO]: lazy(
+    () => import("@/pages/eMSP/member-management/member-info"),
+  ),
 };
-
-export default CorporateJoinRoute;
 ```
-
-`permissionKey`를 생략하면 `read`를 검사합니다.
-
-```tsx
-<PermissionRoute menuId={MENU_ID.STATION_MANAGEMENT} permissionKey="write">
-  <StationManagementPage />
-</PermissionRoute>
-```
-
-권한 초기화 전에는 아무것도 렌더링하지 않고, 권한이 없으면 `/403`으로 이동합니다.
 
 ## 버튼/기능 권한
 
@@ -108,8 +101,8 @@ if (canAccessMenu(MENU_ID.DASHBOARD, "download")) {
 
 - 단일 메뉴: `canAccessMenu(menuId, "read")`가 true이면 표시
 - 폴더 메뉴: 하위 메뉴 중 하나라도 접근 가능하면 표시
-- 라우트 연결: `src/widgets/sidebar/config/menu-route-map.ts`에서 `menuId -> path`를 관리
-- 즐겨찾기: 라우트가 있는 메뉴만 별 아이콘으로 추가 가능
+- 이동 URL: API/mock이 내려준 `url` 사용
+- 즐겨찾기: `url`이 있는 메뉴만 별 아이콘으로 추가 가능
 
 ## 새 메뉴/화면 추가 절차
 
@@ -128,6 +121,7 @@ export const MENU_ID = {
   id: MENU_ID.EMSP_MEMBER_INFO,
   name: "회원정보",
   type: "menu",
+  url: "/emsp/member-management/members",
   permissions: {
     read: true,
     write: false,
@@ -136,31 +130,28 @@ export const MENU_ID = {
 }
 ```
 
-3. 파일 시스템 라우트를 추가합니다.
+3. 페이지 컴포넌트를 추가합니다.
 
 ```text
-src/app/routes/eMSP/member-management/member-info.tsx
+src/pages/eMSP/member-management/member-info/index.tsx
 ```
 
-4. 라우트 파일에서 `PermissionRoute`를 적용합니다.
+4. `menu-page-map.ts`에 `menuId -> page component`를 연결합니다.
 
 ```tsx
-<PermissionRoute menuId={MENU_ID.EMSP_MEMBER_INFO}>
-  <MemberInfoPage />
-</PermissionRoute>
-```
-
-5. 사이드 메뉴에서 클릭 이동이 필요하면 `menu-route-map.ts`에 추가합니다.
-
-```ts
-export const menuRouteMap = {
-  [MENU_ID.EMSP_MEMBER_INFO]: "/emsp/member-management/member-info",
+export const menuPageMap = {
+  [MENU_ID.EMSP_MEMBER_INFO]: lazy(
+    () => import("@/pages/eMSP/member-management/member-info"),
+  ),
 };
 ```
+
+API의 `url`은 이후 바뀌어도 됩니다. `menuId`가 같으면 같은 화면 컴포넌트를 렌더링합니다.
 
 ## 주의사항
 
 - `checked`는 현재 접근 판단 기준이 아닙니다. 실제 판단은 `permissions[permissionKey]`로 합니다.
 - 화면에서 권한 API를 직접 호출하지 않습니다.
 - 초기화 전 권한은 아직 모르는 상태이므로 `isPermissionInitialized`를 고려해야 합니다.
-- 메뉴 ID는 `MENU_ID`에서 추가한 값을 권한 데이터, `PermissionRoute`, `menu-route-map.ts`가 같이 사용해야 합니다.
+- 메뉴 ID는 `MENU_ID`에서 추가한 값을 권한 데이터와 `menu-page-map.ts`가 같이 사용해야 합니다.
+- API가 새로운 `url`을 내려줘도 해당 `menuId`에 연결된 page component가 없으면 화면을 렌더링할 수 없습니다.

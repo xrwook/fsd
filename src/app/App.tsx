@@ -1,9 +1,8 @@
 import { Suspense } from "react";
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
-import { useRoutes } from "react-router-dom";
 import { AppSidebar, APP_SIDEBAR_WIDTH } from "@/app/layouts/app-sidebar";
+import { AppRouter } from "@/app/router";
 import { useInitializeMenuPermission } from "@/entities/user";
-import routes from "~react-pages";
 
 const App = () => {
   useInitializeMenuPermission();
@@ -41,7 +40,9 @@ const App = () => {
           mt: 8,
         }}
       >
-        <Suspense fallback={null}>{useRoutes(routes)}</Suspense>
+        <Suspense fallback={null}>
+          <AppRouter />
+        </Suspense>
       </Box>
     </Box>
   );

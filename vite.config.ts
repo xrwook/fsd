@@ -4,7 +4,6 @@ import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig, loadEnv } from "vite";
 import checker from "vite-plugin-checker";
 import { comlink } from "vite-plugin-comlink";
-import Pages from "vite-plugin-pages";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => {
@@ -13,11 +12,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [
-      Pages({
-        dirs: [{ dir: "src/app/routes", baseRoute: "" }],
-        exclude: ["**/_guards/**"],
-        importMode: "async",
-      }),
       react(),
       tsconfigPaths(),
       checker({

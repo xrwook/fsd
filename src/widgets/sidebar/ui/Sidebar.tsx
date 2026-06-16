@@ -31,7 +31,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { MENU_ID, useMenuPermission } from "@/entities/user";
 import type { TMenuId, TMenuPermission } from "@/entities/user";
 import { flattenTree } from "@/shared/lib/utils";
-import { menuRouteMap } from "@/widgets/sidebar/config/menu-route-map";
 import { useSidebarFavorites } from "@/widgets/sidebar/model/useSidebarFavorites";
 
 const menuIconMap: Partial<Record<TMenuId, SvgIconComponent>> = {
@@ -99,7 +98,7 @@ export const Sidebar = () => {
     return [...favoriteMenuIds].flatMap((menuId) => {
       const menu = menuById.get(menuId);
 
-      if (!menu || !menuRouteMap[menu.id] || !canAccessMenu(menu.id)) {
+      if (!menu || !menu.url || !canAccessMenu(menu.id)) {
         return [];
       }
 
@@ -136,11 +135,9 @@ export const Sidebar = () => {
       return null;
     }
 
-    const route = menuRouteMap[menu.id];
+    const route = menu.url ?? null;
     const isExpanded = expandedMenuIds.has(menu.id);
-    const isSelected = route
-      ? location.pathname.toLowerCase() === route.toLowerCase()
-      : false;
+    const isSelected = route ? location.pathname === route : false;
     const isFavorite = favoriteMenuIds.has(menu.id);
     const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
 
@@ -314,15 +311,14 @@ export const Sidebar = () => {
         {favoriteMenus.length > 0 ? (
           <List disablePadding>
             {favoriteMenus.map((menu) => {
-              const route = menuRouteMap[menu.id];
+              const route = menu.url;
 
               if (!route) {
                 return null;
               }
 
               const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
-              const isSelected =
-                location.pathname.toLowerCase() === route.toLowerCase();
+              const isSelected = location.pathname === route;
 
               return (
                 <Box
