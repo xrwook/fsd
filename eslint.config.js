@@ -1,50 +1,53 @@
-import js from '@eslint/js';
-import globals from 'globals';
+import js from "@eslint/js";
+import globals from "globals";
 
-import react from 'eslint-plugin-react';
-import reactHooks from 'eslint-plugin-react-hooks';
-import reactRefresh from 'eslint-plugin-react-refresh';
-import tseslint from 'typescript-eslint';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import unusedImports from 'eslint-plugin-unused-imports';
-import importPlugin from 'eslint-plugin-import';
-import prettierConfig from 'eslint-config-prettier';
-import storybook from 'eslint-plugin-storybook';
-import sonarjs from 'eslint-plugin-sonarjs';
-import unicorn from 'eslint-plugin-unicorn';
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
+import reactRefresh from "eslint-plugin-react-refresh";
+import tseslint from "typescript-eslint";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unusedImports from "eslint-plugin-unused-imports";
+import importPlugin from "eslint-plugin-import";
+import prettierConfig from "eslint-config-prettier";
+import storybook from "eslint-plugin-storybook";
+import sonarjs from "eslint-plugin-sonarjs";
+import unicorn from "eslint-plugin-unicorn";
 import {
+  fsdRules,
   reactRules,
   reactHooksRules,
   reactRefreshRules,
-  unusedImportRules,
+  unusedImportsRules,
   typescriptRules,
-} from './src/app/config/eslint/rules.mjs';
-import fsdRelativeImportsRules from './src/app/config/eslint/fsd-relative-imports.mjs';
+} from "./src/app/config/eslint/rules.mjs";
+import fsdRelativeImportsRules from "./src/app/config/eslint/fsd-relative-imports.mjs";
 
 export default tseslint.config(
   {
-    ignores: ['dist', 'build', 'out', '.lintstagedrc.cjs'],
+    ignores: ["dist", "build", "out", ".lintstagedrc.cjs"],
   },
   {
-    files: ['**/*.{ts,tsx,mts}'],
+    files: ["**/*.{ts,tsx,mts}"],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
     },
     rules: {
-      '@typescript-eslint/no-empty-object-type': 'off',
-      'import/no-relative-parent-imports': 'off',
-      'fsd/relative-imports': 'error', 
+      "@typescript-eslint/no-empty-object-type": "off",
+      "import/no-relative-parent-imports": "off",
+      "fsd/relative-imports": "error",
+      "fsd/no-cross-slice": "error",
+      ...fsdRules,
       ...typescriptRules,
     },
   },
   {
-    files: ['**/*.{tsx}'],
+    files: ["**/*.{tsx}"],
     plugins: {
       react,
-      'react-hooks': reactHooks,
-      'react-refresh': reactRefresh,
+      "react-hooks": reactHooks,
+      "react-refresh": reactRefresh,
     },
     rules: {
       ...reactRules,
@@ -53,62 +56,62 @@ export default tseslint.config(
     },
     settings: {
       react: {
-        version: 'detect',
+        version: "detect",
       },
     },
   },
   {
-    files: ['**/*.{ts,tsx,mts}'],
+    files: ["**/*.{ts,tsx,mts}"],
     plugins: {
-      'simple-import-sort': simpleImportSort,
-      'unused-imports': unusedImports,
+      "simple-import-sort": simpleImportSort,
+      "unused-imports": unusedImports,
       import: importPlugin,
       fsd: fsdRelativeImportsRules,
     },
     rules: {
-      'simple-import-sort/imports': 'warn',
-      'simple-import-sort/exports': 'warn',
-      ...unusedImportRules,
+      "simple-import-sort/imports": "warn",
+      "simple-import-sort/exports": "warn",
+      ...unusedImportsRules,
     },
     settings: {
-      'import/resolver': {
+      "import/resolver": {
         typescript: {
           alwaysTryTypes: true,
-          project: './tsconfig.json',
+          project: "./tsconfig.json",
         },
       },
     },
   },
   {
-    files: ['**/*.{ts,tsx,mts}'],
+    files: ["**/*.{ts,tsx,mts}"],
     extends: [sonarjs.configs.recommended],
     rules: {
-      'sonarjs/no-commented-code': 'off',
-      'sonarjs/todo-tag': 'off',
-      'sonarjs/slow-regex': 'off',
+      "sonarjs/no-commented-code": "off",
+      "sonarjs/todo-tag": "off",
+      "sonarjs/slow-regex": "off",
     },
   },
   {
-    files: ['**/*.{ts,tsx,mts}'],
+    files: ["**/*.{ts,tsx,mts}"],
     extends: [unicorn.configs.recommended],
     plugins: {
       unicorn,
     },
     rules: {
-      'unicorn/import-style': 'off',
-      'unicorn/prefer-global-this': 'off',
-      'unicorn/consistent-function-scoping': 'off',
-      'unicorn/no-null': 'off',
-      'unicorn/no-array-reduce': 'off',
-      'unicorn/filename-case': [
-        'error',
+      "unicorn/import-style": "off",
+      "unicorn/prefer-global-this": "off",
+      "unicorn/consistent-function-scoping": "off",
+      "unicorn/no-null": "off",
+      "unicorn/no-array-reduce": "off",
+      "unicorn/filename-case": [
+        "error",
         {
           cases: { kebabCase: true, pascalCase: true, camelCase: true },
-          ignore: ['GAProvider.tsx'],
+          ignore: ["GAProvider.tsx"],
         },
       ],
-      'unicorn/prevent-abbreviations': [
-        'error',
+      "unicorn/prevent-abbreviations": [
+        "error",
         {
           allowList: {
             Args: true,
@@ -136,8 +139,8 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.stories.{ts,tsx}'],
-    extends: [storybook.configs['flat/recommended']],
+    files: ["**/*.stories.{ts,tsx}"],
+    extends: [storybook.configs["flat/recommended"]],
   },
   prettierConfig,
 );
