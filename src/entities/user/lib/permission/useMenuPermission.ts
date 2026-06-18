@@ -12,6 +12,10 @@ import type {
 
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
 
+/**
+ * 메뉴 권한을 관리하는 훅입니다.
+ * @returns 
+ */
 export const useMenuPermission = () => {
   const menuPermission = useMenuPermissionStore(
     (state) => state.menuPermission,

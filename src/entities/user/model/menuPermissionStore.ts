@@ -9,6 +9,9 @@ interface TMenuPermissionState {
   ) => void;
 }
 
+/**
+ * 메뉴 권한 상태를 관리하는 zustand store입니다.
+ */
 export const useMenuPermissionStore = create<TMenuPermissionState>(
   (set) => ({
     menuPermission: null,

@@ -1,5 +1,6 @@
 import { WelcomeWidget } from "@/widgets/welcome";
 import { MENU_ID, useMenuPermission } from "@/entities/user";
+import { StationUpdateFormExample } from "@/features/station/update";
 import PermissionGate from "@/shared/ui/permission-gate";
 
 const Home = () => {
@@ -52,6 +53,8 @@ const Home = () => {
           </PermissionGate>
         </div>
       </section>
+
+      <StationUpdateFormExample />
     </div>
   );
 };
