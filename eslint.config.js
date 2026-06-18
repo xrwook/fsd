@@ -13,11 +13,10 @@ import storybook from "eslint-plugin-storybook";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import {
-  fsdRules,
   reactRules,
   reactHooksRules,
   reactRefreshRules,
-  unusedImportsRules,
+  unusedImportRules,
   typescriptRules,
 } from "./src/app/config/eslint/rules.mjs";
 import fsdRelativeImportsRules from "./src/app/config/eslint/fsd-relative-imports.mjs";
@@ -37,8 +36,6 @@ export default tseslint.config(
       "@typescript-eslint/no-empty-object-type": "off",
       "import/no-relative-parent-imports": "off",
       "fsd/relative-imports": "error",
-      "fsd/no-cross-slice": "error",
-      ...fsdRules,
       ...typescriptRules,
     },
   },
@@ -71,7 +68,7 @@ export default tseslint.config(
     rules: {
       "simple-import-sort/imports": "warn",
       "simple-import-sort/exports": "warn",
-      ...unusedImportsRules,
+      ...unusedImportRules,
     },
     settings: {
       "import/resolver": {

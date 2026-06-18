@@ -1,161 +1,132 @@
-/**
- * FSD 세그먼트 내에서 상대경로 사용을 강제하는 ESLint 규칙
- */
-import path from "node:path";
+const PATH_ALIAS = '@/';
+const SOURCE_DIRECTORY = '/src/';
 
-const FSD_SEGMENTS = ["entities", "features", "widgets", "pages"];
+const FSD_LAYERS = new Set([
+  'app',
+  'pages',
+  'widgets',
+  'features',
+  'entities',
+  'shared',
+]);
 
-/**
- * 파일 경로에서 FSD 세그먼트와 슬라이스를 추출
- * @param {string} filePath
- * @returns {{ segment: string, slice: string, fullSegmentPath: string } | null}
- */
-function extractSegmentAndSlice(filePath) {
-  const match = filePath.match(
-    /\/src\/(entities|features|widgets|pages)\/([^/]+)/,
-  );
-  if (!match) return null;
+const SLICED_LAYERS = new Set([
+  'pages',
+  'widgets',
+  'features',
+  'entities',
+]);
 
-  return {
-    segment: match[1],
-    slice: match[2],
-    fullSegmentPath: `${match[1]}/${match[2]}`,
-  };
-}
+const normalizePath = (path) => path.replaceAll('\\', '/');
 
-/**
- * import 경로에서 FSD 세그먼트와 슬라이스를 추출
- * @param {string} importPath
- * @returns {{ segment: string, slice: string, fullSegmentPath: string } | null}
- */
-function extractImportSegmentAndSlice(importPath) {
-  const match = importPath.match(
-    /^@\/(entities|features|widgets|pages)\/([^/]+)/,
-  );
-  if (!match) return null;
+const isFileName = (pathPart) => pathPart.includes('.');
 
-  return {
-    segment: match[1],
-    slice: match[2],
-    fullSegmentPath: `${match[1]}/${match[2]}`,
-  };
-}
+const getPathPartsFromFile = (filePath) => {
+  const normalizedPath = normalizePath(filePath);
+  const sourceDirectoryIndex = normalizedPath.lastIndexOf(SOURCE_DIRECTORY);
 
-const fsdRelativeImportsRule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "FSD 세그먼트 내에서는 상대경로를 사용하도록 강제",
-      category: "Best Practices",
-    },
-    fixable: null,
-    schema: [],
-  },
+  if (sourceDirectoryIndex === -1) {
+    return null;
+  }
 
-  create(context) {
-    return {
-      ImportDeclaration(node) {
-        const fileName = context.getFilename();
-        const importPath = node.source.value;
-
-        // 절대경로 import만 검사 (@로 시작)
-        if (!importPath.startsWith("@/")) return;
-
-        const fileSegmentInfo = extractSegmentAndSlice(fileName);
-        const importSegmentInfo = extractImportSegmentAndSlice(importPath);
-
-        // 파일이 FSD 세그먼트에 속하지 않으면 무시
-        if (!fileSegmentInfo) return;
-
-        // import가 FSD 세그먼트가 아니면 무시
-        if (!importSegmentInfo) return;
-
-        // 같은 세그먼트의 같은 슬라이스 내에서 import하는 경우
-        if (
-          fileSegmentInfo.fullSegmentPath === importSegmentInfo.fullSegmentPath
-        ) {
-          context.report({
-            node: node.source,
-            message: `같은 ${fileSegmentInfo.fullSegmentPath} 슬라이스 내에서는 절대경로(@/) 대신 상대경로(./, ../)를 사용하세요.`,
-          });
-        }
-      },
-    };
-  },
+  return normalizedPath
+    .slice(sourceDirectoryIndex + SOURCE_DIRECTORY.length)
+    .split('/')
+    .filter(Boolean);
 };
 
-/**
- * FSD 레이어에서 다른 슬라이스를 직접 import하는 것을 금지하는 ESLint 규칙
- * - 같은 슬라이스 내 import: 허용
- * - @x 폴더를 통한 cross-slice import: 허용
- * - 다른 슬라이스 직접 import: 금지
- */
-const fsdNoCrossSliceRule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "FSD 레이어에서 다른 슬라이스를 직접 import하는 것을 금지",
-      category: "Best Practices",
-    },
-    schema: [],
-  },
+const getPathPartsFromAlias = (importPath) => {
+  if (!importPath.startsWith(PATH_ALIAS)) {
+    return null;
+  }
 
-  create(context) {
+  return importPath.slice(PATH_ALIAS.length).split('/').filter(Boolean);
+};
+
+const getFsdScope = (pathParts) => {
+  if (!pathParts?.length) {
+    return null;
+  }
+
+  const [layer, sliceOrSegment] = pathParts;
+
+  if (!FSD_LAYERS.has(layer)) {
+    return null;
+  }
+
+  if (SLICED_LAYERS.has(layer)) {
+    if (!sliceOrSegment || isFileName(sliceOrSegment)) {
+      return null;
+    }
+
     return {
-      ImportDeclaration(node) {
-        const fileName = context.filename ?? context.getFilename();
-        const importPath = node.source.value;
-
-        const fileInfo = extractSegmentAndSlice(fileName);
-        if (!fileInfo) return;
-
-        let importLayer;
-        let importSlice;
-        let throughAtX;
-
-        if (importPath.startsWith("@/")) {
-          // 절대경로: @/entities/post/... 형태
-          const match = importPath.match(
-            /^@\/(entities|features|widgets|pages)\/([^/@]+)/,
-          );
-          if (!match) return;
-          importLayer = match[1];
-          importSlice = match[2];
-          throughAtX = importPath.includes("/@x");
-        } else if (importPath.startsWith(".")) {
-          // 상대경로: resolve해서 어느 슬라이스인지 확인
-          const fileDir = path.dirname(fileName);
-          const resolved = path.resolve(fileDir, importPath);
-          const match = resolved.match(
-            /\/src\/(entities|features|widgets|pages)\/([^/]+)/,
-          );
-          if (!match) return;
-          importLayer = match[1];
-          importSlice = match[2];
-          throughAtX = resolved.includes("/@x");
-        } else {
-          return;
-        }
-
-        // 다른 레이어는 별도 룰로 처리
-        if (importLayer !== fileInfo.segment) return;
-        // 같은 슬라이스 내 import는 허용
-        if (importSlice === fileInfo.slice) return;
-        // @x를 통한 cross-slice import는 허용
-        if (throughAtX) return;
-
-        context.report({
-          node: node.source,
-          message: `다른 슬라이스(${importLayer}/${importSlice})를 직접 import할 수 없습니다. 필요시 @x 폴더를 통해 공개하세요.`,
-        });
-      },
+      layer,
+      scope: sliceOrSegment,
     };
-  },
+  }
+
+  return {
+    layer,
+    scope:
+      sliceOrSegment && !isFileName(sliceOrSegment) ? sliceOrSegment : null,
+  };
+};
+
+const shouldUseRelativeImport = (filename, importPath) => {
+  const currentScope = getFsdScope(getPathPartsFromFile(filename));
+  const targetScope = getFsdScope(getPathPartsFromAlias(importPath));
+
+  if (!currentScope || !targetScope) {
+    return false;
+  }
+
+  return (
+    currentScope.layer === targetScope.layer &&
+    currentScope.scope === targetScope.scope
+  );
+};
+
+const checkImportPath = (context, node) => {
+  const importPath = node.source?.value;
+
+  if (
+    typeof importPath !== 'string' ||
+    !shouldUseRelativeImport(context.filename, importPath)
+  ) {
+    return;
+  }
+
+  context.report({
+    node: node.source,
+    message:
+      '같은 FSD slice/segment 내부 import는 alias 대신 상대경로를 사용하세요.',
+  });
 };
 
 export default {
   rules: {
-    "relative-imports": fsdRelativeImportsRule,
-    "no-cross-slice": fsdNoCrossSliceRule,
+    'relative-imports': {
+      meta: {
+        type: 'suggestion',
+        docs: {
+          description:
+            '같은 FSD slice 또는 segment 내부에서는 상대경로 import를 강제합니다.',
+        },
+        schema: [],
+      },
+      create(context) {
+        return {
+          ImportDeclaration(node) {
+            checkImportPath(context, node);
+          },
+          ExportAllDeclaration(node) {
+            checkImportPath(context, node);
+          },
+          ExportNamedDeclaration(node) {
+            checkImportPath(context, node);
+          },
+        };
+      },
+    },
   },
 };
