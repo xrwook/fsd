@@ -23,7 +23,15 @@ import fsdRelativeImportsRules from "./src/app/config/eslint/fsd-relative-import
 
 export default tseslint.config(
   {
-    ignores: ["dist", "build", "out", ".lintstagedrc.cjs"],
+    ignores: [
+      "dist",
+      "build",
+      "out",
+      ".history",
+      ".react-router",
+      ".lintstagedrc.cjs",
+      "public/mockServiceWorker.js",
+    ],
   },
   {
     files: ["**/*.{ts,tsx,mts}"],

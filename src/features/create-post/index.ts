@@ -1,1 +1,1 @@
-export { createPostApi } from "@/features/create-post/api";
+export { createPostApi } from "./api";

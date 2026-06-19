@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { isMenuId } from "@/entities/user";
+
 import type { TMenuId } from "@/entities/user";
+import { isMenuId } from "@/entities/user";
 
 const SIDEBAR_FAVORITES_STORAGE_KEY = "sidebar-favorite-menu-ids";
 
@@ -18,7 +19,7 @@ const getStoredFavoriteMenuIds = () => {
       return new Set<TMenuId>();
     }
 
-    return new Set(storedValue.filter(isMenuId));
+    return new Set(storedValue.filter((value) => isMenuId(value)));
   } catch {
     return new Set<TMenuId>();
   }

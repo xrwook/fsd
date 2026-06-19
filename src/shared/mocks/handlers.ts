@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+
 import { getMenuPermissionMockApi } from "@/entities/user/api/mocks/getMenuPermissionMockApi";
 
 export const handlers = [

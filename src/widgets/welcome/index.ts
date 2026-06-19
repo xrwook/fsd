@@ -1,1 +1,1 @@
-export { default as WelcomeWidget } from "@/widgets/welcome/ui/WelcomeWidget";
+export { default as WelcomeWidget } from "./ui/WelcomeWidget";

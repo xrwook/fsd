@@ -1,1 +1,1 @@
-export type { TCategory } from "@/entities/category/model/types";
+export type { TCategory } from "../model/types";

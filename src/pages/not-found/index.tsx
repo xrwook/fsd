@@ -1,1 +1,1 @@
-export { default } from "@/pages/not-found/ui/NotFound";
+export { default } from "./ui/NotFound";

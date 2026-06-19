@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 const PATH_ALIAS = '@/';
 const SOURCE_DIRECTORY = '/src/';
 
@@ -86,6 +88,21 @@ const shouldUseRelativeImport = (filename, importPath) => {
   );
 };
 
+const getRelativeImportPath = (filename, importPath) => {
+  const currentPathParts = getPathPartsFromFile(filename);
+  const targetPathParts = getPathPartsFromAlias(importPath);
+
+  if (!currentPathParts || !targetPathParts) {
+    return null;
+  }
+
+  const currentDirectory = currentPathParts.slice(0, -1).join('/');
+  const targetPath = targetPathParts.join('/');
+  const relativePath = path.posix.relative(currentDirectory, targetPath);
+
+  return relativePath.startsWith('.') ? relativePath : `./${relativePath}`;
+};
+
 const checkImportPath = (context, node) => {
   const importPath = node.source?.value;
 
@@ -100,6 +117,23 @@ const checkImportPath = (context, node) => {
     node: node.source,
     message:
       '같은 FSD slice/segment 내부 import는 alias 대신 상대경로를 사용하세요.',
+    fix(fixer) {
+      const relativeImportPath = getRelativeImportPath(
+        context.filename,
+        importPath,
+      );
+
+      if (!relativeImportPath) {
+        return null;
+      }
+
+      const quote = node.source.raw?.startsWith("'") ? "'" : '"';
+
+      return fixer.replaceText(
+        node.source,
+        `${quote}${relativeImportPath}${quote}`,
+      );
+    },
   });
 };
 
@@ -112,6 +146,7 @@ export default {
           description:
             '같은 FSD slice 또는 segment 내부에서는 상대경로 import를 강제합니다.',
         },
+        fixable: 'code',
         schema: [],
       },
       create(context) {

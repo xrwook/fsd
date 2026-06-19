@@ -1,14 +1,15 @@
 import { useCallback } from "react";
+
+import { useMenuPermissionStore } from "../../model/menuPermissionStore";
 import {
   hasChildrenMenuPermission,
   hasMenuPermission,
-} from "@/entities/user/lib/permission/config";
-import { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
+} from "./config";
 import type {
   TMenuId,
   TMenuPermission,
   TPermissionKey,
-} from "@/entities/user/lib/permission/types";
+} from "./types";
 
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
 

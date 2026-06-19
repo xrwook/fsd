@@ -1,3 +1,3 @@
-export { axiosInstance } from "@/shared/lib/axios/axiosInstance";
-export { API_BASE_URL } from "@/shared/lib/axios/constants";
-export { buildApiUrl } from "@/shared/lib/axios/utils";
+export { axiosInstance } from "./axiosInstance";
+export { API_BASE_URL } from "./constants";
+export { buildApiUrl } from "./utils";

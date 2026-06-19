@@ -1,18 +1,18 @@
-export { useMenuPermission } from "@/entities/user/lib/permission/useMenuPermission";
 export {
+  isMenuId,
   MENU_ID,
   MENU_ID_VALUES,
-  isMenuId,
-} from "@/entities/user/lib/permission/menuIds";
+} from "./menuIds";
 export {
   menuIdSchema,
-  menuPermissionSchema,
   menuPermissionApiResponseSchema,
+  menuPermissionSchema,
   permissionKeySchema,
-} from "@/entities/user/lib/permission/schema";
+} from "./schema";
 export type {
   TMenuId,
   TMenuPermission,
-  TPermissionKey,
   TMenuPermissionApiResponse,
-} from "@/entities/user/lib/permission/types";
+  TPermissionKey,
+} from "./types";
+export { useMenuPermission } from "./useMenuPermission";

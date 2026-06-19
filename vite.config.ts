@@ -60,13 +60,7 @@ export default defineConfig(({ mode }) => {
             }
           },
         },
-        external: (source) => {
-          if (source.includes("msw")) {
-            return true;
-          }
-
-          return false;
-        },
+        external: (source) => source.includes("msw"),
       },
     },
     worker: {

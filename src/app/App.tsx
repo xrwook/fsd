@@ -1,6 +1,7 @@
-import { Suspense } from "react";
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
-import { AppSidebar, APP_SIDEBAR_WIDTH } from "@/app/layouts/app-sidebar";
+import { Suspense } from "react";
+
+import { APP_SIDEBAR_WIDTH,AppSidebar } from "@/app/layouts/app-sidebar";
 import { AppRouter } from "@/app/router";
 import { useInitializeMenuPermission } from "@/entities/user";
 

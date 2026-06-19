@@ -1,8 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom";
+
 import { useMenuPermission } from "@/entities/user";
-import { flattenTree } from "@/shared/lib/utils";
 import NotFoundPage from "@/pages/not-found";
-import { pageMap } from "@/app/router/menu-page-map";
+import { flattenTree } from "@/shared/lib/utils";
+
+import { pageMap } from "./menu-page-map";
 
 /**
  * 현재 URL을 API 메뉴의 url과 비교하여 어떤 메뉴 화면인지 찾고, 권한이 있으면 해당 페이지 컴포넌트를 렌더링합니다.

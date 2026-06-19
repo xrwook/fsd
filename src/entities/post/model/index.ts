@@ -1,2 +1,2 @@
-export { usePostStore } from "@/entities/post/model/postStore";
-export type { TPost } from "@/entities/post/model/types";
+export { usePostStore } from "./postStore";
+export type { TPost } from "./types";

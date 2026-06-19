@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { MENU_ID_VALUES } from "@/entities/user/lib/permission/menuIds";
+
+import { MENU_ID_VALUES } from "./menuIds";
 
 export const permissionKeySchema = z.enum(["read", "write", "download"]);
 export const menuIdSchema = z.enum(MENU_ID_VALUES);

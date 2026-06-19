@@ -1,6 +1,8 @@
 import { Route, Routes } from "react-router-dom";
+
 import ForbiddenPage from "@/pages/forbidden";
-import { DynamicMenuRoute } from "@/app/router/DynamicMenuRoute";
+
+import { DynamicMenuRoute } from "./DynamicMenuRoute";
 
 export const AppRouter = () => {
   return (

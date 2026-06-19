@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import type { TMenuPermissionApiResponse } from "@/entities/user/lib/permission/types";
+
+import type { TMenuPermissionApiResponse } from "../lib/permission/types";
 
 interface TMenuPermissionState {
   menuPermission: TMenuPermissionApiResponse | null;

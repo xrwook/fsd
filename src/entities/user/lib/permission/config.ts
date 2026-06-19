@@ -1,11 +1,12 @@
+import { flattenTree } from "@/shared/lib/utils";
+
+import { MENU_ID } from "./menuIds";
 import type {
   TMenuId,
   TMenuPermission,
   TMenuPermissionApiResponse,
   TPermissionKey,
-} from "@/entities/user/lib/permission/types";
-import { MENU_ID } from "@/entities/user/lib/permission/menuIds";
-import { flattenTree } from "@/shared/lib/utils";
+} from "./types";
 
 // 실제 API가 내려주는 메뉴 트리 형태를 유지한 권한 mock 데이터입니다.
 export const permissionMenuMock: TMenuPermissionApiResponse = {

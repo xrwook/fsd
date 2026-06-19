@@ -1,1 +1,1 @@
-export { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
+export { useMenuPermissionStore } from "../model/menuPermissionStore";

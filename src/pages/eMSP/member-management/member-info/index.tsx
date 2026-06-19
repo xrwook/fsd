@@ -1,1 +1,1 @@
-export { default } from "@/pages/eMSP/member-management/member-info/ui/MemberInfo";
+export { default } from "./ui/MemberInfo";

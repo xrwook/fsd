@@ -1,4 +1,5 @@
 import { Box, Drawer } from "@mui/material";
+
 import { Sidebar } from "@/widgets/sidebar";
 
 export const APP_SIDEBAR_WIDTH = 272;

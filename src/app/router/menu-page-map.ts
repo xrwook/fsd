@@ -1,7 +1,8 @@
-import { lazy } from "react";
-import { MENU_ID } from "@/entities/user";
-import type { TMenuId } from "@/entities/user";
 import type { ComponentType, LazyExoticComponent } from "react";
+import { lazy } from "react";
+
+import type { TMenuId } from "@/entities/user";
+import { MENU_ID } from "@/entities/user";
 
 type TMenuPageComponent = LazyExoticComponent<ComponentType>;
 

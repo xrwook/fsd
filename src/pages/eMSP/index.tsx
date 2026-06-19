@@ -1,1 +1,1 @@
-export { default } from "@/pages/eMSP/ui/UserInfo";
+export { default } from "./ui/UserInfo";

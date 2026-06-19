@@ -1,10 +1,11 @@
 import type { z } from "zod";
+
 import type {
   menuIdSchema,
-  menuPermissionSchema,
   menuPermissionApiResponseSchema,
+  menuPermissionSchema,
   permissionKeySchema,
-} from "@/entities/user/lib/permission/schema";
+} from "./schema";
 
 /**
  * 메뉴별로 검사할 수 있는 권한 키 타입입니다.

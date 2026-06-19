@@ -1,1 +1,1 @@
-export { default } from "@/pages/forbidden/ui/Forbidden";
+export { default } from "./ui/Forbidden";

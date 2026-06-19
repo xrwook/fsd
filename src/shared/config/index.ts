@@ -1,2 +1,2 @@
-export { env } from "@/shared/config/env";
-export { menu } from "@/shared/config/menu";
+export { env } from "./env";
+export { menu } from "./menu";

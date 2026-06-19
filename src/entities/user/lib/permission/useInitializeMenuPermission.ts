@@ -1,6 +1,7 @@
 import { useEffect } from "react";
-import { useGetMenuPermissionQuery } from "@/entities/user/api";
-import { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
+
+import { useGetMenuPermissionQuery } from "../../api";
+import { useMenuPermissionStore } from "../../model/menuPermissionStore";
 
 export const useInitializeMenuPermission = () => {
   const setInitializePermission = useMenuPermissionStore(

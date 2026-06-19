@@ -2,10 +2,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+
 import {
   stationUpdateFormSchema,
   type TStationUpdateFormValues,
-} from "@/features/station/update/model/schema";
+} from "../model/schema";
 
 const defaultValues: TStationUpdateFormValues = {
   stationName: "",

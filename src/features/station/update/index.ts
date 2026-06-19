@@ -1,1 +1,1 @@
-export { StationUpdateFormExample } from "@/features/station/update/ui/StationUpdateFormExample";
+export { StationUpdateFormExample } from "./ui/StationUpdateFormExample";

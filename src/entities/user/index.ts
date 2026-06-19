@@ -1,12 +1,12 @@
-export { useMenuPermissionStore } from "@/entities/user/model/menuPermissionStore";
-export { useInitializeMenuPermission } from "@/entities/user/lib/permission/useInitializeMenuPermission";
-export {
-  MENU_ID,
-  isMenuId,
-  useMenuPermission,
-} from "@/entities/user/lib/permission";
 export type {
   TMenuId,
   TMenuPermission,
   TPermissionKey,
-} from "@/entities/user/lib/permission";
+} from "./lib/permission";
+export {
+  isMenuId,
+  MENU_ID,
+  useMenuPermission,
+} from "./lib/permission";
+export { useInitializeMenuPermission } from "./lib/permission/useInitializeMenuPermission";
+export { useMenuPermissionStore } from "./model/menuPermissionStore";

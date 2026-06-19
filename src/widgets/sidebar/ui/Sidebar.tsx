@@ -1,3 +1,4 @@
+import type { SvgIconComponent } from "@mui/icons-material";
 import {
   AccountTreeOutlined,
   BoltOutlined,
@@ -25,13 +26,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import type { SvgIconComponent } from "@mui/icons-material";
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MENU_ID, useMenuPermission } from "@/entities/user";
+
 import type { TMenuId, TMenuPermission } from "@/entities/user";
+import { MENU_ID, useMenuPermission } from "@/entities/user";
 import { flattenTree } from "@/shared/lib/utils";
-import { useSidebarFavorites } from "@/widgets/sidebar/model/useSidebarFavorites";
+
+import { useSidebarFavorites } from "../model/useSidebarFavorites";
 
 const menuIconMap: Partial<Record<TMenuId, SvgIconComponent>> = {
   [MENU_ID.DASHBOARD]: DashboardOutlined,
@@ -240,7 +242,9 @@ export const Sidebar = () => {
 
         {hasChildren && (
           <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-            <List disablePadding>{children.map(renderMenu)}</List>
+            <List disablePadding>
+              {children.map((child) => renderMenu(child))}
+            </List>
           </Collapse>
         )}
       </Box>
@@ -271,7 +275,11 @@ export const Sidebar = () => {
         aria-label="주요 메뉴"
         sx={{ flex: 1, overflowY: "auto", py: 1.25 }}
       >
-        {!isPermissionInitialized ? (
+        {isPermissionInitialized ? (
+          <List disablePadding>
+            {permissionMenus.map((menu) => renderMenu(menu))}
+          </List>
+        ) : (
           <Stack spacing={1} sx={{ px: 2 }}>
             {Array.from({ length: 6 }).map((_, index) => (
               <Skeleton
@@ -282,8 +290,6 @@ export const Sidebar = () => {
               />
             ))}
           </Stack>
-        ) : (
-          <List disablePadding>{permissionMenus.map(renderMenu)}</List>
         )}
       </Box>
 

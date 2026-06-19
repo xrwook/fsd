@@ -1,4 +1,4 @@
-import { permissionMenuMock } from "@/entities/user/lib/permission/config";
+import { permissionMenuMock } from "../../lib/permission/config";
 
 // 실제 API 호출 흐름을 유지하기 위한 mock 응답 지연 시간입니다.
 const MOCK_API_DELAY_MS = 500;

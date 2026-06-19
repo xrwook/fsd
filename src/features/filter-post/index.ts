@@ -1,1 +1,1 @@
-export { filterPostsApi } from "@/features/filter-post/api";
+export { filterPostsApi } from "./api";
