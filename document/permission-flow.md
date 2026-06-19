@@ -7,7 +7,6 @@
 ## 핵심 파일
 
 - `src/app/App.tsx`
-  - 앱 시작 시 `useInitializeMenuPermission()`으로 권한 메뉴를 초기화합니다.
   - `AppRouter`를 렌더링합니다.
 - `src/app/router/AppRouter.tsx`
   - `/403`과 catch-all route만 선언합니다.
@@ -27,6 +26,7 @@
 - `src/entities/user/lib/permission/schema.ts`
   - 권한 메뉴 응답 schema를 관리합니다.
 - `src/entities/user/lib/permission/useMenuPermission.ts`
+  - `useGetMenuPermissionQuery()`를 직접 호출해 React Query cache의 권한 데이터를 사용합니다.
   - `canAccessMenu`, `canAccessMenuGroup`을 제공합니다.
 - `src/widgets/sidebar/ui/Sidebar.tsx`
   - 권한 메뉴 트리를 사이드 메뉴로 렌더링합니다.
@@ -63,11 +63,6 @@ src/main.tsx
   -> App
 
 App
-  -> useInitializeMenuPermission()
-    -> useGetMenuPermissionQuery()
-    -> getMenuPermissionApi()
-    -> zod parse
-    -> menuPermissionStore 저장
   -> AppRouter
 
 AppRouter
@@ -75,6 +70,11 @@ AppRouter
   -> *: DynamicMenuRoute
 
 DynamicMenuRoute
+  -> useMenuPermission()
+    -> useGetMenuPermissionQuery()
+    -> getMenuPermissionApi()
+    -> zod parse
+    -> React Query cache 저장
   -> 현재 location.pathname 확인
   -> permissionMenus를 flat하게 변환
   -> menu.url과 현재 URL 비교

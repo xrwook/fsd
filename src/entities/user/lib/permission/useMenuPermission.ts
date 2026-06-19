@@ -1,32 +1,24 @@
 import { useCallback } from "react";
 
-import { useMenuPermissionStore } from "../../model/menuPermissionStore";
-import {
-  hasChildrenMenuPermission,
-  hasMenuPermission,
-} from "./config";
-import type {
-  TMenuId,
-  TMenuPermission,
-  TPermissionKey,
-} from "./types";
+import { useGetMenuPermissionQuery } from "../../api";
+import { hasChildrenMenuPermission, hasMenuPermission } from "./config";
+import type { TMenuId, TMenuPermission, TPermissionKey } from "./types";
 
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
 
 /**
  * 메뉴 권한을 관리하는 훅입니다.
- * @returns 
  */
 export const useMenuPermission = () => {
-  const menuPermission = useMenuPermissionStore(
-    (state) => state.menuPermission,
-  );
-  const isPermissionInitialized = useMenuPermissionStore(
-    (state) => state.isPermissionInitialized,
-  );
-
-  const resolvedPermissionMenus =
-    menuPermission?.permissions ?? EMPTY_PERMISSION_MENUS;
+  const {
+    data: menuPermission = null,
+    data: {
+      permissionDescription,
+      permissionName,
+      permissions: resolvedPermissionMenus = EMPTY_PERMISSION_MENUS,
+    } = {},
+    isFetched: isPermissionInitialized,
+  } = useGetMenuPermissionQuery();
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
@@ -59,8 +51,8 @@ export const useMenuPermission = () => {
 
   return {
     menuPermission,
-    permissionName: menuPermission?.permissionName ?? null,
-    permissionDescription: menuPermission?.permissionDescription ?? null,
+    permissionName: permissionName ?? null,
+    permissionDescription: permissionDescription ?? null,
     permissionMenus: resolvedPermissionMenus,
     isPermissionInitialized,
     canAccessMenu,

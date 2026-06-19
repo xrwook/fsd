@@ -4,17 +4,17 @@
 
 ## 기본 흐름
 
-앱 진입 시 `src/app/App.tsx`에서 `useInitializeMenuPermission()`을 호출합니다.
+권한 데이터는 `useMenuPermission()` 내부에서 React Query로 조회합니다.
 
 ```tsx
-const App = () => {
-  useInitializeMenuPermission();
+const Page = () => {
+  const { canAccessMenu } = useMenuPermission();
 
-  return <>{/* routes */}</>;
+  return <>{canAccessMenu(MENU_ID.DASHBOARD) && <button>접근 가능</button>}</>;
 };
 ```
 
-권한 데이터는 React Query로 조회하고, zod 검증 후 `menuPermissionStore`에 저장됩니다. 화면에서는 직접 API를 호출하지 않고 `useMenuPermission()`만 사용합니다.
+권한 데이터는 React Query로 조회하고 zod 검증 후 query cache에 유지합니다. `staleTime`, `gcTime`은 `Infinity`로 설정되어 최초 조회 데이터를 안정적으로 재사용합니다. 화면에서는 직접 API를 호출하지 않고 `useMenuPermission()`만 사용합니다.
 
 ## 권한 키
 
@@ -151,7 +151,7 @@ API의 `url`은 이후 바뀌어도 됩니다. `menuId`가 같으면 같은 화�
 ## 주의사항
 
 - `checked`는 현재 접근 판단 기준이 아닙니다. 실제 판단은 `permissions[permissionKey]`로 합니다.
-- 화면에서 권한 API를 직접 호출하지 않습니다.
+- 화면에서 권한 API를 직접 호출하지 않고 `useMenuPermission()`을 사용합니다.
 - 초기화 전 권한은 아직 모르는 상태이므로 `isPermissionInitialized`를 고려해야 합니다.
 - 메뉴 ID는 `MENU_ID`에서 추가한 값을 권한 데이터와 `menu-page-map.ts`가 같이 사용해야 합니다.
 - API가 새로운 `url`을 내려줘도 해당 `menuId`에 연결된 page component가 없으면 화면을 렌더링할 수 없습니다.

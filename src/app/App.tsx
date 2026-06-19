@@ -1,13 +1,10 @@
 import { AppBar, Box, Toolbar, Typography } from "@mui/material";
 import { Suspense } from "react";
 
-import { APP_SIDEBAR_WIDTH,AppSidebar } from "@/app/layouts/app-sidebar";
+import { APP_SIDEBAR_WIDTH, AppSidebar } from "@/app/layouts/app-sidebar";
 import { AppRouter } from "@/app/router";
-import { useInitializeMenuPermission } from "@/entities/user";
 
 const App = () => {
-  useInitializeMenuPermission();
-
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <AppBar
