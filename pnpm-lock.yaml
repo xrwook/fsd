@@ -261,6 +261,9 @@ importers:
       typescript-plugin-css-modules:
         specifier: ^5.1.0
         version: 5.2.0(typescript@5.9.3)
+      utility-types:
+        specifier: ^3.11.0
+        version: 3.11.0
       vite:
         specifier: ^8.0.3
         version: 8.0.16(@types/node@22.19.20)(esbuild@0.25.12)(jiti@2.7.0)(less@4.6.4)(sass-embedded@1.100.0)(sass@1.100.0)(stylus@0.62.0)(tsx@4.22.4)(yaml@2.9.0)
@@ -5140,6 +5143,10 @@ packages:
 
   util@0.12.5:
     resolution: {integrity: sha512-kZf/K6hEIrWHI6XqOFUiiMa+79wE/D8Q+NCNAWclkyg3b4d2k7s0QGepNjiABc+aR3N1PAyHL7p6UcLY6LmrnA==}
+
+  utility-types@3.11.0:
+    resolution: {integrity: sha512-6Z7Ma2aVEWisaL6TvBCy7P8rm2LQoPv6dJ7ecIaIixHcwfbJ0x7mWdbcwlIM5IGQxPZSFYeqRCqlOOeKoJYMkw==}
+    engines: {node: '>= 4'}
 
   uuid@9.0.1:
     resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
@@ -10386,6 +10393,8 @@ snapshots:
       is-generator-function: 1.1.2
       is-typed-array: 1.1.15
       which-typed-array: 1.1.22
+
+  utility-types@3.11.0: {}
 
   uuid@9.0.1: {}
 
