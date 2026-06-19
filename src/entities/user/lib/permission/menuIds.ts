@@ -1,3 +1,5 @@
+import type { ValuesType } from "utility-types";
+
 export const MENU_ID = {
   DASHBOARD: "dashboard",
   CPOS: "cpos",
@@ -21,7 +23,7 @@ export const MENU_ID = {
   PLATFORM_MANAGEMENT: "platform-management",
 } as const;
 
-export type TMenuId = (typeof MENU_ID)[keyof typeof MENU_ID];
+export type TMenuId = ValuesType<typeof MENU_ID>;
 
 export const MENU_ID_VALUES = Object.values(MENU_ID) as [TMenuId, ...TMenuId[]];
 
