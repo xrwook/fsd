@@ -48,13 +48,13 @@ const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
   const expandedIds = new Set<TMenuId>();
 
   const visit = (items: TMenuPermission[]) => {
-    items.forEach((item) => {
+    for (const item of items) {
       if (item.expanded) {
         expandedIds.add(item.id);
       }
 
       visit(item.children ?? []);
-    });
+    }
   };
 
   visit(menus);
