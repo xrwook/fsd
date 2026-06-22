@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useGetMenuPermissionQuery } from "../../api";
-import { hasChildrenMenuPermission, hasMenuPermission } from "./config";
+import { hasChildrenMenuPermission, hasMenuPermission } from "./utils";
 import type { TMenuId, TMenuPermission, TPermissionKey } from "./types";
 
 const EMPTY_PERMISSION_MENUS: TMenuPermission[] = [];
