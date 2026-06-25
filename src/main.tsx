@@ -5,6 +5,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 
 import App from "@/app/App";
+import { KeycloakProvider } from "@/app/providers/keycloak-provider";
 import { MuiProvider } from "@/app/providers/mui-provider";
 import { QueryProvider } from "@/app/providers/query-provider";
 import { enableMocking } from "@/shared/mocks";
@@ -21,9 +22,11 @@ createRoot(rootElement).render(
   <StrictMode>
     <QueryProvider>
       <MuiProvider>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
+        <KeycloakProvider>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </KeycloakProvider>
       </MuiProvider>
     </QueryProvider>
   </StrictMode>,

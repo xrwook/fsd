@@ -58,6 +58,21 @@ pnpm dev
 
 브라우저에서 http://localhost:5173 으로 접속합니다.
 
+## Keycloak 설정
+
+`keycloak-js`는 앱 루트의 `KeycloakProvider`에서 초기화됩니다.
+`VITE_USE_MOCK_API=false`이고 아래 세 값이 모두 있으면 자동으로 활성화됩니다.
+
+```env
+VITE_KEYCLOAK_URL=https://keycloak.example.com
+VITE_KEYCLOAK_REALM=my-realm
+VITE_KEYCLOAK_CLIENT_ID=my-client
+VITE_KEYCLOAK_ON_LOAD=login-required
+```
+
+명시적으로 제어해야 하면 `VITE_KEYCLOAK_ENABLED=true` 또는 `false`를 설정합니다.
+API 호출은 `src/shared/lib/axios`에서 Keycloak access token을 `Authorization: Bearer ...` 헤더로 자동 주입합니다.
+
 ## Building for Production
 
 프로덕션 빌드:
