@@ -75,14 +75,14 @@ const formatRemainingTime = (seconds: number | null) => {
 };
 
 const AccessTokenStatus = () => {
-  const [remain, setRemain] = useState<number | null>(() =>
+  const [remainingSeconds, setRemainingSeconds] = useState<number | null>(() =>
     getKeycloakTokenExpiresInSeconds(),
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const updateRemainingSeconds = () => {
-      setRemain(getKeycloakTokenExpiresInSeconds());
+      setRemainingSeconds(getKeycloakTokenExpiresInSeconds());
     };
 
     updateRemainingSeconds();
@@ -101,7 +101,7 @@ const AccessTokenStatus = () => {
 
     try {
       await forceRefreshKeycloakToken();
-      setRemain(getKeycloakTokenExpiresInSeconds());
+      setRemainingSeconds(getKeycloakTokenExpiresInSeconds());
     } finally {
       setIsRefreshing(false);
     }
@@ -114,13 +114,13 @@ const AccessTokenStatus = () => {
       sx={{ alignItems: "center", flexShrink: 0, minWidth: 0 }}
     >
       <Typography color="text.secondary" sx={{ fontSize: 12 }}>
-        Access Token {formatRemainingTime(remain)}
+        Access Token {formatRemainingTime(remainingSeconds)}
       </Typography>
       <Tooltip title="Access Token 갱신">
         <span>
           <IconButton
             aria-label="Access Token 갱신"
-            disabled={isRefreshing || remain === null}
+            disabled={isRefreshing || remainingSeconds === null}
             size="small"
             onClick={() => {
               handleRefresh().catch(() => {});

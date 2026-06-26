@@ -52,25 +52,17 @@ const getFsdScope = (pathParts) => {
 
   const [layer, sliceOrSegment] = pathParts;
 
-  if (!FSD_LAYERS.has(layer)) {
+  if (!FSD_LAYERS.has(layer) || !SLICED_LAYERS.has(layer)) {
     return null;
   }
 
-  if (SLICED_LAYERS.has(layer)) {
-    if (!sliceOrSegment || isFileName(sliceOrSegment)) {
-      return null;
-    }
-
-    return {
-      layer,
-      scope: sliceOrSegment,
-    };
+  if (!sliceOrSegment || isFileName(sliceOrSegment)) {
+    return null;
   }
 
   return {
     layer,
-    scope:
-      sliceOrSegment && !isFileName(sliceOrSegment) ? sliceOrSegment : null,
+    scope: sliceOrSegment,
   };
 };
 
@@ -116,7 +108,7 @@ const checkImportPath = (context, node) => {
   context.report({
     node: node.source,
     message:
-      '같은 FSD slice/segment 내부 import는 alias 대신 상대경로를 사용하세요.',
+      '같은 FSD slice 내부 import는 alias 대신 상대경로를 사용하세요.',
     fix(fixer) {
       const relativeImportPath = getRelativeImportPath(
         context.filename,
@@ -144,7 +136,7 @@ export default {
         type: 'suggestion',
         docs: {
           description:
-            '같은 FSD slice 또는 segment 내부에서는 상대경로 import를 강제합니다.',
+            'pages/widgets/features/entities의 같은 slice 내부에서는 상대경로 import를 강제합니다.',
         },
         fixable: 'code',
         schema: [],

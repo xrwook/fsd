@@ -11,9 +11,9 @@ import {
   refreshKeycloakToken,
 } from "@/shared/lib/keycloak";
 
-type Props = {
+interface Props {
   children: ReactNode;
-};
+}
 
 type KeycloakProviderState = {
   status: KeycloakAuthStatus;

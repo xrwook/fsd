@@ -1,4 +1,4 @@
-import { getKeycloakAccessToken } from "../keycloak";
+import { getKeycloakAccessToken } from "@/shared/lib/keycloak";
 
 type RequestOptions = RequestInit & {
   // public API나 인증 전 요청은 auth: false로 토큰 주입을 끌 수 있습니다.
