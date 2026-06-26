@@ -1,5 +1,6 @@
 import type { KeycloakConfig, KeycloakInitOptions } from "keycloak-js";
 import Keycloak from "keycloak-js";
+import { DateTime } from "luxon";
 
 import { env } from "@/shared/config";
 
@@ -32,7 +33,7 @@ const getKeycloakConfig = (): KeycloakConfig => {
  */
 const getInitOptions = (): KeycloakInitOptions => {
   const options: KeycloakInitOptions = {
-    onLoad: 'login-required',//env.keycloak.onLoad,
+    onLoad: "login-required",
     // SPA public client 기준으로 authorization code + PKCE 흐름을 사용합니다.
     pkceMethod: "S256",
     // iframe 세션 체크는 브라우저 3rd-party cookie 정책에 취약해 토큰 refresh 중심으로 관리합니다.
@@ -104,7 +105,9 @@ export const logoutKeycloak = async () => {
 /**
  * 인증된 사용자의 access token을 필요 시 갱신합니다.
  */
-export const refreshKeycloakToken = async () => {
+export const refreshKeycloakToken = async (
+  minValidity = env.keycloak.tokenMinValiditySeconds,
+) => {
   const keycloak = getKeycloakInstance();
 
   if (!keycloak?.authenticated) {
@@ -112,9 +115,37 @@ export const refreshKeycloakToken = async () => {
   }
 
   // API 호출 직전에 만료 임박 토큰을 갱신해 Authorization 헤더에는 최신 토큰만 넣습니다.
-  await keycloak.updateToken(env.keycloak.tokenMinValiditySeconds);
+  await keycloak.updateToken(minValidity);
 
   return keycloak.token ?? null;
+};
+
+/**
+ * 사용자가 직접 갱신 버튼을 눌렀을 때 access token을 강제로 갱신합니다.
+ */
+export const forceRefreshKeycloakToken = async () => {
+  return refreshKeycloakToken(-1);
+};
+
+/**
+ * 현재 access token 만료까지 남은 시간을 초 단위로 반환합니다.
+ */
+export const getKeycloakTokenExpiresInSeconds = () => {
+  const keycloak = getKeycloakInstance();
+  const expiresAt = keycloak?.tokenParsed?.exp;
+
+  if (!keycloak?.authenticated || typeof expiresAt !== "number") {
+    return null;
+  }
+
+  const expiresAtDateTime = DateTime.fromSeconds(
+    expiresAt + (keycloak.timeSkew ?? 0),
+  );
+  const remainingSeconds = Math.ceil(
+    expiresAtDateTime.diff(DateTime.now(), "seconds").seconds,
+  );
+
+  return Math.max(0, remainingSeconds);
 };
 
 /**

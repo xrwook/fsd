@@ -1,6 +1,8 @@
 export {
+  forceRefreshKeycloakToken,
   getKeycloakAccessToken,
   getKeycloakInstance,
+  getKeycloakTokenExpiresInSeconds,
   initializeKeycloak,
   isKeycloakEnabled,
   loginKeycloak,
