@@ -1,14 +1,15 @@
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Box, Button, Stack, Typography } from "@mui/material";
+import { useParams } from "react-router-dom";
 
 import { useListNavigation } from "@/shared/lib/router";
 
 type TMemberInfoDetailProps = {
-  params: Readonly<Record<string, string | undefined>>;
   parentPath: string;
 };
 
-const MemberInfoDetail = ({ params, parentPath }: TMemberInfoDetailProps) => {
+const MemberInfoDetail = ({ parentPath }: TMemberInfoDetailProps) => {
+  const { memberId } = useParams<{ memberId: string }>();
   const { goBackToList } = useListNavigation();
 
   return (
@@ -27,7 +28,7 @@ const MemberInfoDetail = ({ params, parentPath }: TMemberInfoDetailProps) => {
           회원 상세
         </Typography>
         <Typography color="text.secondary" sx={{ mt: 1 }}>
-          회원 ID: {params.memberId}
+          회원 ID: {memberId}
         </Typography>
       </Box>
     </Stack>

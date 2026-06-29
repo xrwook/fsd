@@ -1,4 +1,10 @@
-import { matchRoutes, Navigate, useLocation } from "react-router-dom";
+import {
+  matchRoutes,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 
 import { useMenuPermission } from "@/entities/user";
 import NotFoundPage from "@/pages/not-found";
@@ -38,42 +44,46 @@ export const DynamicMenuRoute = () => {
     (menu) => menu.children,
   );
 
-  const resolvedExtraPageRoutes: TResolvedExtraPageRoute[] =
-    extraPageRoutes.flatMap((route) => {
-      const parentMenu = flattenedPermissionMenus.find(
-        (menu) => menu.id === route.parentMenuId,
-      );
+  const routes: TResolvedExtraPageRoute[] = extraPageRoutes.flatMap((route) => {
+    const parentMenu = flattenedPermissionMenus.find(
+      (menu) => menu.id === route.parentMenuId,
+    );
 
-      if (!parentMenu?.url) {
-        return [];
-      }
+    if (!parentMenu?.url) {
+      return [];
+    }
 
-      return [
-        {
-          ...route,
-          parentPath: parentMenu.url,
-          path: resolveExtraPagePath(parentMenu.url, route.relativePath),
-        },
-      ];
-    });
+    return [
+      {
+        ...route,
+        parentPath: parentMenu.url,
+        path: resolveExtraPagePath(parentMenu.url, route.relativePath),
+      },
+    ];
+  });
 
-  const extraRouteMatch =
-    matchRoutes<TResolvedExtraPageRoute>(resolvedExtraPageRoutes, location)?.at(
-      -1,
-    ) ?? null;
+  const extraRoute =
+    matchRoutes<TResolvedExtraPageRoute>(routes, location)?.at(-1) ?? null;
 
-  if (extraRouteMatch) {
-    const { params, route: extraRoute } = extraRouteMatch;
+  if (extraRoute) {
+    const { route } = extraRoute;
 
     if (
-      !canAccessMenu(extraRoute.parentMenuId, extraRoute.requiredPermission)
+      !canAccessMenu(route.parentMenuId, route.requiredPermission)
     ) {
       return <Navigate to="/403" replace />;
     }
 
-    const ExtraPage = extraRoute.page;
+    const ExtraPage = route.page;
 
-    return <ExtraPage params={params} parentPath={extraRoute.parentPath} />;
+    return (
+      <Routes>
+        <Route
+          path={route.path}
+          element={<ExtraPage parentPath={route.parentPath} parentMenuId={route.parentMenuId} />}
+        />
+      </Routes>
+    );
   }
 
   // 현재 URL과 API 메뉴의 url을 직접 비교해서 어떤 메뉴 화면인지 찾습니다.

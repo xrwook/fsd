@@ -1,5 +1,4 @@
 import type { ComponentType, LazyExoticComponent } from "react";
-import type { Params } from "react-router-dom";
 import type { ValuesType } from "utility-types";
 
 import type { PERMISSION_KEY, TMenuId } from "@/entities/user";
@@ -10,8 +9,8 @@ type RequiredPermission = Extract<
 >;
 
 export type TExtraPageProps = {
-  params: Params<string>;
   parentPath: string;
+  parentMenuId: TMenuId;
 };
 
 export type TExtraPageRoute = {
