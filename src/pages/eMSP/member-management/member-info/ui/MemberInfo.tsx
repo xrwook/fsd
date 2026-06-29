@@ -1,11 +1,8 @@
 import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
-import {
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "react-router-dom";
+
+import { useListNavigation, useUrlSearchParams } from "@/shared/lib/router";
 
 const MEMBERS = [
   { id: "1001", name: "김현대", status: "이용 중" },
@@ -13,14 +10,9 @@ const MEMBERS = [
   { id: "1003", name: "박충전", status: "이용 중" },
 ];
 
-type TMemberDetailLocationState = {
-  fromList?: boolean;
-};
-
 const MemberInfo = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { goToDetail } = useListNavigation();
+  const { searchParams, updateSearchParams } = useUrlSearchParams();
   const keyword = searchParams.get("keyword") ?? "";
   const [draftKeyword, setDraftKeyword] = useState(keyword);
 
@@ -35,24 +27,15 @@ const MemberInfo = () => {
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const nextSearchParams = new URLSearchParams(searchParams);
     const normalizedKeyword = draftKeyword.trim();
 
-    if (normalizedKeyword) {
-      nextSearchParams.set("keyword", normalizedKeyword);
-    } else {
-      nextSearchParams.delete("keyword");
-    }
-
-    setSearchParams(nextSearchParams, { replace: true });
+    updateSearchParams({
+      keyword: normalizedKeyword || null,
+    });
   };
 
   const handleOpenDetail = (memberId: string) => {
-    const listPath = location.pathname.replace(/\/+$/, "");
-
-    navigate(`${listPath}/${memberId}`, {
-      state: { fromList: true } satisfies TMemberDetailLocationState,
-    });
+    goToDetail(memberId);
   };
 
   return (
