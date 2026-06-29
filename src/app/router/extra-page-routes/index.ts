@@ -5,4 +5,8 @@ import type { TExtraPageRoute } from "./types";
 export const extraPageRoutes: TExtraPageRoute[] =
   Object.values(emspExtraPageRoutes).flat();
 
-export type { TExtraPageRoute, TExtraPageRouteGroups } from "./types";
+export type {
+  TExtraPageProps,
+  TExtraPageRoute,
+  TExtraPageRouteGroups,
+} from "./types";

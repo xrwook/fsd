@@ -12,7 +12,9 @@ export const emspExtraPageRoutes = {
       relativePath: "/:memberId",
       parentMenuId: MENU_ID.EMSP.EMSP_MEMBER_INFO,
       requiredPermission: PERMISSION_KEY.READ,
-      page: lazy(() => import("@/pages/eMSP/member-management/member-info")),
+      page: lazy(
+        () => import("@/pages/eMSP/member-management/member-info-detail"),
+      ),
     },
   ],
   [MENU_ID.EMSP.EMSP_MEMBER_PAYMENT]: [

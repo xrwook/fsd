@@ -9,6 +9,7 @@ import { pageMap } from "./menu-page-map";
 
 type TResolvedExtraPageRoute = TExtraPageRoute & {
   path: string;
+  parentPath: string;
 };
 
 const resolveExtraPagePath = (parentPath: string, relativePath: string) => {
@@ -50,17 +51,20 @@ export const DynamicMenuRoute = () => {
       return [
         {
           ...route,
+          parentPath: parentMenu.url,
           path: resolveExtraPagePath(parentMenu.url, route.relativePath),
         },
       ];
     });
 
-  const extraRoute =
+  const extraRouteMatch =
     matchRoutes<TResolvedExtraPageRoute>(resolvedExtraPageRoutes, location)?.at(
       -1,
-    )?.route ?? null;
+    ) ?? null;
 
-  if (extraRoute) {
+  if (extraRouteMatch) {
+    const { params, route: extraRoute } = extraRouteMatch;
+
     if (
       !canAccessMenu(extraRoute.parentMenuId, extraRoute.requiredPermission)
     ) {
@@ -69,7 +73,7 @@ export const DynamicMenuRoute = () => {
 
     const ExtraPage = extraRoute.page;
 
-    return <ExtraPage />;
+    return <ExtraPage params={params} parentPath={extraRoute.parentPath} />;
   }
 
   // 현재 URL과 API 메뉴의 url을 직접 비교해서 어떤 메뉴 화면인지 찾습니다.
