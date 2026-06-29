@@ -68,9 +68,7 @@ export const DynamicMenuRoute = () => {
   if (extraRoute) {
     const { route } = extraRoute;
 
-    if (
-      !canAccessMenu(route.parentMenuId, route.requiredPermission)
-    ) {
+    if (!canAccessMenu(route.parentMenuId, route.requiredPermission)) {
       return <Navigate to="/403" replace />;
     }
 
@@ -80,7 +78,12 @@ export const DynamicMenuRoute = () => {
       <Routes>
         <Route
           path={route.path}
-          element={<ExtraPage parentPath={route.parentPath} parentMenuId={route.parentMenuId} />}
+          element={
+            <ExtraPage
+              parentPath={route.parentPath}
+              parentMenuId={route.parentMenuId}
+            />
+          }
         />
       </Routes>
     );
@@ -93,7 +96,7 @@ export const DynamicMenuRoute = () => {
     }) ?? null;
 
   // API 메뉴에 없는 URL이면 프론트가 렌더링할 메뉴 화면도 없습니다.
-  if (!currentUrl) {
+  if (!currentUrl?.url) {
     return <NotFoundPage />;
   }
 
@@ -109,5 +112,9 @@ export const DynamicMenuRoute = () => {
     return <NotFoundPage />;
   }
 
-  return <MenuPage />;
+  return (
+    <Routes>
+      <Route path={currentUrl.url} element={<MenuPage />} />
+    </Routes>
+  );
 };
