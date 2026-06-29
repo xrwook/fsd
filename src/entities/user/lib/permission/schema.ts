@@ -2,7 +2,12 @@ import { z } from "zod";
 
 import { MENU_ID_VALUES } from "./menuIds";
 
-export const permissionKeySchema = z.enum(["read", "write", "download"]);
+export const PERMISSION_KEY = {
+  READ: "read",
+  WRITE: "write",
+  DOWNLOAD: "download",
+} as const;
+export const permissionKeySchema = z.enum(Object.values(PERMISSION_KEY)as [string, ...string[]]);
 export const menuIdSchema = z.enum(MENU_ID_VALUES);
 
 const menuPermissionBaseSchema = z.object({

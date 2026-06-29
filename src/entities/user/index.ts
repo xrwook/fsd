@@ -6,5 +6,6 @@ export type {
 export {
   isMenuId,
   MENU_ID,
+  PERMISSION_KEY,
   useMenuPermission,
 } from "./lib/permission";

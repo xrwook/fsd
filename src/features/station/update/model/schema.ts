@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const stationUpdateFormSchema = z.object({
   stationName: z.string().min(1, "충전소명을 입력해 주세요."),
-  managerEmail: z.email("올바른 이메일을 입력해 주세요."),
+  managerEmail: z.string().email("올바른 이메일을 입력해 주세요."),
   chargerCount: z
     .number()
     .int("충전기 수는 정수로 입력해 주세요.")

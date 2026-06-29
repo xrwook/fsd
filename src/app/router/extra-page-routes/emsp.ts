@@ -1,6 +1,6 @@
 import { lazy } from "react";
 
-import { MENU_ID } from "@/entities/user";
+import { MENU_ID, PERMISSION_KEY } from "@/entities/user";
 
 import type { TExtraPageRouteGroups } from "./types";
 
@@ -11,7 +11,7 @@ export const emspExtraPageRoutes = {
     {
       path: "/emsp/member-management/members/:memberId",
       parentMenuId: MENU_ID.EMSP.EMSP_MEMBER_INFO,
-      requiredPermission: "read",
+      requiredPermission: PERMISSION_KEY.READ,
       page: lazy(() => import("@/pages/eMSP/member-management/member-info")),
     },
   ],
@@ -19,7 +19,7 @@ export const emspExtraPageRoutes = {
     {
       path: "/emsp/member-management/members/:memberId",
       parentMenuId: MENU_ID.EMSP.EMSP_MEMBER_PAYMENT,
-      requiredPermission: "read",
+      requiredPermission: PERMISSION_KEY.READ,
       page: lazy(() => import("@/pages/eMSP/member-management/member-payment")),
     },
   ],
