@@ -7,7 +7,15 @@ export const PERMISSION_KEY = {
   WRITE: "write",
   DOWNLOAD: "download",
 } as const;
-export const permissionKeySchema = z.enum(Object.values(PERMISSION_KEY)as [string, ...string[]]);
+
+type TPermissionKeyValue = (typeof PERMISSION_KEY)[keyof typeof PERMISSION_KEY];
+
+export const permissionKeySchema = z.enum(
+  Object.values(PERMISSION_KEY) as [
+    TPermissionKeyValue,
+    ...TPermissionKeyValue[],
+  ],
+);
 export const menuIdSchema = z.enum(MENU_ID_VALUES);
 
 const menuPermissionBaseSchema = z.object({

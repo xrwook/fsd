@@ -9,7 +9,7 @@ import type { TExtraPageRouteGroups } from "./types";
 export const emspExtraPageRoutes = {
   [MENU_ID.EMSP.EMSP_MEMBER_INFO]: [
     {
-      path: "/emsp/member-management/members/:memberId",
+      relativePath: "/:memberId",
       parentMenuId: MENU_ID.EMSP.EMSP_MEMBER_INFO,
       requiredPermission: PERMISSION_KEY.READ,
       page: lazy(() => import("@/pages/eMSP/member-management/member-info")),
@@ -17,7 +17,7 @@ export const emspExtraPageRoutes = {
   ],
   [MENU_ID.EMSP.EMSP_MEMBER_PAYMENT]: [
     {
-      path: "/emsp/member-management/members/:memberId",
+      relativePath: "/:memberId",
       parentMenuId: MENU_ID.EMSP.EMSP_MEMBER_PAYMENT,
       requiredPermission: PERMISSION_KEY.READ,
       page: lazy(() => import("@/pages/eMSP/member-management/member-payment")),
