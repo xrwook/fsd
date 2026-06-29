@@ -37,12 +37,12 @@ import { useSidebarFavorites } from "../model/useSidebarFavorites";
 
 const menuIconMap: Partial<Record<TMenuId, SvgIconComponent>> = {
   [MENU_ID.DASHBOARD]: DashboardOutlined,
-  [MENU_ID.CPOS]: BoltOutlined,
-  [MENU_ID.STATION_ROOT]: AccountTreeOutlined,
-  [MENU_ID.CHARGER_ROOT]: SettingsOutlined,
-  [MENU_ID.EMSP]: GroupsOutlined,
-  [MENU_ID.EMSP_MEMBER_MANAGEMENT]: GroupsOutlined,
-  [MENU_ID.EMSP_CORPORATE_MEMBER]: BusinessOutlined,
+  [MENU_ID.CPOS.CPOS]: BoltOutlined,
+  [MENU_ID.CPOS.STATION_ROOT]: AccountTreeOutlined,
+  [MENU_ID.CPOS.CHARGER_ROOT]: SettingsOutlined,
+  [MENU_ID.EMSP.EMSP]: GroupsOutlined,
+  [MENU_ID.EMSP.EMSP_MEMBER_MANAGEMENT]: GroupsOutlined,
+  [MENU_ID.EMSP.EMSP_CORPORATE_MEMBER]: BusinessOutlined,
   [MENU_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
 };
 

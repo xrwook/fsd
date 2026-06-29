@@ -1,14 +1,15 @@
-import { Navigate, useLocation } from "react-router-dom";
+import { matchRoutes, Navigate, useLocation } from "react-router-dom";
 
 import { useMenuPermission } from "@/entities/user";
 import NotFoundPage from "@/pages/not-found";
 import { flattenTree } from "@/shared/lib/utils";
 
+import { extraPageRoutes, type TExtraPageRoute } from "./extra-page-routes";
 import { pageMap } from "./menu-page-map";
 
 /**
  * 현재 URL을 API 메뉴의 url과 비교하여 어떤 메뉴 화면인지 찾고, 권한이 있으면 해당 페이지 컴포넌트를 렌더링합니다.
- * @returns 
+ * @returns
  */
 export const DynamicMenuRoute = () => {
   const location = useLocation();
@@ -18,6 +19,22 @@ export const DynamicMenuRoute = () => {
   // 권한 메뉴를 아직 모르는 시점에는 404/403 판단을 보류합니다.
   if (!isPermissionInitialized) {
     return null;
+  }
+
+  const extraRoute =
+    matchRoutes<TExtraPageRoute>(extraPageRoutes, location)?.at(-1)?.route ??
+    null;
+
+  if (extraRoute) {
+    if (
+      !canAccessMenu(extraRoute.parentMenuId, extraRoute.requiredPermission)
+    ) {
+      return <Navigate to="/403" replace />;
+    }
+
+    const ExtraPage = extraRoute.page;
+
+    return <ExtraPage />;
   }
 
   // 현재 URL과 API 메뉴의 url을 직접 비교해서 어떤 메뉴 화면인지 찾습니다.

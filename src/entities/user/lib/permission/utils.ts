@@ -1,6 +1,5 @@
 import { flattenTree } from "@/shared/lib/utils";
 
-import { MENU_ID } from "./menuIds";
 import type {
   TMenuId,
   TMenuPermission,
@@ -14,7 +13,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
   permissionDescription: "새로운권한입니다.",
   permissions: [
     {
-      id: MENU_ID.DASHBOARD,
+      id: "dashboard",
       parentId: null,
       depth: 1,
       name: "Dashboard",
@@ -30,7 +29,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       children: [],
     },
     {
-      id: MENU_ID.CPOS,
+      id: "cpos",
       parentId: null,
       depth: 1,
       name: "CPOS",
@@ -44,8 +43,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       },
       children: [
         {
-          id: MENU_ID.STATION_ROOT,
-          parentId: MENU_ID.CPOS,
+          id: "station-root",
+          parentId: "cpos",
           depth: 2,
           name: "충전소 관리",
           type: "folder",
@@ -58,8 +57,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           },
           children: [
             {
-              id: MENU_ID.STATION_MANAGEMENT,
-              parentId: MENU_ID.STATION_ROOT,
+              id: "station-management",
+              parentId: "station-root",
               depth: 3,
               name: "충전소 관리",
               type: "menu",
@@ -71,8 +70,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.STATION_FEE_MANAGEMENT,
-              parentId: MENU_ID.STATION_ROOT,
+              id: "station-fee-management",
+              parentId: "station-root",
               depth: 3,
               name: "충전소 요금 관리",
               type: "menu",
@@ -84,8 +83,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.POWER_BANK_MANAGEMENT,
-              parentId: MENU_ID.STATION_ROOT,
+              id: "power-bank-management",
+              parentId: "station-root",
               depth: 3,
               name: "파워 뱅크 관리",
               type: "menu",
@@ -99,8 +98,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           ],
         },
         {
-          id: MENU_ID.CHARGER_ROOT,
-          parentId: MENU_ID.CPOS,
+          id: "charger-root",
+          parentId: "cpos",
           depth: 2,
           name: "충전기 관리",
           type: "folder",
@@ -113,8 +112,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           },
           children: [
             {
-              id: MENU_ID.M2M_MODEM_MANAGEMENT,
-              parentId: MENU_ID.CHARGER_ROOT,
+              id: "m2m-modem-management",
+              parentId: "charger-root",
               depth: 3,
               name: "M2M모뎀 관리",
               type: "menu",
@@ -126,8 +125,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.CHARGER_STATUS,
-              parentId: MENU_ID.CHARGER_ROOT,
+              id: "charger-status",
+              parentId: "charger-root",
               depth: 3,
               name: "충전기 상태",
               type: "menu",
@@ -139,8 +138,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.CHARGER_CONTROL,
-              parentId: MENU_ID.CHARGER_ROOT,
+              id: "charger-control",
+              parentId: "charger-root",
               depth: 3,
               name: "충전기 제어",
               type: "menu",
@@ -152,8 +151,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.CHARGER_ERROR_MANAGEMENT,
-              parentId: MENU_ID.CHARGER_ROOT,
+              id: "charger-error-management",
+              parentId: "charger-root",
               depth: 3,
               name: "충전기 고장 관리",
               type: "menu",
@@ -169,7 +168,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       ],
     },
     {
-      id: MENU_ID.CLEARING_HOUSE,
+      id: "clearing-house",
       parentId: null,
       depth: 1,
       name: "Clearing House",
@@ -184,7 +183,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       children: [],
     },
     {
-      id: MENU_ID.EMSP,
+      id: "emsp",
       parentId: null,
       depth: 1,
       name: "eMSP",
@@ -198,8 +197,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       },
       children: [
         {
-          id: MENU_ID.EMSP_MEMBER_MANAGEMENT,
-          parentId: MENU_ID.EMSP,
+          id: "emsp-member-management",
+          parentId: "emsp",
           depth: 2,
           name: "회원관리",
           type: "folder",
@@ -212,8 +211,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           },
           children: [
             {
-              id: MENU_ID.EMSP_MEMBER_INFO,
-              parentId: MENU_ID.EMSP_MEMBER_MANAGEMENT,
+              id: "emsp-member-info",
+              parentId: "emsp-member-management",
               depth: 3,
               name: "회원정보",
               type: "menu",
@@ -226,8 +225,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.EMSP_MEMBER_PAYMENT,
-              parentId: MENU_ID.EMSP_MEMBER_MANAGEMENT,
+              id: "emsp-member-payment",
+              parentId: "emsp-member-management",
               depth: 3,
               name: "결제",
               type: "menu",
@@ -242,8 +241,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           ],
         },
         {
-          id: MENU_ID.EMSP_CORPORATE_MEMBER,
-          parentId: MENU_ID.EMSP,
+          id: "emsp-corporate-member",
+          parentId: "emsp",
           depth: 2,
           name: "법인회원",
           type: "folder",
@@ -256,8 +255,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
           },
           children: [
             {
-              id: MENU_ID.EMSP_CORPORATE_JOIN_MANAGEMENT,
-              parentId: MENU_ID.EMSP_CORPORATE_MEMBER,
+              id: "emsp-corporate-join-management",
+              parentId: "emsp-corporate-member",
               depth: 3,
               name: "가입관리",
               type: "menu",
@@ -270,8 +269,8 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
               },
             },
             {
-              id: MENU_ID.EMSP_CORPORATE_PAYMENT_SETTLEMENT,
-              parentId: MENU_ID.EMSP_CORPORATE_MEMBER,
+              id: "emsp-corporate-payment-settlement",
+              parentId: "emsp-corporate-member",
               depth: 3,
               name: "법인 결제/정산",
               type: "menu",
@@ -288,7 +287,7 @@ export const permissionMenuMock: TMenuPermissionApiResponse = {
       ],
     },
     {
-      id: MENU_ID.PLATFORM_MANAGEMENT,
+      id: "platform-management",
       parentId: null,
       depth: 1,
       name: "Platform Mgt.",
