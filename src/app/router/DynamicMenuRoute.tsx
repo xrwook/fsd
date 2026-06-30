@@ -12,6 +12,7 @@ import { flattenTree } from "@/shared/lib/utils";
 
 import { extraPageRoutes, type TExtraPageRoute } from "./extra-page-routes";
 import { pageMap } from "./menu-page-map";
+import { PageRequestScope } from "./PageRequestScope";
 
 type TResolvedExtraPageRoute = TExtraPageRoute & {
   path: string;
@@ -75,17 +76,18 @@ export const DynamicMenuRoute = () => {
     const ExtraPage = route.page;
 
     return (
-      <Routes>
-        <Route
-          path={route.path}
-          element={
-            <ExtraPage
-              parentPath={route.parentPath}
-              pageId={route.parentMenuId}
-            />
-          }
-        />
-      </Routes>
+      <PageRequestScope pageId={route.parentMenuId}>
+        <Routes>
+          <Route
+            path={route.path}
+            element={
+              <ExtraPage
+                parentPath={route.parentPath}
+              />
+            }
+          />
+        </Routes>
+      </PageRequestScope>
     );
   }
 
@@ -104,7 +106,6 @@ export const DynamicMenuRoute = () => {
   if (!canAccessMenu(currentUrl.id)) {
     return <Navigate to="/403" replace />;
   }
-
   // menuId에 연결된 page component가 없으면 아직 프론트에 구현되지 않은 메뉴입니다.
   const MenuPage = pageMap[currentUrl.id];
 
@@ -113,8 +114,13 @@ export const DynamicMenuRoute = () => {
   }
 
   return (
-    <Routes>
-      <Route path={currentUrl.url} element={<MenuPage pageId={currentUrl.id} />} />
-    </Routes>
+    <PageRequestScope pageId={currentUrl.id}>
+      <Routes>
+        <Route
+          path={currentUrl.url}
+          element={<MenuPage />}
+        />
+      </Routes>
+    </PageRequestScope>
   );
 };

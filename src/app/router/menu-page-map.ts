@@ -3,7 +3,6 @@ import { lazy } from "react";
 
 import { MENU_ID, type TMenuId } from "@/entities/user";
 type props = {
-  pageId: TMenuId;
 }
 type TMenuPageComponent = LazyExoticComponent<ComponentType<props>>;
 type TPageMap = Partial<Record<TMenuId, TMenuPageComponent>>;

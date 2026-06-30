@@ -6,7 +6,6 @@ type RequiredPermission = Extract<TPermissionKey, "read" | "write">;
 
 export type TExtraPageProps = {
   parentPath: string;
-  pageId: TMenuId;
 };
 
 export type TExtraPageRoute = {

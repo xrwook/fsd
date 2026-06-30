@@ -4,30 +4,34 @@ import { useEffect, useState } from "react";
 
 import { useListNavigation, useUrlSearchParams } from "@/shared/lib/router";
 
-const MEMBERS = [
-  { id: "1001", name: "김현대", status: "이용 중" },
-  { id: "1002", name: "이모빌리티", status: "휴면" },
-  { id: "1003", name: "박충전", status: "이용 중" },
-];
+import { useGetMemberListQuery } from "../api/getMemberList";
 
 const MemberInfo = () => {
   const { goToDetail } = useListNavigation();
   const { searchParams, updateSearchParams } = useUrlSearchParams();
   const keyword = searchParams.get("keyword") ?? "";
   const [draftKeyword, setDraftKeyword] = useState(keyword);
+  const {
+    data: members = [],
+    isError,
+    isFetching,
+    isPending,
+    refetch,
+  } = useGetMemberListQuery({ keyword });
 
   useEffect(() => {
     setDraftKeyword(keyword);
   }, [keyword]);
 
-  const filteredMembers = MEMBERS.filter((member) => {
-    return member.name.toLowerCase().includes(keyword.toLowerCase());
-  });
-
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const normalizedKeyword = draftKeyword.trim();
+
+    if (normalizedKeyword === keyword) {
+      void refetch();
+      return;
+    }
 
     updateSearchParams({
       keyword: normalizedKeyword || null,
@@ -56,8 +60,8 @@ const MemberInfo = () => {
           size="small"
           value={draftKeyword}
         />
-        <Button type="submit" variant="contained">
-          조회
+        <Button disabled={isFetching} type="submit" variant="contained">
+          {isFetching ? "조회 중" : "조회"}
         </Button>
       </Stack>
 
@@ -65,26 +69,45 @@ const MemberInfo = () => {
         divider={<Box sx={{ borderTop: 1, borderColor: "divider" }} />}
         sx={{ borderBlock: 1, borderColor: "divider" }}
       >
-        {filteredMembers.map((member) => (
-          <Stack
-            direction="row"
-            key={member.id}
-            sx={{ alignItems: "center", minHeight: 56, py: 1 }}
-          >
-            <Button
-              onClick={() => handleOpenDetail(member.id)}
-              sx={{ justifyContent: "flex-start", textTransform: "none" }}
-              type="button"
-            >
-              {member.name}
-            </Button>
-            <Typography color="text.secondary" sx={{ ml: "auto" }}>
-              {member.status}
-            </Typography>
-          </Stack>
-        ))}
+        {isPending && (
+          <Typography color="text.secondary" sx={{ py: 3 }}>
+            회원 정보를 조회하고 있습니다.
+          </Typography>
+        )}
 
-        {filteredMembers.length === 0 && (
+        {isError && (
+          <Stack direction="row" sx={{ alignItems: "center", py: 2 }}>
+            <Typography color="error">
+              회원 정보 조회에 실패했습니다.
+            </Typography>
+            <Button onClick={() => void refetch()} sx={{ ml: "auto" }}>
+              다시 시도
+            </Button>
+          </Stack>
+        )}
+
+        {!isPending &&
+          !isError &&
+          members.map((member) => (
+            <Stack
+              direction="row"
+              key={member.id}
+              sx={{ alignItems: "center", minHeight: 56, py: 1 }}
+            >
+              <Button
+                onClick={() => handleOpenDetail(member.id)}
+                sx={{ justifyContent: "flex-start", textTransform: "none" }}
+                type="button"
+              >
+                {member.name}
+              </Button>
+              <Typography color="text.secondary" sx={{ ml: "auto" }}>
+                {member.status}
+              </Typography>
+            </Stack>
+          ))}
+
+        {!isPending && !isError && members.length === 0 && (
           <Typography color="text.secondary" sx={{ py: 3 }}>
             조회 결과가 없습니다.
           </Typography>
