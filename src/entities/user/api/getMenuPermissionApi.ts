@@ -2,35 +2,30 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 
 import { axiosInstance } from "@/shared/lib/axios";
 
-import { menuPermissionApiResponseSchema } from "../lib/permission/schema";
+import type { TMenuPermissionApiResponse } from "../lib/permission";
 import { getMenuPermissionMockApi } from "./mocks/getMenuPermissionMockApi";
 
 // 유저별 메뉴 권한을 조회해 라우트 가드와 사이드 메뉴에서 공통으로 사용합니다.
-export const getMenuPermissionApi = async () => {
-  const shouldUseMockApi = import.meta.env.VITE_USE_MOCK_API !== "false";
+export const getMenuPermissionApi =
+  async (): Promise<TMenuPermissionApiResponse> => {
+    const shouldUseMockApi = import.meta.env.VITE_USE_MOCK_API !== "false";
 
-  if (shouldUseMockApi) {
-    if (typeof window === "undefined") {
-      return menuPermissionApiResponseSchema.parse(
-        await getMenuPermissionMockApi(),
-      );
+    if (shouldUseMockApi) {
+      if (typeof window === "undefined") {
+        return getMenuPermissionMockApi();
+      }
+
+      try {
+        return await axiosInstance.get<TMenuPermissionApiResponse>(
+          "/api/permissions",
+        );
+      } catch {
+        return getMenuPermissionMockApi();
+      }
     }
 
-    try {
-      return menuPermissionApiResponseSchema.parse(
-        await axiosInstance.get<unknown>("/api/permissions"),
-      );
-    } catch {
-      return menuPermissionApiResponseSchema.parse(
-        await getMenuPermissionMockApi(),
-      );
-    }
-  }
-
-  return menuPermissionApiResponseSchema.parse(
-    await axiosInstance.get<unknown>("/api/permissions"),
-  );
-};
+    return axiosInstance.get<TMenuPermissionApiResponse>("/api/permissions");
+  };
 
 export const menuPermissionQueryFactory = {
   all: () => ["menu-permission"] as const,

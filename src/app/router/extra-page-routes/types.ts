@@ -1,16 +1,12 @@
 import type { ComponentType, LazyExoticComponent } from "react";
-import type { ValuesType } from "utility-types";
 
-import type { PERMISSION_KEY, TMenuId } from "@/entities/user";
+import type { TMenuId, TPermissionKey } from "@/entities/user";
 
-type RequiredPermission = Extract<
-  ValuesType<typeof PERMISSION_KEY>,
-  "read" | "write"
->;
+type RequiredPermission = Extract<TPermissionKey, "read" | "write">;
 
 export type TExtraPageProps = {
   parentPath: string;
-  parentMenuId: TMenuId;
+  pageId: TMenuId;
 };
 
 export type TExtraPageRoute = {

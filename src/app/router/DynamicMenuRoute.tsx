@@ -81,7 +81,7 @@ export const DynamicMenuRoute = () => {
           element={
             <ExtraPage
               parentPath={route.parentPath}
-              parentMenuId={route.parentMenuId}
+              pageId={route.parentMenuId}
             />
           }
         />
@@ -114,7 +114,7 @@ export const DynamicMenuRoute = () => {
 
   return (
     <Routes>
-      <Route path={currentUrl.url} element={<MenuPage />} />
+      <Route path={currentUrl.url} element={<MenuPage pageId={currentUrl.id} />} />
     </Routes>
   );
 };

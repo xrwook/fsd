@@ -2,8 +2,10 @@ import type { ComponentType, LazyExoticComponent } from "react";
 import { lazy } from "react";
 
 import { MENU_ID, type TMenuId } from "@/entities/user";
-
-type TMenuPageComponent = LazyExoticComponent<ComponentType>;
+type props = {
+  pageId: TMenuId;
+}
+type TMenuPageComponent = LazyExoticComponent<ComponentType<props>>;
 type TPageMap = Partial<Record<TMenuId, TMenuPageComponent>>;
 
 // API가 내려주는 url은 런타임에 바뀔 수 있으므로, 화면 컴포넌트는 고정된 menuId 기준으로 연결합니다.
