@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 /.react-router/
 /build/
 .history
+.idea/*
