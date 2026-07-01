@@ -10,7 +10,14 @@ const MEMBER_LIST_MOCK = [
 ] as const;
 
 export const handlers = [
-  http.get("/api/permissions", async () => {
+  http.get("/api/permissions", async ({ request }) => {
+    if (request.headers.has(PAGE_ID_HEADER)) {
+      return HttpResponse.json(
+        { message: `${PAGE_ID_HEADER} header is not allowed.` },
+        { status: 400 },
+      );
+    }
+
     const response = await getMenuPermissionMockApi();
 
     return HttpResponse.json(response);

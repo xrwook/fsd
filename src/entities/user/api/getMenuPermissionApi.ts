@@ -6,8 +6,10 @@ import type { TMenuPermissionApiResponse } from "../lib/permission";
 import { getMenuPermissionMockApi } from "./mocks/getMenuPermissionMockApi";
 
 const requestMenuPermission = async () => {
-  const response =
-    await axiosInstance.get<TMenuPermissionApiResponse>("/api/permissions");
+  const response = await axiosInstance.get<TMenuPermissionApiResponse>(
+    "/api/permissions",
+    { skipPageId: true },
+  );
 
   return response.data;
 };

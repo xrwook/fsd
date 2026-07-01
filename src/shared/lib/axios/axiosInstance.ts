@@ -10,7 +10,12 @@ export const axiosInstance = axios.create();
 axiosInstance.interceptors.request.use(async (config) => {
   const pageId = getRequestPageId();
   console.log("axiosInstance.interceptors.request.use", { pageId });
-  if (pageId && !config.headers.has(PAGE_ID_HEADER)) {
+
+  if (config.skipPageId) {
+    config.headers.delete(PAGE_ID_HEADER);
+  } else if (config.pageId) {
+    config.headers.set(PAGE_ID_HEADER, config.pageId);
+  } else if (pageId && !config.headers.has(PAGE_ID_HEADER)) {
     config.headers.set(PAGE_ID_HEADER, pageId);
   }
 
