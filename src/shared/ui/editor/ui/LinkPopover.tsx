@@ -9,7 +9,7 @@ import {
   useState,
 } from "react";
 
-import { EditorIcon } from "../icons/EditorIcon";
+import { EditorIcon } from "./EditorIcon";
 
 type LinkPopoverProps = {
   disabled?: boolean;
