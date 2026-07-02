@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { TiptapImageEditor } from "@/shared/ui/editor";
+import { TiptapEditor } from "@/shared/ui/editor";
 
 const CorporateJoin = () => {
   const [content, setContent] = useState("");
@@ -23,7 +23,7 @@ const CorporateJoin = () => {
           )}
         </div>
 
-        <TiptapImageEditor
+        <TiptapEditor
           value={content}
           placeholder="기업 소개 내용을 입력하세요."
           onChange={setContent}

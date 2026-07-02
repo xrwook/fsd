@@ -16,7 +16,6 @@ import formatQuoteIcon from "./format_quote.svg";
 import horizontalRuleIcon from "./horizontal_rule.svg";
 import imageIcon from "./image.svg";
 import linkIcon from "./link.svg";
-import linkOffIcon from "./link_off.svg";
 import redoIcon from "./redo.svg";
 import removeIcon from "./remove.svg";
 import strikethroughIcon from "./strikethrough_s.svg";
@@ -42,7 +41,6 @@ const EDITOR_ICONS = {
   horizontalRule: horizontalRuleIcon,
   image: imageIcon,
   link: linkIcon,
-  linkOff: linkOffIcon,
   redo: redoIcon,
   remove: removeIcon,
   strikethrough: strikethroughIcon,

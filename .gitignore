@@ -9,3 +9,7 @@ tsconfig.tsbuildinfo
 /build/
 .history
 .idea/*
+
+
+# Authentication tokens
+.npmrc

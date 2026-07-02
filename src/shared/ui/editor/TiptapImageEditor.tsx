@@ -22,9 +22,10 @@ import {
 
 import { uploadEditorImage } from "./editor.service";
 import { EditorIcon } from "./icons/EditorIcon";
+import { LinkPopover } from "./ui/LinkPopover";
 import { TiptapImageUpload } from "./tiptapImageUpload";
 
-export type TiptapImageEditorProps = {
+export type TiptapEditorProps = {
   value?: string;
   placeholder?: string;
   disabled?: boolean;
@@ -59,16 +60,6 @@ const FONT_SIZES = [
   "36px",
   "48px",
 ] as const;
-
-const normalizeLink = (url: string) => {
-  const trimmedUrl = url.trim();
-
-  if (/^(https?:\/\/|mailto:|tel:|\/|#)/i.test(trimmedUrl)) {
-    return trimmedUrl;
-  }
-
-  return `https://${trimmedUrl}`;
-};
 
 const colorInputValue = (color: unknown, fallback: string) =>
   typeof color === "string" && /^#[\da-f]{6}$/i.test(color) ? color : fallback;
@@ -187,24 +178,6 @@ const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
     } else {
       chain.unsetFontSize().run();
     }
-  };
-
-  const handleLink = () => {
-    const currentUrl = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("링크 URL을 입력하세요.", currentUrl ?? "");
-
-    if (url === null) return;
-    if (!url.trim()) {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({ href: normalizeLink(url) })
-      .run();
   };
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -409,23 +382,7 @@ const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
       <span className="tiptap-toolbar__divider" />
 
       <div className="tiptap-toolbar__group">
-        <ToolbarButton
-          active={editor.isActive("link")}
-          disabled={controlsDisabled}
-          label="링크 설정"
-          onClick={handleLink}
-        >
-          <EditorIcon name="link" />
-        </ToolbarButton>
-        <ToolbarButton
-          disabled={controlsDisabled || !editor.isActive("link")}
-          label="링크 제거"
-          onClick={() =>
-            editor.chain().focus().extendMarkRange("link").unsetLink().run()
-          }
-        >
-          <EditorIcon name="linkOff" />
-        </ToolbarButton>
+        <LinkPopover disabled={controlsDisabled} editor={editor} />
         <ToolbarButton
           disabled={controlsDisabled}
           label="이미지 업로드"
@@ -534,7 +491,7 @@ const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
   );
 };
 
-export default function TiptapImageEditor({
+export default function TiptapEditor({
   value = "",
   placeholder = "내용을 입력하세요.",
   disabled = false,
@@ -544,7 +501,7 @@ export default function TiptapImageEditor({
   onSubmit,
   onUploadStateChange,
   uploadImage = uploadEditorImage,
-}: TiptapImageEditorProps) {
+}: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
   const emittedValueRef = useRef(value);

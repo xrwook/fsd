@@ -1,2 +1,1 @@
-export type { TiptapImageEditorProps } from "./TiptapImageEditor";
-export { default as TiptapImageEditor } from "./TiptapImageEditor";
+export { default as TiptapEditor } from "./TiptapEditor";

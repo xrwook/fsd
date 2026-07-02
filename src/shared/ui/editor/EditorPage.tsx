@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import TiptapImageEditor from "./TiptapImageEditor";
+import TiptapEditor from "./TiptapEditor";
 
 export default function EditorPage() {
   const [content, setContent] = useState("");
@@ -9,7 +9,7 @@ export default function EditorPage() {
   return (
     <section className="flex flex-1 flex-col gap-6 bg-[#f7f7f8] px-6 py-8">
       <div className="rounded-md border border-gray-200 bg-white p-5 shadow-sm">
-        <TiptapImageEditor
+        <TiptapEditor
           value={content}
           onChange={setContent}
           onUploadStateChange={setIsUploading}
