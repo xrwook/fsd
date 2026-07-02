@@ -1,11 +1,11 @@
 import type { Editor } from "@tiptap/react";
 
-import { AlignmentControls } from "./AlignmentControls";
-import { BlockControls } from "./BlockControls";
-import { HistoryControls } from "./HistoryControls";
-import { InsertControls } from "./InsertControls";
-import { TableControls } from "./TableControls";
-import { FontControls, InlineStyleControls } from "./TextStyleControls";
+import { AlignmentControls } from "./_AlignmentControls";
+import { BlockControls } from "./_BlockControls";
+import { HistoryControls } from "./_HistoryControls";
+import { InsertControls } from "./_InsertControls";
+import { TableControls } from "./_TableControls";
+import { FontControls, InlineStyleControls } from "./_TextStyleControls";
 
 type EditorToolbarProps = {
   disabled: boolean;

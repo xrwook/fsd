@@ -22,7 +22,7 @@ import strikethroughIcon from "../assets/icons/strikethrough_s.svg";
 import tableIcon from "../assets/icons/table.svg";
 import undoIcon from "../assets/icons/undo.svg";
 
-const EDITOR_ICONS = {
+export const EDITOR_ICONS = {
   add: addIcon,
   code: codeIcon,
   delete: deleteIcon,
@@ -47,24 +47,3 @@ const EDITOR_ICONS = {
   table: tableIcon,
   undo: undoIcon,
 } as const;
-
-export type EditorIconName = keyof typeof EDITOR_ICONS;
-
-type EditorIconProps = {
-  name: EditorIconName;
-};
-
-export const EditorIcon = ({ name }: EditorIconProps) => {
-  const iconUrl = EDITOR_ICONS[name];
-
-  return (
-    <span
-      aria-hidden="true"
-      className="tiptap-editor-icon"
-      style={{
-        maskImage: `url("${iconUrl}")`,
-        WebkitMaskImage: `url("${iconUrl}")`,
-      }}
-    />
-  );
-};

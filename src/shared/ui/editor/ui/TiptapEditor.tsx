@@ -1,4 +1,4 @@
-import "./editor.css";
+import "../assets/editor.css";
 
 import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
@@ -18,10 +18,10 @@ import {
   useState,
 } from "react";
 
-import { uploadEditorImage } from "./editor.service";
-import { TiptapImageUpload } from "./tiptapImageUpload";
-import { EditorToolbar } from "./ui/EditorToolbar";
-import { EditorUploadStatus } from "./ui/EditorUploadStatus";
+import { uploadEditorImage } from "../api/editor.service";
+import { TiptapImageUpload } from "../lib/tiptapImageUpload";
+import { EditorToolbar } from "./_EditorToolbar";
+import { EditorUploadStatus } from "./_EditorUploadStatus";
 
 export type TiptapEditorProps = {
   value?: string;

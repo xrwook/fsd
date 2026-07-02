@@ -1,1 +1,1 @@
-export { default as TiptapEditor } from "./TiptapEditor";
+export { default as TiptapEditor } from "./ui/TiptapEditor";

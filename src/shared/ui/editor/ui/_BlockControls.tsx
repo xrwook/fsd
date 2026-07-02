@@ -1,8 +1,10 @@
-import { EditorIcon } from "./EditorIcon";
-import type { EditorControlProps } from "./editorControl.types";
-import { ToolbarButton } from "./ToolbarButton";
+import type { EditorControlProps } from "../model/editorControl";
+import { EditorIcon } from "./_EditorIcon";
+import { ToolbarButton } from "./_ToolbarButton";
 
-export const BlockControls = ({ disabled, editor }: EditorControlProps) => (
+type Props = EditorControlProps;
+
+export const BlockControls = ({ disabled, editor }: Props) => (
   <div className="tiptap-toolbar__group">
     <ToolbarButton
       active={editor.isActive("bulletList")}

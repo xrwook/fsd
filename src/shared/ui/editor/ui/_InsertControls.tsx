@@ -1,11 +1,13 @@
 import { type ChangeEvent, useRef } from "react";
 
-import { EditorIcon } from "./EditorIcon";
-import type { EditorControlProps } from "./editorControl.types";
-import { LinkPopover } from "./LinkPopover";
-import { ToolbarButton } from "./ToolbarButton";
+import type { EditorControlProps } from "../model/editorControl";
+import { EditorIcon } from "./_EditorIcon";
+import { LinkPopover } from "./_LinkPopover";
+import { ToolbarButton } from "./_ToolbarButton";
 
-export const InsertControls = ({ disabled, editor }: EditorControlProps) => {
+type Props = EditorControlProps;
+
+export const InsertControls = ({ disabled, editor }: Props) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {

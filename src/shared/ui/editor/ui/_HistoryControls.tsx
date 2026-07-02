@@ -1,8 +1,10 @@
-import { EditorIcon } from "./EditorIcon";
-import type { EditorControlProps } from "./editorControl.types";
-import { ToolbarButton } from "./ToolbarButton";
+import type { EditorControlProps } from "../model/editorControl";
+import { EditorIcon } from "./_EditorIcon";
+import { ToolbarButton } from "./_ToolbarButton";
 
-export const HistoryControls = ({ disabled, editor }: EditorControlProps) => {
+type Props = EditorControlProps;
+
+export const HistoryControls = ({ disabled, editor }: Props) => {
   const clearFormatting = () => {
     editor
       .chain()

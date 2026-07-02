@@ -1,38 +1,18 @@
 import type { ChangeEvent } from "react";
 
-import { EditorIcon } from "./EditorIcon";
-import { ColorControl } from "./ColorControl";
-import type { EditorControlProps } from "./editorControl.types";
-import { ToolbarButton } from "./ToolbarButton";
+import { FONT_FAMILIES, FONT_SIZES } from "../config/font";
+import type { EditorControlProps } from "../model/editorControl";
+import { ColorControl } from "./_ColorControl";
+import { EditorIcon } from "./_EditorIcon";
+import { ToolbarButton } from "./_ToolbarButton";
 
+type Props = EditorControlProps;
 type HeadingLevel = 1 | 2 | 3 | 4;
-
-const FONT_FAMILIES = [
-  { label: "기본 글꼴", value: "" },
-  { label: "Arial", value: "Arial, sans-serif" },
-  { label: "Noto Sans KR", value: "'Noto Sans KR', sans-serif" },
-  { label: "Georgia", value: "Georgia, serif" },
-  { label: "Courier New", value: "'Courier New', monospace" },
-] as const;
-
-const FONT_SIZES = [
-  "10px",
-  "12px",
-  "14px",
-  "16px",
-  "18px",
-  "20px",
-  "24px",
-  "28px",
-  "32px",
-  "36px",
-  "48px",
-] as const;
 
 const colorInputValue = (color: unknown, fallback: string) =>
   typeof color === "string" && /^#[\da-f]{6}$/i.test(color) ? color : fallback;
 
-export const FontControls = ({ disabled, editor }: EditorControlProps) => {
+export const FontControls = ({ disabled, editor }: Props) => {
   const headingLevel = ([1, 2, 3, 4] as const).find((level) =>
     editor.isActive("heading", { level }),
   );
@@ -121,10 +101,7 @@ export const FontControls = ({ disabled, editor }: EditorControlProps) => {
   );
 };
 
-export const InlineStyleControls = ({
-  disabled,
-  editor,
-}: EditorControlProps) => {
+export const InlineStyleControls = ({ disabled, editor }: Props) => {
   const textColor = colorInputValue(
     editor.getAttributes("textStyle").color,
     "#111827",

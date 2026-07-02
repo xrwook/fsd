@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-type ColorControlProps = {
+type Props = {
   color: string;
   disabled: boolean;
   icon: ReactNode;
@@ -14,7 +14,7 @@ export const ColorControl = ({
   icon,
   label,
   onChange,
-}: ColorControlProps) => (
+}: Props) => (
   <label
     className={`tiptap-toolbar__color ${disabled ? "is-disabled" : ""}`}
     title={label}
