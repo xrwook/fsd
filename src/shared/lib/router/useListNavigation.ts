@@ -31,23 +31,22 @@ export const useListNavigation = () => {
 
   const goToDetail = useCallback(
     (relativePath: string) => {
-      const returnTo = `${location.pathname}${location.search}`;
+      const returnTo =
+        getReturnTo(location.state) ??
+        `${location.pathname}${location.search}`;
 
       navigate(resolveChildPath(location.pathname, relativePath), {
         state: { returnTo } satisfies TListNavigationState,
       });
     },
-    [location.pathname, location.search, navigate],
+    [location.pathname, location.search, location.state, navigate],
   );
 
   const goBackToList = useCallback(
     (fallbackPath: string) => {
-      if (getReturnTo(location.state)) {
-        navigate(-1);
-        return;
-      }
+      const returnTo = getReturnTo(location.state);
 
-      navigate(fallbackPath, { replace: true });
+      navigate(returnTo ?? fallbackPath, { replace: true });
     },
     [location.state, navigate],
   );

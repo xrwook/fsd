@@ -1,26 +1,22 @@
 import { useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 
-type TUrlSearchParamPrimitive = string | number | boolean;
-type TUrlSearchParamValue =
-  | TUrlSearchParamPrimitive
-  | readonly TUrlSearchParamPrimitive[]
-  | null
-  | undefined;
+type UrlSearchParam = string | number | boolean;
+type ParamValue = UrlSearchParam | readonly UrlSearchParam[] | null | undefined;
 
-type TUrlSearchParamUpdates = Record<string, TUrlSearchParamValue>;
+type ParamUpdates = Record<string, ParamValue>;
 
 export const useUrlSearchParams = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const updateSearchParams = useCallback(
-    (updates: TUrlSearchParamUpdates) => {
+    (updates: ParamUpdates) => {
       setSearchParams(
-        (previousSearchParams) => {
-          const nextSearchParams = new URLSearchParams(previousSearchParams);
+        (previous) => {
+          const next = new URLSearchParams(previous);
 
           for (const [key, value] of Object.entries(updates)) {
-            nextSearchParams.delete(key);
+            next.delete(key);
 
             if (value === null || value === undefined || value === "") {
               continue;
@@ -28,15 +24,15 @@ export const useUrlSearchParams = () => {
 
             if (Array.isArray(value)) {
               for (const item of value) {
-                nextSearchParams.append(key, String(item));
+                next.append(key, String(item));
               }
               continue;
             }
 
-            nextSearchParams.set(key, String(value));
+            next.set(key, String(value));
           }
 
-          return nextSearchParams;
+          return next;
         },
         { replace: true },
       );
