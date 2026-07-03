@@ -32,11 +32,15 @@ export const handlers = [
       );
     }
 
+    const searchParams = new URL(request.url).searchParams;
     const keyword =
-      new URL(request.url).searchParams.get("keyword")?.trim().toLowerCase() ??
-      "";
+      searchParams.get("keyword")?.trim().toLowerCase() ?? "";
+    const status = searchParams.get("status") ?? "";
     const members = MEMBER_LIST_MOCK.filter((member) => {
-      return member.name.toLowerCase().includes(keyword);
+      const matchesKeyword = member.name.toLowerCase().includes(keyword);
+      const matchesStatus = status === "" || member.status === status;
+
+      return matchesKeyword && matchesStatus;
     });
 
     return HttpResponse.json(members);

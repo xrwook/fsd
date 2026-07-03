@@ -1,41 +1,71 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
 import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 
 import { useListNavigation, useUrlSearchParams } from "@/shared/lib/router";
 
 import { useGetMemberListQuery } from "../api/getMemberList";
+import {
+  isMemberStatus,
+  MEMBER_STATUSES,
+  type TMemberStatus,
+} from "../model/member";
+
+const parseMemberStatus = (value: string | null): TMemberStatus | "" => {
+  return value && isMemberStatus(value) ? value : "";
+};
 
 const MemberInfo = () => {
   const { goToDetail } = useListNavigation();
-  const { searchParams, updateSearchParams } = useUrlSearchParams();
+  const { clearSearchParams, searchParams, updateSearchParams } =
+    useUrlSearchParams();
   const keyword = searchParams.get("keyword") ?? "";
+  const status = parseMemberStatus(searchParams.get("status"));
   const [draftKeyword, setDraftKeyword] = useState(keyword);
+  const [draftStatus, setDraftStatus] = useState<TMemberStatus | "">(status);
   const {
     data: members = [],
     isError,
     isFetching,
     isPending,
     refetch,
-  } = useGetMemberListQuery({ keyword });
+  } = useGetMemberListQuery({ keyword, status });
 
   useEffect(() => {
     setDraftKeyword(keyword);
-  }, [keyword]);
+    setDraftStatus(status);
+  }, [keyword, status]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const normalizedKeyword = draftKeyword.trim();
 
-    if (normalizedKeyword === keyword) {
+    if (normalizedKeyword === keyword && draftStatus === status) {
       void refetch();
       return;
     }
 
     updateSearchParams({
       keyword: normalizedKeyword || null,
+      status: draftStatus || null,
     });
+  };
+
+  const handleReset = () => {
+    setDraftKeyword("");
+    setDraftStatus("");
+    clearSearchParams();
   };
 
   const handleOpenDetail = (memberId: string) => {
@@ -58,12 +88,39 @@ const MemberInfo = () => {
           label="회원명"
           onChange={(event) => setDraftKeyword(event.target.value)}
           size="small"
+          sx={{ minWidth: 220 }}
           value={draftKeyword}
         />
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <InputLabel id="member-status-label">회원 상태</InputLabel>
+          <Select
+            label="회원 상태"
+            labelId="member-status-label"
+            onChange={(event) =>
+              setDraftStatus(event.target.value as TMemberStatus | "")
+            }
+            value={draftStatus}
+          >
+            <MenuItem value="">전체</MenuItem>
+            {MEMBER_STATUSES.map((memberStatus) => (
+              <MenuItem key={memberStatus} value={memberStatus}>
+                {memberStatus}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <Button disabled={isFetching} type="submit" variant="contained">
           {isFetching ? "조회 중" : "조회"}
         </Button>
+        <Button onClick={handleReset} type="button" variant="outlined">
+          초기화
+        </Button>
       </Stack>
+
+      <Typography color="text.secondary" variant="body2">
+        현재 검색 조건: 회원명 {keyword || "전체"} / 회원 상태{" "}
+        {status || "전체"}
+      </Typography>
 
       <Stack
         divider={<Box sx={{ borderTop: 1, borderColor: "divider" }} />}

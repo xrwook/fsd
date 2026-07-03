@@ -30,26 +30,38 @@ export const useListNavigation = () => {
   const navigate = useNavigate();
 
   const goToDetail = useCallback(
-    (relativePath: string) => {
+    (path: string) => {
       const returnTo = `${location.pathname}${location.search}`;
 
-      navigate(resolveChildPath(location.pathname, relativePath), {
-        state: { returnTo } satisfies TListNavigationState,
-      });
+      navigate(
+        {
+          pathname: resolveChildPath(location.pathname, path),
+          search: location.search,
+        },
+        {
+          state: { returnTo } satisfies TListNavigationState,
+        },
+      );
     },
     [location.pathname, location.search, navigate],
   );
 
   const goBackToList = useCallback(
-    (fallbackPath: string) => {
+    (path: string) => {
       if (getReturnTo(location.state)) {
         navigate(-1);
-        return;
+        return null;
       }
 
-      navigate(fallbackPath, { replace: true });
+      navigate(
+        {
+          pathname: path,
+          search: location.search,
+        },
+        { replace: true },
+      );
     },
-    [location.state, navigate],
+    [location.search, location.state, navigate],
   );
 
   return {

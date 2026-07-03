@@ -8,11 +8,15 @@ const MEMBER_LIST_API_URL = "/api/emsp/members";
 
 export const getMemberListApi = async ({
   keyword,
+  status,
 }: TMemberListSearchParams) => {
   const response = await axiosInstance.get<TMemberSummary[]>(
     MEMBER_LIST_API_URL,
     {
-      params: keyword ? { keyword } : undefined,
+      params: {
+        keyword: keyword || undefined,
+        status: status || undefined,
+      },
     },
   );
 
