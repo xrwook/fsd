@@ -7,11 +7,6 @@
   color: #111827;
 }
 
-.tiptap-editor:focus-within {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgb(37 99 235 / 12%);
-}
-
 .tiptap-editor.is-disabled {
   background: #f9fafb;
 }
@@ -85,8 +80,7 @@
 }
 
 .tiptap-toolbar__button:focus-visible,
-.tiptap-toolbar__color:focus-within,
-.tiptap-toolbar__select:focus-visible {
+.tiptap-toolbar__color:focus-within {
   outline: 2px solid #2563eb;
   outline-offset: 1px;
 }
@@ -118,6 +112,12 @@
   color: #374151;
   font-size: 12px;
   cursor: pointer;
+}
+
+.tiptap-toolbar__select:focus {
+  border-color: #d1d5db;
+  outline: none;
+  box-shadow: none;
 }
 
 .tiptap-toolbar__select:disabled {
