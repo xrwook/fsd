@@ -18,7 +18,7 @@ export const ToolbarButton = ({
     type="button"
     aria-label={label}
     aria-pressed={active}
-    className={`tiptap-toolbar__button ${active ? "is-active" : ""} ${className}`}
+    className={`tiptapToolbarButton ${active ? "active" : ""} ${className}`}
     title={label}
   >
     {children}

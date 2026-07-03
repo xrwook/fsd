@@ -17,7 +17,7 @@ export const InsertControls = ({ disabled, editor }: Props) => {
   };
 
   return (
-    <div className="tiptap-toolbar__group">
+    <div className="tiptapToolbarGroup">
       <LinkPopover disabled={disabled} editor={editor} />
       <ToolbarButton
         disabled={disabled}

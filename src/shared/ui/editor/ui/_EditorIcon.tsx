@@ -12,7 +12,7 @@ export const EditorIcon = ({ name }: EditorIconProps) => {
   return (
     <span
       aria-hidden="true"
-      className="tiptap-editor-icon"
+      className="tiptapEditorIcon"
       style={{
         maskImage: `url("${iconUrl}")`,
         WebkitMaskImage: `url("${iconUrl}")`,

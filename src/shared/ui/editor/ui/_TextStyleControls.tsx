@@ -53,10 +53,10 @@ export const FontControls = ({ disabled, editor }: Props) => {
   };
 
   return (
-    <div className="tiptap-toolbar__group">
+    <div className="tiptapToolbarGroup">
       <select
         aria-label="글꼴"
-        className="tiptap-toolbar__select tiptap-toolbar__select--font"
+        className="tiptapToolbarSelect tiptapToolbarSelectFont"
         disabled={disabled}
         title="글꼴"
         value={(textStyle.fontFamily as string | undefined) ?? ""}
@@ -70,7 +70,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
       </select>
       <select
         aria-label="글자 크기"
-        className="tiptap-toolbar__select tiptap-toolbar__select--size"
+        className="tiptapToolbarSelect tiptapToolbarSelectSize"
         disabled={disabled}
         title="글자 크기"
         value={(textStyle.fontSize as string | undefined) ?? ""}
@@ -85,7 +85,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
       </select>
       <select
         aria-label="제목"
-        className="tiptap-toolbar__select tiptap-toolbar__select--heading"
+        className="tiptapToolbarSelect tiptapToolbarSelectHeading"
         disabled={disabled}
         title="제목"
         value={headingLevel ?? ""}
@@ -112,7 +112,7 @@ export const InlineStyleControls = ({ disabled, editor }: Props) => {
   );
 
   return (
-    <div className="tiptap-toolbar__group">
+    <div className="tiptapToolbarGroup">
       <ToolbarButton
         active={editor.isActive("bold")}
         disabled={disabled}

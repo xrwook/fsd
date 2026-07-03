@@ -21,7 +21,7 @@ export const HistoryControls = ({ disabled, editor }: Props) => {
   };
 
   return (
-    <div className="tiptap-toolbar__group">
+    <div className="tiptapToolbarGroup">
       <ToolbarButton
         disabled={disabled || !editor.can().undo()}
         label="실행 취소"

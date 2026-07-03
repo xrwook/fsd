@@ -12,11 +12,11 @@ type EditorToolbarProps = {
   editor: Editor | null;
 };
 
-const ToolbarDivider = () => <span className="tiptap-toolbar__divider" />;
+const ToolbarDivider = () => <span className="tiptapToolbarDivider" />;
 
 export const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
   if (!editor) {
-    return <div className="tiptap-toolbar" aria-label="에디터 도구 모음" />;
+    return <div className="tiptapToolbar" aria-label="에디터 도구 모음" />;
   }
 
   const controlProps = {
@@ -25,11 +25,7 @@ export const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
   };
 
   return (
-    <div
-      className="tiptap-toolbar"
-      role="toolbar"
-      aria-label="에디터 도구 모음"
-    >
+    <div className="tiptapToolbar" role="toolbar" aria-label="에디터 도구 모음">
       <FontControls {...controlProps} />
       <ToolbarDivider />
       <InlineStyleControls {...controlProps} />

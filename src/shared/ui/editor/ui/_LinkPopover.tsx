@@ -140,7 +140,7 @@ export const LinkPopover = ({ disabled = false, editor }: LinkPopoverProps) => {
         type="button"
         aria-label="링크 설정"
         aria-pressed={isActive}
-        className={`tiptap-toolbar__button ${isActive ? "is-active" : ""}`}
+        className={`tiptapToolbarButton ${isActive ? "active" : ""}`}
         disabled={isDisabled}
         title="링크 설정"
         onClick={openPopover}
@@ -154,23 +154,23 @@ export const LinkPopover = ({ disabled = false, editor }: LinkPopoverProps) => {
         open={isOpen}
         slotProps={{
           paper: {
-            className: "tiptap-link-popover",
+            className: "tiptapLinkPopover",
           },
         }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
         onClose={closePopover}
       >
-        <form className="tiptap-link-popover__form" onSubmit={applyLink}>
-          <label className="tiptap-link-popover__label" htmlFor={inputId}>
+        <form className="tiptapLinkPopoverForm" onSubmit={applyLink}>
+          <label className="tiptapLinkPopoverLabel" htmlFor={inputId}>
             링크 URL
           </label>
-          <div className="tiptap-link-popover__input-row">
+          <div className="tiptapLinkPopoverInputRow">
             <input
               ref={inputRef}
               id={inputId}
               aria-describedby={error ? errorId : undefined}
               aria-invalid={Boolean(error)}
-              className="tiptap-link-popover__input"
+              className="tiptapLinkPopoverInput"
               inputMode="url"
               placeholder="https://example.com"
               type="text"
@@ -180,23 +180,20 @@ export const LinkPopover = ({ disabled = false, editor }: LinkPopoverProps) => {
                 setError("");
               }}
             />
-            <button
-              className="tiptap-link-popover__button is-primary"
-              type="submit"
-            >
+            <button className="tiptapLinkPopoverButton primary" type="submit">
               적용
             </button>
           </div>
 
           {error && (
-            <p id={errorId} className="tiptap-link-popover__error" role="alert">
+            <p id={errorId} className="tiptapLinkPopoverError" role="alert">
               {error}
             </p>
           )}
 
-          <div className="tiptap-link-popover__actions">
+          <div className="tiptapLinkPopoverActions">
             <button
-              className="tiptap-link-popover__button"
+              className="tiptapLinkPopoverButton"
               disabled={!url}
               type="button"
               onClick={openLink}
@@ -204,7 +201,7 @@ export const LinkPopover = ({ disabled = false, editor }: LinkPopoverProps) => {
               새 창에서 열기
             </button>
             <button
-              className="tiptap-link-popover__button is-danger"
+              className="tiptapLinkPopoverButton danger"
               disabled={!isActive}
               type="button"
               onClick={removeLink}

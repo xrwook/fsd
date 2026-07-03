@@ -5,9 +5,9 @@ import { ToolbarButton } from "./_ToolbarButton";
 type Props = EditorControlProps;
 
 export const TableControls = ({ disabled, editor }: Props) => (
-  <div className="tiptap-toolbar__group">
+  <div className="tiptapToolbarGroup">
     <ToolbarButton
-      className="tiptap-toolbar__button--text"
+      className="tiptapToolbarButtonText"
       disabled={disabled}
       label="행 추가"
       onClick={() => editor.chain().focus().addRowAfter().run()}
@@ -15,7 +15,7 @@ export const TableControls = ({ disabled, editor }: Props) => (
       <EditorIcon name="add" />행
     </ToolbarButton>
     <ToolbarButton
-      className="tiptap-toolbar__button--text"
+      className="tiptapToolbarButtonText"
       disabled={disabled}
       label="행 삭제"
       onClick={() => editor.chain().focus().deleteRow().run()}
@@ -23,7 +23,7 @@ export const TableControls = ({ disabled, editor }: Props) => (
       <EditorIcon name="remove" />행
     </ToolbarButton>
     <ToolbarButton
-      className="tiptap-toolbar__button--text"
+      className="tiptapToolbarButtonText"
       disabled={disabled}
       label="열 추가"
       onClick={() => editor.chain().focus().addColumnAfter().run()}
@@ -31,7 +31,7 @@ export const TableControls = ({ disabled, editor }: Props) => (
       <EditorIcon name="add" />열
     </ToolbarButton>
     <ToolbarButton
-      className="tiptap-toolbar__button--text"
+      className="tiptapToolbarButtonText"
       disabled={disabled}
       label="열 삭제"
       onClick={() => editor.chain().focus().deleteColumn().run()}

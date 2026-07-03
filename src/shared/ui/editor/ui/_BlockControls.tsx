@@ -5,7 +5,7 @@ import { ToolbarButton } from "./_ToolbarButton";
 type Props = EditorControlProps;
 
 export const BlockControls = ({ disabled, editor }: Props) => (
-  <div className="tiptap-toolbar__group">
+  <div className="tiptapToolbarGroup">
     <ToolbarButton
       active={editor.isActive("bulletList")}
       disabled={disabled}

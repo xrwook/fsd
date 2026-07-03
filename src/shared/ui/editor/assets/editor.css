@@ -1,4 +1,4 @@
-.tiptap-editor {
+.tiptapEditor {
   overflow: hidden;
   width: 100%;
   border: 1px solid #d1d5db;
@@ -7,11 +7,11 @@
   color: #111827;
 }
 
-.tiptap-editor.is-disabled {
+.tiptapEditor.editorDisabled {
   background: #f9fafb;
 }
 
-.tiptap-toolbar {
+.tiptapToolbar {
   display: flex;
   min-height: 44px;
   align-items: center;
@@ -22,21 +22,21 @@
   background: #f9fafb;
 }
 
-.tiptap-toolbar__group {
+.tiptapToolbarGroup {
   display: inline-flex;
   align-items: center;
   gap: 2px;
 }
 
-.tiptap-toolbar__divider {
+.tiptapToolbarDivider {
   width: 1px;
   height: 24px;
   margin: 0 3px;
   background: #d1d5db;
 }
 
-.tiptap-toolbar__button,
-.tiptap-toolbar__color {
+.tiptapToolbarButton,
+.tiptapToolbarColor {
   position: relative;
   display: inline-flex;
   min-width: 32px;
@@ -52,7 +52,7 @@
   font: inherit;
 }
 
-.tiptap-editor-icon {
+.tiptapEditorIcon {
   display: inline-block;
   width: 19px;
   height: 19px;
@@ -63,47 +63,51 @@
   mask-size: contain;
 }
 
-.tiptap-toolbar__button .tiptap-editor-icon,
-.tiptap-toolbar__color .tiptap-editor-icon {
+.tiptapToolbarButton .tiptapEditorIcon,
+.tiptapToolbarColor .tiptapEditorIcon {
   width: 19px;
   height: 19px;
 }
 
-.tiptap-toolbar__button:hover:not(:disabled),
-.tiptap-toolbar__color:hover:not(.is-disabled) {
-  background: #e5e7eb;
+.tiptapToolbarColor {
+  overflow: hidden;
 }
 
-.tiptap-toolbar__button.is-active {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.tiptap-toolbar__button:focus-visible,
-.tiptap-toolbar__color:focus-within {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
-}
-
-.tiptap-toolbar__button:disabled,
-.tiptap-toolbar__color.is-disabled {
+.tiptapToolbarButton:disabled,
+.tiptapToolbarColor.controlDisabled {
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-.tiptap-toolbar__button--text {
+.tiptapToolbarButton:focus-visible,
+.tiptapToolbarColor:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+.tiptapToolbarButton.active {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.tiptapToolbarButton:hover:not(:disabled),
+.tiptapToolbarColor:hover:not(.controlDisabled) {
+  background: #e5e7eb;
+}
+
+.tiptapToolbarButtonText {
   gap: 1px;
   padding: 0 7px 0 4px;
   font-size: 12px;
 }
 
-.tiptap-toolbar__button--text .tiptap-editor-icon {
+.tiptapToolbarButtonText .tiptapEditorIcon {
   width: 17px;
   height: 17px;
   flex-basis: 17px;
 }
 
-.tiptap-toolbar__select {
+.tiptapToolbarSelect {
   height: 32px;
   padding: 0 25px 0 8px;
   border: 1px solid #d1d5db;
@@ -114,35 +118,31 @@
   cursor: pointer;
 }
 
-.tiptap-toolbar__select:focus {
+.tiptapToolbarSelect:focus {
   border-color: #d1d5db;
   outline: none;
   box-shadow: none;
 }
 
-.tiptap-toolbar__select:disabled {
+.tiptapToolbarSelect:disabled {
   background: #f3f4f6;
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-.tiptap-toolbar__select--font {
+.tiptapToolbarSelectFont {
   width: 122px;
 }
 
-.tiptap-toolbar__select--size {
+.tiptapToolbarSelectSize {
   width: 76px;
 }
 
-.tiptap-toolbar__select--heading {
+.tiptapToolbarSelectHeading {
   width: 84px;
 }
 
-.tiptap-toolbar__color {
-  overflow: hidden;
-}
-
-.tiptap-toolbar__color input {
+.tiptapToolbarColor input {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -151,11 +151,11 @@
   cursor: pointer;
 }
 
-.tiptap-toolbar__color input:disabled {
+.tiptapToolbarColor input:disabled {
   cursor: not-allowed;
 }
 
-.tiptap-toolbar__color-indicator {
+.tiptapToolbarColorIndicator {
   position: absolute;
   right: 6px;
   bottom: 3px;
@@ -165,7 +165,7 @@
   border-radius: 2px;
 }
 
-.tiptap-link-popover {
+.tiptapLinkPopover {
   width: min(360px, calc(100vw - 24px));
   margin-top: 6px;
   border: 1px solid #e5e7eb;
@@ -173,26 +173,26 @@
   box-shadow: 0 12px 30px rgb(15 23 42 / 18%);
 }
 
-.tiptap-link-popover__form {
+.tiptapLinkPopoverForm {
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding: 14px;
 }
 
-.tiptap-link-popover__label {
+.tiptapLinkPopoverLabel {
   color: #374151;
   font-size: 12px;
   font-weight: 600;
 }
 
-.tiptap-link-popover__input-row {
+.tiptapLinkPopoverInputRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
 
-.tiptap-link-popover__input {
+.tiptapLinkPopoverInput {
   width: 100%;
   height: 36px;
   padding: 0 10px;
@@ -204,22 +204,22 @@
   font-size: 13px;
 }
 
-.tiptap-link-popover__input:focus {
+.tiptapLinkPopoverInput:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgb(37 99 235 / 12%);
 }
 
-.tiptap-link-popover__input[aria-invalid="true"] {
+.tiptapLinkPopoverInput[aria-invalid="true"] {
   border-color: #dc2626;
 }
 
-.tiptap-link-popover__actions {
+.tiptapLinkPopoverActions {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
 }
 
-.tiptap-link-popover__button {
+.tiptapLinkPopoverButton {
   height: 34px;
   padding: 0 11px;
   border: 1px solid #d1d5db;
@@ -232,36 +232,36 @@
   font-weight: 600;
 }
 
-.tiptap-link-popover__button:hover:not(:disabled) {
-  background: #f3f4f6;
-}
-
-.tiptap-link-popover__button.is-primary {
+.tiptapLinkPopoverButton.primary {
   border-color: #2563eb;
   background: #2563eb;
   color: #fff;
 }
 
-.tiptap-link-popover__button.is-primary:hover:not(:disabled) {
-  background: #1d4ed8;
-}
-
-.tiptap-link-popover__button.is-danger {
+.tiptapLinkPopoverButton.danger {
   color: #dc2626;
 }
 
-.tiptap-link-popover__button:disabled {
+.tiptapLinkPopoverButton:disabled {
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-.tiptap-link-popover__error {
+.tiptapLinkPopoverButton:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.tiptapLinkPopoverButton.primary:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.tiptapLinkPopoverError {
   margin: -3px 0 0;
   color: #dc2626;
   font-size: 12px;
 }
 
-.tiptap-editor__content .tiptap {
+.tiptapEditorContent .tiptap {
   min-height: 280px;
   padding: 18px 20px;
   outline: none;
@@ -270,27 +270,31 @@
   overflow-wrap: anywhere;
 }
 
-.tiptap-editor__content.is-single-line .tiptap {
+.tiptapEditorContent.singleLine .tiptap {
   min-height: 48px;
   max-height: 160px;
   overflow-y: auto;
   padding: 11px 14px;
 }
 
-.tiptap-editor.is-disabled .tiptap {
+.tiptapEditor.editorDisabled .tiptap {
   color: #6b7280;
   cursor: not-allowed;
 }
 
-.tiptap-editor__content .tiptap p {
+.tiptapEditorContent .tiptap p {
   margin: 0 0 0.65em;
 }
 
-.tiptap-editor__content .tiptap p:last-child {
+.tiptapEditorContent .tiptap li > p {
+  margin: 0;
+}
+
+.tiptapEditorContent .tiptap p:last-child {
   margin-bottom: 0;
 }
 
-.tiptap-editor__content .tiptap p.is-editor-empty:first-child::before {
+.tiptapEditorContent .tiptap p.isEditorEmpty:first-child::before {
   float: left;
   height: 0;
   color: #9ca3af;
@@ -298,58 +302,54 @@
   pointer-events: none;
 }
 
-.tiptap-editor__content .tiptap h1,
-.tiptap-editor__content .tiptap h2,
-.tiptap-editor__content .tiptap h3,
-.tiptap-editor__content .tiptap h4 {
+.tiptapEditorContent .tiptap h1,
+.tiptapEditorContent .tiptap h2,
+.tiptapEditorContent .tiptap h3,
+.tiptapEditorContent .tiptap h4 {
   margin: 1em 0 0.5em;
   color: #111827;
   font-weight: 700;
   line-height: 1.25;
 }
 
-.tiptap-editor__content .tiptap h1:first-child,
-.tiptap-editor__content .tiptap h2:first-child,
-.tiptap-editor__content .tiptap h3:first-child,
-.tiptap-editor__content .tiptap h4:first-child {
-  margin-top: 0;
-}
-
-.tiptap-editor__content .tiptap h1 {
+.tiptapEditorContent .tiptap h1 {
   font-size: 2em;
 }
 
-.tiptap-editor__content .tiptap h2 {
+.tiptapEditorContent .tiptap h2 {
   font-size: 1.6em;
 }
 
-.tiptap-editor__content .tiptap h3 {
+.tiptapEditorContent .tiptap h3 {
   font-size: 1.3em;
 }
 
-.tiptap-editor__content .tiptap h4 {
+.tiptapEditorContent .tiptap h4 {
   font-size: 1.1em;
 }
 
-.tiptap-editor__content .tiptap ul,
-.tiptap-editor__content .tiptap ol {
+.tiptapEditorContent .tiptap h1:first-child,
+.tiptapEditorContent .tiptap h2:first-child,
+.tiptapEditorContent .tiptap h3:first-child,
+.tiptapEditorContent .tiptap h4:first-child {
+  margin-top: 0;
+}
+
+.tiptapEditorContent .tiptap ul,
+.tiptapEditorContent .tiptap ol {
   margin: 0.75em 0;
   padding-left: 1.75em;
 }
 
-.tiptap-editor__content .tiptap ul {
+.tiptapEditorContent .tiptap ul {
   list-style: disc;
 }
 
-.tiptap-editor__content .tiptap ol {
+.tiptapEditorContent .tiptap ol {
   list-style: decimal;
 }
 
-.tiptap-editor__content .tiptap li > p {
-  margin: 0;
-}
-
-.tiptap-editor__content .tiptap blockquote {
+.tiptapEditorContent .tiptap blockquote {
   margin: 1em 0;
   padding: 0.45em 1em;
   border-left: 4px solid #93c5fd;
@@ -357,7 +357,7 @@
   color: #374151;
 }
 
-.tiptap-editor__content .tiptap pre {
+.tiptapEditorContent .tiptap pre {
   overflow-x: auto;
   margin: 1em 0;
   padding: 14px 16px;
@@ -369,7 +369,7 @@
   line-height: 1.55;
 }
 
-.tiptap-editor__content .tiptap code {
+.tiptapEditorContent .tiptap code {
   padding: 0.1em 0.3em;
   border-radius: 3px;
   background: #f3f4f6;
@@ -377,30 +377,30 @@
   font-family: "Courier New", monospace;
 }
 
-.tiptap-editor__content .tiptap pre code {
+.tiptapEditorContent .tiptap pre code {
   padding: 0;
   background: transparent;
   color: inherit;
 }
 
-.tiptap-editor__content .tiptap hr {
+.tiptapEditorContent .tiptap hr {
   margin: 1.5em 0;
   border: 0;
   border-top: 2px solid #e5e7eb;
 }
 
-.tiptap-editor__content .tiptap a {
+.tiptapEditorContent .tiptap a {
   color: #2563eb;
   text-decoration: underline;
   cursor: pointer;
 }
 
-.tiptap-editor__content .tiptap mark {
+.tiptapEditorContent .tiptap mark {
   padding: 0.05em 0;
   border-radius: 2px;
 }
 
-.tiptap-editor__content .tiptap .tiptap-uploaded-image {
+.tiptapEditorContent .tiptap .tiptapUploadedImage {
   display: block;
   max-width: 100%;
   height: auto;
@@ -408,20 +408,20 @@
   border-radius: 6px;
 }
 
-.tiptap-editor__content .tiptap .tableWrapper {
+.tiptapEditorContent .tiptap .tableWrapper {
   overflow-x: auto;
   margin: 1em 0;
 }
 
-.tiptap-editor__content .tiptap table {
+.tiptapEditorContent .tiptap table {
   width: 100%;
   min-width: 420px;
   table-layout: fixed;
   border-collapse: collapse;
 }
 
-.tiptap-editor__content .tiptap th,
-.tiptap-editor__content .tiptap td {
+.tiptapEditorContent .tiptap th,
+.tiptapEditorContent .tiptap td {
   position: relative;
   min-width: 80px;
   padding: 8px 10px;
@@ -429,13 +429,13 @@
   vertical-align: top;
 }
 
-.tiptap-editor__content .tiptap th {
+.tiptapEditorContent .tiptap th {
   background: #f1f5f9;
   font-weight: 700;
   text-align: left;
 }
 
-.tiptap-editor__content .tiptap .selectedCell::after {
+.tiptapEditorContent .tiptap .selectedCell::after {
   position: absolute;
   z-index: 2;
   inset: 0;
@@ -444,7 +444,7 @@
   pointer-events: none;
 }
 
-.tiptap-editor__content .tiptap .column-resize-handle {
+.tiptapEditorContent .tiptap [class~="column-resize-handle"] {
   position: absolute;
   z-index: 3;
   top: 0;
@@ -455,11 +455,11 @@
   pointer-events: none;
 }
 
-.tiptap-editor__content .tiptap.resize-cursor {
+.tiptapEditorContent .tiptap[class~="resize-cursor"] {
   cursor: col-resize;
 }
 
-.tiptap-editor__status {
+.tiptapEditorStatus {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -470,14 +470,14 @@
   font-size: 12px;
 }
 
-.tiptap-editor__uploading {
+.tiptapEditorUploading {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   color: #4b5563;
 }
 
-.tiptap-editor__spinner {
+.tiptapEditorSpinner {
   width: 13px;
   height: 13px;
   border: 2px solid #bfdbfe;
@@ -486,7 +486,7 @@
   animation: tiptap-editor-spin 0.75s linear infinite;
 }
 
-.tiptap-editor__error {
+.tiptapEditorError {
   color: #dc2626;
 }
 
@@ -497,15 +497,15 @@
 }
 
 @media (width <= 720px) {
-  .tiptap-toolbar__divider {
+  .tiptapToolbarDivider {
     display: none;
   }
 
-  .tiptap-toolbar__group {
+  .tiptapToolbarGroup {
     flex-wrap: wrap;
   }
 
-  .tiptap-editor__content .tiptap {
+  .tiptapEditorContent .tiptap {
     min-height: 220px;
     padding: 14px;
   }

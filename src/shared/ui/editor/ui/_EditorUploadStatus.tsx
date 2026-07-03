@@ -10,14 +10,14 @@ export const EditorUploadStatus = ({
   if (uploadCount === 0 && !error) return null;
 
   return (
-    <div className="tiptap-editor__status" aria-live="polite">
+    <div className="tiptapEditorStatus" aria-live="polite">
       {uploadCount > 0 && (
-        <span className="tiptap-editor__uploading">
-          <span className="tiptap-editor__spinner" aria-hidden="true" />
+        <span className="tiptapEditorUploading">
+          <span className="tiptapEditorSpinner" aria-hidden="true" />
           이미지 업로드 중... ({uploadCount})
         </span>
       )}
-      {error && <span className="tiptap-editor__error">{error}</span>}
+      {error && <span className="tiptapEditorError">{error}</span>}
     </div>
   );
 };

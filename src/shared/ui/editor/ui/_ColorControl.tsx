@@ -16,12 +16,12 @@ export const ColorControl = ({
   onChange,
 }: Props) => (
   <label
-    className={`tiptap-toolbar__color ${disabled ? "is-disabled" : ""}`}
+    className={`tiptapToolbarColor ${disabled ? "controlDisabled" : ""}`}
     title={label}
   >
     <span aria-hidden="true">{icon}</span>
     <span
-      className="tiptap-toolbar__color-indicator"
+      className="tiptapToolbarColorIndicator"
       style={{ backgroundColor: color }}
     />
     <input

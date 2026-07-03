@@ -116,7 +116,7 @@ export default function TiptapEditor({
           table: {
             resizable: true,
             HTMLAttributes: {
-              class: "tiptap-table",
+              class: "tiptapTable",
             },
           },
         }),
@@ -124,10 +124,11 @@ export default function TiptapEditor({
           inline: true,
           allowBase64: false,
           HTMLAttributes: {
-            class: "tiptap-uploaded-image",
+            class: "tiptapUploadedImage",
           },
         }),
         Placeholder.configure({
+          emptyEditorClass: "isEditorEmpty",
           placeholder,
         }),
         imageUploadExtension,
@@ -179,15 +180,13 @@ export default function TiptapEditor({
 
   return (
     <div
-      className={`tiptap-editor ${disabled ? "is-disabled" : ""}`}
+      className={`tiptapEditor ${disabled ? "editorDisabled" : ""}`}
       aria-busy={uploadCount > 0}
     >
       <EditorToolbar disabled={disabled} editor={editor} />
       <EditorContent
         editor={editor}
-        className={`tiptap-editor__content ${
-          submitOnEnter ? "is-single-line" : ""
-        }`}
+        className={`tiptapEditorContent ${submitOnEnter ? "singleLine" : ""}`}
         onKeyDown={handleKeyDown}
       />
       <EditorUploadStatus error={uploadError} uploadCount={uploadCount} />
