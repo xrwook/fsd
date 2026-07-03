@@ -1,8 +1,8 @@
 import Popover from "@mui/material/Popover";
 import type { Editor } from "@tiptap/react";
 import {
-  type FormEvent,
   type MouseEvent,
+  type SyntheticEvent,
   useEffect,
   useId,
   useRef,
@@ -83,7 +83,7 @@ export const LinkPopover = ({ disabled = false, editor }: LinkPopoverProps) => {
     setAnchorElement(event.currentTarget);
   };
 
-  const applyLink = (event: FormEvent<HTMLFormElement>) => {
+  const applyLink = (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!url.trim()) {
