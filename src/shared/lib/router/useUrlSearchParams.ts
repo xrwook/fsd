@@ -1,52 +1,64 @@
-import { useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useSearchParams } from "react-router-dom";
 
-type UrlSearchParam = string | number | boolean;
-type ParamValue = UrlSearchParam | readonly UrlSearchParam[] | null | undefined;
+import {
+  hasFilterSearch,
+  parseFilterSearch,
+  removeFilterSearch,
+} from "./filterSearchParams";
 
-type ParamUpdates = Record<string, ParamValue>;
+const clearedReloadPaths = new Set<string>();
 
-export const useUrlSearchParams = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+const isReloadNavigation = (pathname: string) => {
+  if (typeof globalThis.performance?.getEntriesByType !== "function") {
+    return false;
+  }
 
-  const updateSearchParams = useCallback(
-    (updates: ParamUpdates) => {
-      setSearchParams(
-        (previous) => {
-          const next = new URLSearchParams(previous);
+  const navigationEntry = globalThis.performance
+    .getEntriesByType("navigation")
+    .at(0) as PerformanceNavigationTiming | undefined;
 
-          for (const [key, value] of Object.entries(updates)) {
-            next.delete(key);
+  if (navigationEntry?.type !== "reload") {
+    return false;
+  }
 
-            if (value === null || value === undefined || value === "") {
-              continue;
-            }
+  return new URL(navigationEntry.name).pathname === pathname;
+};
 
-            if (Array.isArray(value)) {
-              for (const item of value) {
-                next.append(key, String(item));
-              }
-              continue;
-            }
+export const useUrlSearchParams = <Filter>(initialFilter: Filter) => {
+  const location = useLocation();
+  const [, setSearchParams] = useSearchParams();
+  const initialFilterRef = useRef(initialFilter);
+  const [shouldClearReloadFilter] = useState(() => {
+    return (
+      !clearedReloadPaths.has(location.pathname) &&
+      isReloadNavigation(location.pathname)
+    );
+  });
+  const [filter, setFilter] = useState<Filter>(() => {
+    return shouldClearReloadFilter
+      ? initialFilterRef.current
+      : parseFilterSearch(location.search, initialFilterRef.current);
+  });
 
-            next.set(key, String(value));
-          }
+  useEffect(() => {
+    if (!shouldClearReloadFilter) {
+      return;
+    }
 
-          return next;
-        },
-        { replace: true },
-      );
-    },
-    [setSearchParams],
-  );
+    clearedReloadPaths.add(location.pathname);
 
-  const clearSearchParams = useCallback(() => {
-    setSearchParams(new URLSearchParams(), { replace: true });
-  }, [setSearchParams]);
+    if (!hasFilterSearch(location.search)) {
+      return;
+    }
 
-  return {
-    searchParams,
-    updateSearchParams,
-    clearSearchParams,
-  };
+    setSearchParams(removeFilterSearch(location.search), { replace: true });
+  }, [
+    location.pathname,
+    location.search,
+    setSearchParams,
+    shouldClearReloadFilter,
+  ]);
+
+  return [filter, setFilter] as const;
 };

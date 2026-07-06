@@ -1,45 +1,45 @@
-import { Box, Button, Stack, TextField, Typography } from "@mui/material";
-import type { FormEvent } from "react";
-import { useEffect, useState } from "react";
+import { Stack, Typography } from "@mui/material";
+import { useMemo } from "react";
 
 import { useListNavigation, useUrlSearchParams } from "@/shared/lib/router";
 
 import { useGetMemberListQuery } from "../api/getMemberList";
+import {
+  INITIAL_MEMBER_FILTER_PARAMS,
+  type MemberFilterState,
+  toMemberFilterParams,
+  toMemberFilterState,
+} from "../model/member";
+import { MemberInfoFilter } from "./MemberInfoFilter";
+import { MemberInfoTable } from "./MemberInfoTable";
 
 const MemberInfo = () => {
   const { goToDetail } = useListNavigation();
-  const { searchParams, updateSearchParams } = useUrlSearchParams();
-  const keyword = searchParams.get("keyword") ?? "";
-  const [draftKeyword, setDraftKeyword] = useState(keyword);
+  const [filterParams, setFilterParams] = useUrlSearchParams(
+    INITIAL_MEMBER_FILTER_PARAMS,
+  );
+  const initialFilter = useMemo(
+    () => toMemberFilterState(filterParams),
+    [filterParams],
+  );
+
   const {
     data: members = [],
     isError,
-    isFetching,
     isPending,
     refetch,
-  } = useGetMemberListQuery({ keyword });
+  } = useGetMemberListQuery(filterParams);
 
-  useEffect(() => {
-    setDraftKeyword(keyword);
-  }, [keyword]);
+  const handleSearch = (filter: MemberFilterState) => {
+    setFilterParams(toMemberFilterParams(filter));
+  };
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const normalizedKeyword = draftKeyword.trim();
-
-    if (normalizedKeyword === keyword) {
-      void refetch();
-      return;
-    }
-
-    updateSearchParams({
-      keyword: normalizedKeyword || null,
-    });
+  const handleReset = () => {
+    setFilterParams(INITIAL_MEMBER_FILTER_PARAMS);
   };
 
   const handleOpenDetail = (memberId: string) => {
-    goToDetail(memberId);
+    goToDetail(memberId, filterParams);
   };
 
   return (
@@ -48,71 +48,19 @@ const MemberInfo = () => {
         회원 정보
       </Typography>
 
-      <Stack
-        component="form"
-        direction={{ xs: "column", sm: "row" }}
-        onSubmit={handleSearch}
-        spacing={1}
-      >
-        <TextField
-          label="회원명"
-          onChange={(event) => setDraftKeyword(event.target.value)}
-          size="small"
-          value={draftKeyword}
-        />
-        <Button disabled={isFetching} type="submit" variant="contained">
-          {isFetching ? "조회 중" : "조회"}
-        </Button>
-      </Stack>
+      <MemberInfoFilter
+        initialFilter={initialFilter}
+        onReset={handleReset}
+        onSearch={handleSearch}
+      />
 
-      <Stack
-        divider={<Box sx={{ borderTop: 1, borderColor: "divider" }} />}
-        sx={{ borderBlock: 1, borderColor: "divider" }}
-      >
-        {isPending && (
-          <Typography color="text.secondary" sx={{ py: 3 }}>
-            회원 정보를 조회하고 있습니다.
-          </Typography>
-        )}
-
-        {isError && (
-          <Stack direction="row" sx={{ alignItems: "center", py: 2 }}>
-            <Typography color="error">
-              회원 정보 조회에 실패했습니다.
-            </Typography>
-            <Button onClick={() => void refetch()} sx={{ ml: "auto" }}>
-              다시 시도
-            </Button>
-          </Stack>
-        )}
-
-        {!isPending &&
-          !isError &&
-          members.map((member) => (
-            <Stack
-              direction="row"
-              key={member.id}
-              sx={{ alignItems: "center", minHeight: 56, py: 1 }}
-            >
-              <Button
-                onClick={() => handleOpenDetail(member.id)}
-                sx={{ justifyContent: "flex-start", textTransform: "none" }}
-                type="button"
-              >
-                {member.name}
-              </Button>
-              <Typography color="text.secondary" sx={{ ml: "auto" }}>
-                {member.status}
-              </Typography>
-            </Stack>
-          ))}
-
-        {!isPending && !isError && members.length === 0 && (
-          <Typography color="text.secondary" sx={{ py: 3 }}>
-            조회 결과가 없습니다.
-          </Typography>
-        )}
-      </Stack>
+      <MemberInfoTable
+        isError={isError}
+        isPending={isPending}
+        members={members}
+        onOpenDetail={handleOpenDetail}
+        onRetry={() => void refetch()}
+      />
     </Stack>
   );
 };

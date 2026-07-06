@@ -1,7 +1,9 @@
 import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-type TListNavigationState = {
+import { createFilterSearch } from "./filterSearchParams";
+
+type ListNavigationState = {
   returnTo: string;
 };
 
@@ -30,13 +32,31 @@ export const useListNavigation = () => {
   const navigate = useNavigate();
 
   const goToDetail = useCallback(
-    (relativePath: string) => {
+    (relativePath: string, filter?: unknown) => {
+      const existingReturnTo = getReturnTo(location.state);
+      const returnSearch =
+        filter === undefined
+          ? location.search
+          : createFilterSearch(location.search, filter);
       const returnTo =
-        getReturnTo(location.state) ??
-        `${location.pathname}${location.search}`;
+        existingReturnTo ?? `${location.pathname}${returnSearch}`;
+      const detailPath = resolveChildPath(location.pathname, relativePath);
 
-      navigate(resolveChildPath(location.pathname, relativePath), {
-        state: { returnTo } satisfies TListNavigationState,
+      if (!existingReturnTo && returnSearch !== location.search) {
+        navigate(
+          {
+            pathname: location.pathname,
+            search: returnSearch,
+          },
+          {
+            replace: true,
+            flushSync: true,
+          },
+        );
+      }
+
+      navigate(detailPath, {
+        state: { returnTo } satisfies ListNavigationState,
       });
     },
     [location.pathname, location.search, location.state, navigate],

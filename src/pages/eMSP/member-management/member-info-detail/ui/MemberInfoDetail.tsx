@@ -20,7 +20,7 @@ const MemberInfoDetail = ({ parentPath }: TMemberInfoDetailProps) => {
           startIcon={<ArrowBackIcon />}
           type="button"
         >
-          목록
+          목록 {parentPath}
         </Button>
       </Box>
       <Box>
