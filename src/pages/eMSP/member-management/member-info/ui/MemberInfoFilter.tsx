@@ -1,6 +1,7 @@
 import { Button, Stack, TextField } from "@mui/material";
-import type { SyntheticEvent } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef } from "react";
+
+import { useUrlSearchParams } from "@/shared/lib/router";
 
 import {
   INITIAL_MEMBER_FILTER_STATE,
@@ -8,26 +9,26 @@ import {
 } from "../model/member";
 
 type Props = {
-  initialFilter: MemberFilterState;
   onReset: () => void;
   onSearch: (filter: MemberFilterState) => void;
 };
 
-export const MemberInfoFilter = ({
-  initialFilter,
-  onReset,
-  onSearch,
-}: Props) => {
-  const [filter, setFilter] = useState(initialFilter);
+export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
+  const [filter, setFilter] = useUrlSearchParams<MemberFilterState>(
+    INITIAL_MEMBER_FILTER_STATE,
+  );
+  const notifySearch = useEffectEvent(onSearch);
+  const restoredFilterRef = useRef(filter);
+  const didNotifyRestoredFilterRef = useRef(false);
 
   useEffect(() => {
-    setFilter(initialFilter);
-  }, [initialFilter]);
+    if (didNotifyRestoredFilterRef.current) {
+      return;
+    }
 
-  const handleSearch = (event: SyntheticEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    onSearch(filter);
-  };
+    didNotifyRestoredFilterRef.current = true;
+    notifySearch(restoredFilterRef.current);
+  }, []);
 
   const handleReset = () => {
     setFilter(INITIAL_MEMBER_FILTER_STATE);
@@ -35,12 +36,7 @@ export const MemberInfoFilter = ({
   };
 
   return (
-    <Stack
-      component="form"
-      direction={{ xs: "column", sm: "row" }}
-      onSubmit={handleSearch}
-      spacing={1}
-    >
+    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
       <TextField
         label="회원명"
         onChange={(event) =>
@@ -52,7 +48,11 @@ export const MemberInfoFilter = ({
         size="small"
         value={filter.keyword}
       />
-      <Button type="submit" variant="contained">
+      <Button
+        onClick={() => notifySearch(filter)}
+        type="button"
+        variant="contained"
+      >
         조회
       </Button>
       <Button onClick={handleReset} type="button" variant="outlined">

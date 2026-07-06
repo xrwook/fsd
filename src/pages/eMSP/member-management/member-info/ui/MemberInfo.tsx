@@ -1,26 +1,25 @@
 import { Stack, Typography } from "@mui/material";
-import { useMemo } from "react";
+import { useCallback, useState } from "react";
 
-import { useListNavigation, useUrlSearchParams } from "@/shared/lib/router";
+import { useListNavigation } from "@/shared/lib/router";
 
-import { useGetMemberListQuery } from "../api/getMemberList";
 import {
-  INITIAL_MEMBER_FILTER_PARAMS,
-  type MemberFilterState,
-  toMemberFilterParams,
-  toMemberFilterState,
-} from "../model/member";
+  type MemberListRequest,
+  useGetMemberListQuery,
+} from "../api/getMemberList";
+import { toApiParams } from "../lib/filter";
+import type { MemberFilterState } from "../model/member";
 import { MemberInfoFilter } from "./MemberInfoFilter";
 import { MemberInfoTable } from "./MemberInfoTable";
 
+type FilterQuery = MemberListRequest["query"];
+
+const INITIAL_FILTER_PARAMS: FilterQuery = {};
+
 const MemberInfo = () => {
   const { goToDetail } = useListNavigation();
-  const [filterParams, setFilterParams] = useUrlSearchParams(
-    INITIAL_MEMBER_FILTER_PARAMS,
-  );
-  const initialFilter = useMemo(
-    () => toMemberFilterState(filterParams),
-    [filterParams],
+  const [filterParams, setFilterParams] = useState<FilterQuery>(
+    INITIAL_FILTER_PARAMS,
   );
 
   const {
@@ -28,14 +27,16 @@ const MemberInfo = () => {
     isError,
     isPending,
     refetch,
-  } = useGetMemberListQuery(filterParams);
+  } = useGetMemberListQuery({
+    query: { ...filterParams },
+  });
 
-  const handleSearch = (filter: MemberFilterState) => {
-    setFilterParams(toMemberFilterParams(filter));
-  };
+  const handleSearch = useCallback((filter: MemberFilterState) => {
+    setFilterParams(toApiParams(filter));
+  }, []);
 
   const handleReset = () => {
-    setFilterParams(INITIAL_MEMBER_FILTER_PARAMS);
+    setFilterParams(INITIAL_FILTER_PARAMS);
   };
 
   const handleOpenDetail = (memberId: string) => {
@@ -49,7 +50,6 @@ const MemberInfo = () => {
       </Typography>
 
       <MemberInfoFilter
-        initialFilter={initialFilter}
         onReset={handleReset}
         onSearch={handleSearch}
       />
