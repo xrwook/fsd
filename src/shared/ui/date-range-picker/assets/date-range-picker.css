@@ -175,6 +175,20 @@
   background: #165dff;
 }
 
+.dateRangeCalendar [aria-disabled="true"],
+.dateRangeCalendar [class~="react-datepicker__day--disabled"] {
+  color: #c4c9d1;
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.dateRangeCalendar [aria-disabled="true"]:hover,
+.dateRangeCalendar [class~="react-datepicker__day--disabled"]:hover {
+  color: #c4c9d1;
+  background: transparent;
+  border-radius: 50%;
+}
+
 .dateRangeCalendar [class~="react-datepicker__month"] {
   margin: 0 16px 20px;
 }
@@ -209,6 +223,14 @@
   color: #165dff;
   background: #f6f8fb;
   outline: none;
+}
+
+.dateRangeQuickButton:disabled,
+.dateRangeQuickButton:disabled:hover,
+.dateRangeQuickButton:disabled:focus-visible {
+  color: #b4bac3;
+  background: #fff;
+  cursor: not-allowed;
 }
 
 @media (width <= 700px) {

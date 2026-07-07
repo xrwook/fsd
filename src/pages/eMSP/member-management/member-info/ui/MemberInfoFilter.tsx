@@ -49,6 +49,12 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
         }
         quickRangeDirection="future"
         startDate={filter.startDate}
+        disabledRanges={[
+          {
+            startDate: "2026-06-30",
+            endDate: "2026-05-30",
+          },
+        ]}
       />
 
       <TextField

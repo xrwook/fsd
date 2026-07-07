@@ -21,6 +21,7 @@ type DateRangeInputProps = {
   startValue: string;
 };
 
+/** react-datepicker의 customInput으로 쓰이는 시작일/종료일 입력 영역이다. */
 export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
   (
     {
@@ -39,6 +40,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
   ) => {
     let activeSegment: "end" | "start" | null = null;
 
+    // 시작일만 선택된 상태에서는 다음 선택 대상인 종료일 영역을 활성화해서 보여준다.
     if (isOpen) {
       activeSegment = startValue && !endValue ? "end" : "start";
     }

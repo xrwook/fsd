@@ -1,5 +1,6 @@
 export {
   DateRangePicker,
-  type DateRangePickerProps,
-  type DateRangeQuickRangeDirection,
+  type Props as DateRangePickerProps,
+  type RangeDirection as DateRangeQuickRangeDirection,
+  type DisabledRange as DisabledDateRange,
 } from "./ui/DateRangePicker";
