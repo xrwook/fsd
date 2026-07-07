@@ -1,29 +1,33 @@
-import { addDays, addMonths } from "../lib/date";
-
 export type QuickRange = {
+  amount: number;
   label: string;
-  startDate: (endDate: Date) => Date;
+  unit: "days" | "months";
 };
 
 export const QUICK_RANGES: QuickRange[] = [
   {
+    amount: 7,
     label: "1주",
-    startDate: (endDate) => addDays(endDate, -7),
+    unit: "days",
   },
   {
+    amount: 1,
     label: "1개월",
-    startDate: (endDate) => addMonths(endDate, -1),
+    unit: "months",
   },
   {
+    amount: 3,
     label: "3개월",
-    startDate: (endDate) => addMonths(endDate, -3),
+    unit: "months",
   },
   {
+    amount: 6,
     label: "6개월",
-    startDate: (endDate) => addMonths(endDate, -6),
+    unit: "months",
   },
   {
+    amount: 12,
     label: "1년",
-    startDate: (endDate) => addMonths(endDate, -12),
+    unit: "months",
   },
 ];

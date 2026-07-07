@@ -1,1 +1,5 @@
-export { DateRangePicker } from "./ui/DateRangePicker";
+export {
+  DateRangePicker,
+  type DateRangePickerProps,
+  type DateRangeQuickRangeDirection,
+} from "./ui/DateRangePicker";

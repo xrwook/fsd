@@ -47,6 +47,7 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
             startDate,
           }))
         }
+        quickRangeDirection="future"
         startDate={filter.startDate}
       />
 

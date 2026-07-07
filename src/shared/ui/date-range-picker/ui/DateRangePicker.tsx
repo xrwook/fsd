@@ -5,19 +5,29 @@ import { useRef, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 
 import { QUICK_RANGES, type QuickRange } from "../config/quickRanges";
-import { formatDate, parseDate, startOfToday } from "../lib/date";
+import {
+  addDays,
+  addMonths,
+  formatDate,
+  parseDate,
+  startOfToday,
+} from "../lib/date";
 import { DateRangeInput } from "./_DateRangeInput";
 import { DateRangeQuickActions } from "./_DateRangeQuickActions";
 
-type DateRangePickerProps = {
+export type DateRangeQuickRangeDirection = "future" | "past";
+
+export type DateRangePickerProps = {
   endDate: string;
   onChange: (startDate: string, endDate: string) => void;
+  quickRangeDirection?: DateRangeQuickRangeDirection;
   startDate: string;
 };
 
 export const DateRangePicker = ({
   endDate,
   onChange,
+  quickRangeDirection = "past",
   startDate,
 }: DateRangePickerProps) => {
   const pickerRef = useRef<ReactDatePicker>(null);
@@ -26,8 +36,10 @@ export const DateRangePicker = ({
   const selectedEndDate = parseDate(endDate);
 
   const handleQuickRange = (quickRange: QuickRange) => {
-    const nextEndDate = startOfToday();
-    const nextStartDate = quickRange.startDate(nextEndDate);
+    const { nextEndDate, nextStartDate } = getQuickRangeDates(
+      quickRange,
+      quickRangeDirection,
+    );
 
     onChange(formatDate(nextStartDate), formatDate(nextEndDate));
     pickerRef.current?.setOpen(false);
@@ -69,4 +81,26 @@ export const DateRangePicker = ({
       </ReactDatePicker>
     </div>
   );
+};
+
+const getQuickRangeDates = (
+  quickRange: QuickRange,
+  direction: DateRangeQuickRangeDirection,
+): { nextEndDate: Date; nextStartDate: Date } => {
+  const today = startOfToday();
+  const amount = direction === "future" ? quickRange.amount : -quickRange.amount;
+  const targetDate =
+    quickRange.unit === "days"
+      ? addDays(today, amount)
+      : addMonths(today, amount);
+
+  return direction === "future"
+    ? {
+        nextEndDate: targetDate,
+        nextStartDate: today,
+      }
+    : {
+        nextEndDate: today,
+        nextStartDate: targetDate,
+      };
 };
