@@ -7,9 +7,13 @@ export type MemberSummary = {
 };
 
 export type MemberFilterState = {
+  endDate: string;
   keyword: string;
+  startDate: string;
 };
 
 export const INITIAL_MEMBER_FILTER_STATE: MemberFilterState = {
+  endDate: "",
   keyword: "",
+  startDate: "",
 };

@@ -2,6 +2,7 @@ import { Button, Stack, TextField } from "@mui/material";
 import { useEffect, useEffectEvent, useRef } from "react";
 
 import { useUrlSearchParams } from "@/shared/lib/router";
+import { DateRangePicker } from "@/shared/ui/date-range-picker";
 
 import {
   INITIAL_MEMBER_FILTER_STATE,
@@ -36,7 +37,19 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
   };
 
   return (
-    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+    <Stack spacing={1}>
+      <DateRangePicker
+        endDate={filter.endDate}
+        onChange={(startDate, endDate) =>
+          setFilter((previous) => ({
+            ...previous,
+            endDate,
+            startDate,
+          }))
+        }
+        startDate={filter.startDate}
+      />
+
       <TextField
         label="회원명"
         onChange={(event) =>
@@ -48,16 +61,19 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
         size="small"
         value={filter.keyword}
       />
-      <Button
-        onClick={() => notifySearch(filter)}
-        type="button"
-        variant="contained"
-      >
-        조회
-      </Button>
-      <Button onClick={handleReset} type="button" variant="outlined">
-        초기화
-      </Button>
+
+      <Stack direction="row" spacing={1}>
+        <Button
+          onClick={() => notifySearch(filter)}
+          type="button"
+          variant="contained"
+        >
+          조회
+        </Button>
+        <Button onClick={handleReset} type="button" variant="outlined">
+          초기화
+        </Button>
+      </Stack>
     </Stack>
   );
 };

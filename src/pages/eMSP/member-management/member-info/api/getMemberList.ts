@@ -8,7 +8,9 @@ const MEMBER_LIST_API_URL = "/api/emsp/members";
 
 export type MemberListRequest = {
   query: {
+    endDate?: string;
     keyword?: string;
+    startDate?: string;
   };
 };
 
@@ -16,7 +18,7 @@ export const getMemberListApi = async ({ query }: MemberListRequest) => {
   const response = await axiosInstance.get<MemberSummary[]>(
     MEMBER_LIST_API_URL,
     {
-      params: query.keyword ? query : undefined,
+      params: query,
     },
   );
 
