@@ -1,10 +1,24 @@
 import { DateTime } from "luxon";
 
+import type { QuickRange } from "../config/quickRanges";
+
 const DATE_FORMAT = "yyyy-MM-dd";
 
 export type DateRange = {
   endDate: Date;
   startDate: Date;
+};
+
+export type RangeDirection = "future" | "past";
+
+export type DisabledRange = {
+  endDate: string;
+  startDate: string;
+};
+
+type DisabledInterval = {
+  end: Date;
+  start: Date;
 };
 
 /** yyyy-MM-dd 문자열을 Date로 변환한다. 유효하지 않은 날짜면 null을 반환한다. */
@@ -69,6 +83,100 @@ export const isDateRangeOverlapping = (
 
   return start <= targetEnd && targetStart <= end;
 };
+
+/**
+ * 빠른 기간 계산의 기준일을 정한다.
+ * past는 종료일 기준, future는 시작일 기준이 자연스럽고,
+ * 선택된 날짜가 없으면 오늘을 기준으로 계산한다.
+ */
+export const getQuickRangeBaseDate = (
+  direction: RangeDirection,
+  selectedStartDate: Date | null,
+  selectedEndDate: Date | null,
+): Date => {
+  if (direction === "future") {
+    return selectedStartDate ?? selectedEndDate ?? startOfToday();
+  }
+
+  return selectedEndDate ?? selectedStartDate ?? startOfToday();
+};
+
+/**
+ * 빠른 기간 목록에 disabled 여부를 붙인다.
+ * 계산된 빠른 기간이 선택 불가 구간과 겹치면 버튼을 비활성화한다.
+ */
+export const getQuickRanges = (
+  quickRanges: QuickRange[],
+  direction: RangeDirection,
+  baseDate: Date,
+  disabledInterval: DisabledInterval[],
+): Array<QuickRange & { disabled: boolean }> =>
+  quickRanges.map((quickRange) => {
+    const { nextEndDate, nextStartDate } = getQuickRangeDates(
+      quickRange,
+      direction,
+      baseDate,
+    );
+    const quickDateRange = toOrderedDateRange(nextStartDate, nextEndDate);
+    const disabled = disabledInterval.some((disabledDateInterval) =>
+      isDateRangeOverlapping(quickDateRange, {
+        endDate: disabledDateInterval.end,
+        startDate: disabledDateInterval.start,
+      }),
+    );
+
+    return {
+      ...quickRange,
+      disabled,
+    };
+  });
+
+/**
+ * 빠른 기간 하나를 실제 시작일/종료일로 변환한다.
+ * 예: past + 3개월이면 기준일-3개월 ~ 기준일.
+ */
+export const getQuickRangeDates = (
+  quickRange: QuickRange,
+  direction: RangeDirection,
+  baseDate: Date,
+): { nextEndDate: Date; nextStartDate: Date } => {
+  const amount =
+    direction === "future" ? quickRange.amount : -quickRange.amount;
+  const targetDate =
+    quickRange.unit === "days"
+      ? addDays(baseDate, amount)
+      : addMonths(baseDate, amount);
+
+  return direction === "future"
+    ? {
+        nextEndDate: targetDate,
+        nextStartDate: baseDate,
+      }
+    : {
+        nextEndDate: baseDate,
+        nextStartDate: targetDate,
+      };
+};
+
+/** yyyy-MM-dd 문자열로 받은 선택 불가 구간을 react-datepicker가 쓰는 Date interval로 변환한다. */
+export const getDisabledInterval = (
+  disabledDateRanges: DisabledRange[],
+): DisabledInterval[] =>
+  disabledDateRanges.flatMap((x) => {
+    const startDate = parseDate(x.startDate);
+    const endDate = parseDate(x.endDate);
+
+    if (!startDate || !endDate) {
+      return [];
+    }
+
+    const orderedDateRange = toOrderedDateRange(startDate, endDate);
+
+    return {
+      end: orderedDateRange.endDate,
+      start: orderedDateRange.startDate,
+    };
+  });
 
 /** Date를 Luxon DateTime으로 바꾸면서 시간은 00:00으로 맞춘다. */
 const toStartOfDay = (date: Date): DateTime =>
