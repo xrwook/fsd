@@ -9,14 +9,25 @@ import type { AliasAny, ExtractPathParams } from "@/shared/lib/types";
 
 import axiosInstance from "./axiosInstance";
 import { PATH_PARAM_REGEX } from "./constants";
-import type { Response as ApiResponse, SortItem } from "./model";
+import type {
+  PagingRequestParams,
+  Response as ApiResponse,
+  SortItem,
+} from "./model";
 
-export type { PagingRequest, PagingResponse, Request, Response, SortItem } from "./model";
+export type {
+  PagingRequest,
+  PagingRequestParams,
+  PagingResponse,
+  Request,
+  Response,
+  SortItem,
+} from "./model";
 
 type RequestParams = {
   path?: Record<string, AliasAny>;
   query?: Record<string, AliasAny>;
-  paging?: Record<string, AliasAny>;
+  paging?: PagingRequestParams;
   requestBody?: Record<string, AliasAny>;
 };
 
@@ -97,16 +108,18 @@ const paramsSerializer = (params: Record<string, AliasAny>): string => {
 /** query와 paging을 하나의 URL query parameter 객체로 합친다. */
 const getRequestQueryParams = (
   query?: Record<string, AliasAny>,
-  paging?: Record<string, AliasAny>,
+  paging?: PagingRequestParams,
 ): Record<string, AliasAny> | undefined => {
   if (!query && !paging) {
     return;
   }
 
-  return serializeQueryParams({
+  const requestParams: Record<string, AliasAny> = {
     ...query,
     ...paging,
-  });
+  };
+
+  return serializeQueryParams(requestParams);
 };
 
 export const apiRequest = <

@@ -17,7 +17,7 @@ export type SortItem<T extends string = string> = {
   sortIndex?: number | null;
 };
 
-type PagingRequestParams<T extends string = string> = {
+export type PagingRequestParams<T extends string = string> = {
   /** 페이지 번호 */
   page?: number;
   /** 페이지 크기 */
