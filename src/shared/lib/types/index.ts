@@ -1,2 +1,2 @@
-export type { SortDirection, TNullable } from "./data";
-export type { TPath } from "./path";
+export type { AliasAny, SortDirection, TNullable } from "./data";
+export type { ExtractPathParams, TPath } from "./path";
