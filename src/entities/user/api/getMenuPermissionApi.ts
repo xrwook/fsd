@@ -1,17 +1,21 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-import { axiosInstance } from "@/shared/lib/axios";
+import { apiRequest, type Response } from "@/shared/lib/api";
 
 import type { TMenuPermissionApiResponse } from "../lib/permission";
 import { getMenuPermissionMockApi } from "./mocks/getMenuPermissionMockApi";
 
+type MenuPermissionResponse = Response<TMenuPermissionApiResponse>;
+
 const requestMenuPermission = async () => {
-  const response = await axiosInstance.get<TMenuPermissionApiResponse>(
-    "/api/permissions",
-    { skipPageId: true },
+  const response = await apiRequest<MenuPermissionResponse>(
+    "get",
+    "/permissions",
+    undefined,
+    { skipScreenId: true },
   );
 
-  return response.data;
+  return response.data.data;
 };
 
 // 유저별 메뉴 권한을 조회해 라우트 가드와 사이드 메뉴에서 공통으로 사용합니다.

@@ -1,10 +1,10 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
-import { axiosInstance } from "@/shared/lib/axios";
+import { apiRequest, type Response } from "@/shared/lib/api";
 
 import type { MemberSummary } from "../model/member";
 
-const MEMBER_LIST_API_URL = "/api/emsp/members";
+const MEMBER_LIST_API_URL = "/emsp/members";
 
 export type MemberListRequest = {
   query: {
@@ -14,15 +14,16 @@ export type MemberListRequest = {
   };
 };
 
+type MemberListResponse = Response<MemberSummary[]>;
+
 export const getMemberListApi = async ({ query }: MemberListRequest) => {
-  const response = await axiosInstance.get<MemberSummary[]>(
+  const response = await apiRequest<MemberListResponse, MemberListRequest>(
+    "get",
     MEMBER_LIST_API_URL,
-    {
-      params: query,
-    },
+    { query },
   );
 
-  return response.data;
+  return response.data.data;
 };
 
 export const memberListQueryFactory = {
