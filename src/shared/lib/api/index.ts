@@ -9,7 +9,7 @@ import type { AliasAny, ExtractPathParams } from "@/shared/lib/types";
 
 import axiosInstance from "./axiosInstance";
 import { PATH_PARAM_REGEX } from "./constants";
-import type { SortItem } from "./model";
+import type { Response as ApiResponse, SortItem } from "./model";
 
 export type { PagingRequest, PagingResponse, Request, Response, SortItem } from "./model";
 
@@ -110,7 +110,7 @@ const getRequestQueryParams = (
 };
 
 export const apiRequest = <
-  Response,
+  ApiResponseType extends ApiResponse<unknown>,
   Request extends RequestParams = RequestParams,
   Url extends string = string,
 >(
@@ -118,7 +118,7 @@ export const apiRequest = <
   url: ValidatePathParams<Url, Request>,
   payload?: Payload<Request>,
   extraConfig?: Pick<AxiosRequestConfig, "screenId" | "skipScreenId">,
-): Promise<AxiosResponse<Response>> => {
+): Promise<AxiosResponse<ApiResponseType>> => {
   const { path, query, paging, requestBody, headers, signal } = payload ?? {};
   const requestQuery = getRequestQueryParams(query, paging);
 
@@ -135,7 +135,7 @@ export const apiRequest = <
     ...extraConfig,
   };
 
-  return axiosInstance(config);
+  return axiosInstance<ApiResponseType>(config);
 };
 
 export const replaceUrlPathParams = (

@@ -42,7 +42,7 @@ export type PagingRequest<
 
 /** API 공통 응답 형식 */
 export type Response<T> = {
-  trace: string | null;
+  trace: string;
   code: string;
   message: string;
   data: T;
