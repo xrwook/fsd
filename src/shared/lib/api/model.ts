@@ -1,7 +1,7 @@
 import type { SortDirection } from "@/shared/lib/types";
 
 // TODO: 추후 BE 협의 후 변경 필요
-type AllowedKeys = "path" | "query" | "requestBody";
+type AllowedKeys = "path" | "query" | "requestBody" | "paging";
 
 /** API 요청 파라미터 형식 */
 export type Request<
@@ -28,7 +28,7 @@ type PagingRequestParams<T extends string = string> = {
 
 /** API 페이징 요청 형식 */
 export type PagingRequest<
-  T extends Partial<Record<AllowedKeys | "paging", unknown>> & {
+  T extends Partial<Record<AllowedKeys, unknown>> & {
     [K in keyof T]: K extends "paging"
       ? PagingRequestParams<TOrderCol>
       : K extends AllowedKeys

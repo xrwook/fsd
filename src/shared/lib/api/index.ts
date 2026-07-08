@@ -13,12 +13,12 @@ import type { SortItem } from "./model";
 
 export type { PagingRequest, PagingResponse, Request, Response, SortItem } from "./model";
 
-interface RequestParams {
+type RequestParams = {
   path?: Record<string, AliasAny>;
   query?: Record<string, AliasAny>;
   paging?: Record<string, AliasAny>;
   requestBody?: Record<string, AliasAny>;
-}
+};
 
 // 누락된 키 체크
 type MissingParams<Url extends string, Request extends RequestParams> = Exclude<
@@ -94,6 +94,21 @@ const paramsSerializer = (params: Record<string, AliasAny>): string => {
   return result.toString();
 };
 
+/** query와 paging을 하나의 URL query parameter 객체로 합친다. */
+const getRequestQueryParams = (
+  query?: Record<string, AliasAny>,
+  paging?: Record<string, AliasAny>,
+): Record<string, AliasAny> | undefined => {
+  if (!query && !paging) {
+    return;
+  }
+
+  return serializeQueryParams({
+    ...query,
+    ...paging,
+  });
+};
+
 export const apiRequest = <
   Response,
   Request extends RequestParams = RequestParams,
@@ -105,16 +120,13 @@ export const apiRequest = <
   extraConfig?: Pick<AxiosRequestConfig, "screenId" | "skipScreenId">,
 ): Promise<AxiosResponse<Response>> => {
   const { path, query, paging, requestBody, headers, signal } = payload ?? {};
-  const queryParams = {
-    ...query,
-    ...paging,
-  };
+  const requestQuery = getRequestQueryParams(query, paging);
 
   const config: AxiosRequestConfig = {
     method,
     url: replaceUrlPathParams(url, path),
-    // GET 계열 요청의 query string 처리
-    params: query || paging ? serializeQueryParams(queryParams) : undefined,
+    // GET 계열 요청의 query string 처리: query와 paging을 함께 URL 파라미터로 전달한다.
+    params: requestQuery,
     paramsSerializer,
     // POST/PUT 계열 요청의 body
     data: requestBody,
