@@ -19,7 +19,10 @@ import {
 } from "react";
 
 import { uploadEditorImage } from "../api/editor.service";
-import { TiptapImageUpload } from "../lib/tiptapImageUpload";
+import {
+  type ImageUploadResult,
+  TiptapImageUpload,
+} from "../lib/tiptapImageUpload";
 import { EditorToolbar } from "./_EditorToolbar";
 import { EditorUploadStatus } from "./_EditorUploadStatus";
 
@@ -32,8 +35,31 @@ export type TiptapEditorProps = {
   onEmptyChange?: (isEmpty: boolean) => void;
   onSubmit?: () => void;
   onUploadStateChange?: (isUploading: boolean) => void;
-  uploadImage?: (file: File) => Promise<string>;
+  uploadImage?: (file: File) => Promise<ImageUploadResult>;
 };
+
+const TiptapImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      imgId: {
+        default: null,
+        parseHTML: (element) => element.dataset.imgid,
+        renderHTML: (attributes) => {
+          const imgId = typeof attributes.imgId === "string" ? attributes.imgId : "";
+
+          if (!imgId) {
+            return {};
+          }
+
+          return {
+            "data-imgid": imgId,
+          };
+        },
+      },
+    };
+  },
+});
 
 export default function TiptapEditor({
   value = "",
@@ -120,7 +146,7 @@ export default function TiptapEditor({
             },
           },
         }),
-        Image.configure({
+        TiptapImage.configure({
           inline: true,
           allowBase64: false,
           HTMLAttributes: {

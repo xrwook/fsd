@@ -1,8 +1,15 @@
 import { type Editor, Extension, type JSONContent } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 
+export type ImageUploadResult =
+  | string
+  | {
+      imgId?: string;
+      src: string;
+    };
+
 type ImageUploadOptions = {
-  upload: (file: File) => Promise<string>;
+  upload: (file: File) => Promise<ImageUploadResult>;
   onUploadStart?: (file: File) => void;
   onUploadEnd?: (file: File) => void;
   onUploadError?: (error: unknown, file: File) => void;
@@ -19,6 +26,18 @@ declare module "@tiptap/core" {
 const getImageFiles = (files?: FileList | File[] | null) =>
   [...(files ?? [])].filter((file) => file.type.startsWith("image/"));
 
+const toImageAttrs = (result: ImageUploadResult, file: File) => {
+  if (typeof result === "string") {
+    return { src: result, alt: file.name };
+  }
+
+  return {
+    src: result.src,
+    alt: file.name,
+    imgId: result.imgId,
+  };
+};
+
 const uploadAndInsertImages = (
   editor: Editor,
   options: ImageUploadOptions,
@@ -32,10 +51,10 @@ const uploadAndInsertImages = (
     options.onUploadStart?.(file);
 
     try {
-      const src = await options.upload(file);
+      const result = await options.upload(file);
       return {
         type: "image",
-        attrs: { src, alt: file.name },
+        attrs: toImageAttrs(result, file),
       } as JSONContent;
     } catch (error: unknown) {
       options.onUploadError?.(error, file);
