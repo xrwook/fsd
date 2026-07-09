@@ -1,7 +1,7 @@
 import { type PropsWithChildren, useLayoutEffect, useState } from "react";
 
 import type { TMenuId } from "@/entities/user";
-import { clearRequestPageId, setRequestPageId } from "@/shared/lib/axios";
+import { clearRequestScreenId, setRequestScreenId } from "@/shared/lib/api";
 
 type TPageRequestScopeProps = PropsWithChildren<{
   pageId: TMenuId;
@@ -20,12 +20,12 @@ export const PageRequestScope = ({
 
   // 자식 페이지의 API 요청보다 먼저 pageId가 등록되도록 layout effect에서 동기화합니다.
   useLayoutEffect(() => {
-    setRequestPageId(pageId);
+    setRequestScreenId(pageId);
     setRegisteredPageId(pageId);
 
     return () => {
       // 다른 화면으로 이동할 때 이전 pageId가 다음 요청에 사용되지 않도록 제거합니다.
-      clearRequestPageId(pageId);
+      clearRequestScreenId(pageId);
     };
   }, [pageId]);
 
