@@ -28,7 +28,7 @@ type RequestParams = {
   path?: Record<string, AliasAny>;
   query?: Record<string, AliasAny>;
   paging?: PagingRequestParams;
-  requestBody?: Record<string, AliasAny>;
+  requestBody?: AliasAny;
 };
 
 // 누락된 키 체크

@@ -1,3 +1,7 @@
+import { apiRequest, type Response } from "@/shared/lib/api";
+
+const EDITOR_IMAGE_UPLOAD_URL = "/backend/test/file/testcase_001";
+
 type EditorImageUploadResponse =
   | string
   | {
@@ -15,6 +19,12 @@ type EditorImageUploadResponse =
       files?: EditorImageUploadResponse[];
     }
   | EditorImageUploadResponse[];
+
+type EditorImageUploadApiResponse = Response<EditorImageUploadResponse>;
+
+type EditorImageUploadRequest = {
+  requestBody: FormData;
+};
 
 const pickString = (value: unknown): string | null => {
   return typeof value === "string" && value.trim().length > 0
@@ -66,17 +76,21 @@ const extractImageUrl = (
   return null;
 };
 
-export const uploadEditorImage = async (_file: File): Promise<string> => {
-  // const formData = new FormData();
-  // formData.append("files", file);
+export const uploadEditorImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("files", file);
 
-  // const response =
-  //   await axiosInstance.post<EditorImageUploadResponse>(formData);
-  // const imageUrl = extractImageUrl(response.data);
+  const response = await apiRequest<
+    EditorImageUploadApiResponse,
+    EditorImageUploadRequest
+  >("post", EDITOR_IMAGE_UPLOAD_URL, {
+    requestBody: formData,
+  });
+  const imageUrl = extractImageUrl(response.data);
 
-  // if (!imageUrl) {
-  //   throw new Error("이미지 업로드 응답에서 URL을 찾을 수 없습니다.");
-  // }
+  if (!imageUrl) {
+    throw new Error("이미지 업로드 응답에서 URL을 찾을 수 없습니다.");
+  }
 
-  return "";
+  return imageUrl;
 };

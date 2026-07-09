@@ -7,16 +7,9 @@ type EditorIconProps = {
 };
 
 export const EditorIcon = ({ name }: EditorIconProps) => {
-  const iconUrl = EDITOR_ICONS[name];
+  const Icon = EDITOR_ICONS[name];
 
   return (
-    <span
-      aria-hidden="true"
-      className="tiptapEditorIcon"
-      style={{
-        maskImage: `url("${iconUrl}")`,
-        WebkitMaskImage: `url("${iconUrl}")`,
-      }}
-    />
+    <Icon aria-hidden="true" className="tiptapEditorIcon" focusable="false" />
   );
 };

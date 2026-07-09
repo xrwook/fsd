@@ -1,6 +1,7 @@
-import { delay, http, HttpResponse } from "msw";
+import { delay, http, HttpResponse, passthrough } from "msw";
 
 import { getMenuPermissionMockApi } from "@/entities/user/api/mocks/getMenuPermissionMockApi";
+import type { Response } from "@/shared/lib/api";
 import { PAGE_ID_HEADER } from "@/shared/lib/axios";
 
 const MEMBER_LIST_MOCK = [
@@ -9,7 +10,17 @@ const MEMBER_LIST_MOCK = [
   { id: "1003", name: "박충전", status: "이용 중" },
 ] as const;
 
+const createMockResponse = <T>(data: T): Response<T> => ({
+  trace: "mock",
+  code: "0000",
+  message: "success",
+  data,
+});
+
 export const handlers = [
+  http.post("/api/backend/test/file/testcase_001", () => {
+    return passthrough();
+  }),
   http.get("/api/permissions", async ({ request }) => {
     if (request.headers.has(PAGE_ID_HEADER)) {
       return HttpResponse.json(
@@ -20,7 +31,7 @@ export const handlers = [
 
     const response = await getMenuPermissionMockApi();
 
-    return HttpResponse.json(response);
+    return HttpResponse.json(createMockResponse(response));
   }),
   http.get("/api/emsp/members", async ({ request }) => {
     await delay(300);
@@ -39,6 +50,6 @@ export const handlers = [
       return member.name.toLowerCase().includes(keyword);
     });
 
-    return HttpResponse.json(members);
+    return HttpResponse.json(createMockResponse(members));
   }),
 ];
