@@ -18,7 +18,7 @@ const createMockResponse = <T>(data: T): Response<T> => ({
 });
 
 export const handlers = [
-  http.post("/api/backend/test/file/testcase_001", () => {
+  http.post("http://localhost:3000/api/backend/test/file/testcase_001", () => {
     return passthrough();
   }),
   http.get("/api/permissions", async ({ request }) => {

@@ -1,6 +1,7 @@
 import { apiRequest, type Response } from "@/shared/lib/api";
 
-const EDITOR_IMAGE_UPLOAD_URL = "/backend/test/file/testcase_001";
+const EDITOR_IMAGE_UPLOAD_URL =
+  "http://localhost:3000/api/backend/test/file/testcase_001";
 
 type EditorImageUploadResponse =
   | string
