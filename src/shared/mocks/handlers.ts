@@ -2,7 +2,7 @@ import { delay, http, HttpResponse, passthrough } from "msw";
 
 import { getMenuPermissionMockApi } from "@/entities/user/api/mocks/getMenuPermissionMockApi";
 import type { Response } from "@/shared/lib/api";
-import { PAGE_ID_HEADER } from "@/shared/lib/axios";
+import { SCREEN_ID_HEADER } from "@/shared/lib/api";
 
 const MEMBER_LIST_MOCK = [
   { id: "1001", name: "김현대", status: "이용 중" },
@@ -22,9 +22,9 @@ export const handlers = [
     return passthrough();
   }),
   http.get("/api/permissions", async ({ request }) => {
-    if (request.headers.has(PAGE_ID_HEADER)) {
+    if (request.headers.has(SCREEN_ID_HEADER)) {
       return HttpResponse.json(
-        { message: `${PAGE_ID_HEADER} header is not allowed.` },
+        { message: `${SCREEN_ID_HEADER} header is not allowed.` },
         { status: 400 },
       );
     }
@@ -36,9 +36,9 @@ export const handlers = [
   http.get("/api/emsp/members", async ({ request }) => {
     await delay(300);
 
-    if (!request.headers.has(PAGE_ID_HEADER)) {
+    if (!request.headers.has(SCREEN_ID_HEADER)) {
       return HttpResponse.json(
-        { message: `${PAGE_ID_HEADER} header is required.` },
+        { message: `${SCREEN_ID_HEADER} header is required.` },
         { status: 400 },
       );
     }

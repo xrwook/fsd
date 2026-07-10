@@ -18,52 +18,47 @@ import {
   forceRefreshKeycloakToken,
   getKeycloakTokenExpiresInSeconds,
 } from "@/shared/lib/keycloak";
-import { ApiErrorModal } from "@/shared/ui/api-error-modal";
 
 const App = () => {
   return (
-    <>
-      <Box sx={{ display: "flex", minHeight: "100vh" }}>
-        <AppBar
-          position="fixed"
-          elevation={0}
-          sx={{
-            width: `calc(100% - ${APP_SIDEBAR_WIDTH}px)`,
-            ml: `${APP_SIDEBAR_WIDTH}px`,
-            borderBottom: 1,
-            borderColor: "divider",
-            bgcolor: "background.paper",
-            color: "text.primary",
-          }}
-        >
-          <Toolbar sx={{ gap: 2 }}>
-            <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 700 }}>
-              운영 관리
-            </Typography>
-            <AccessTokenStatus />
-          </Toolbar>
-        </AppBar>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          width: `calc(100% - ${APP_SIDEBAR_WIDTH}px)`,
+          ml: `${APP_SIDEBAR_WIDTH}px`,
+          borderBottom: 1,
+          borderColor: "divider",
+          bgcolor: "background.paper",
+          color: "text.primary",
+        }}
+      >
+        <Toolbar sx={{ gap: 2 }}>
+          <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 700 }}>
+            운영 관리
+          </Typography>
+          <AccessTokenStatus />
+        </Toolbar>
+      </AppBar>
 
-        <AppSidebar />
+      <AppSidebar />
 
-        <Box
-          component="main"
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            px: { xs: 2, sm: 3 },
-            py: { xs: 2, sm: 3 },
-            mt: 8,
-          }}
-        >
-          <Suspense fallback={null}>
-            <AppRouter />
-          </Suspense>
-        </Box>
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          px: { xs: 2, sm: 3 },
+          py: { xs: 2, sm: 3 },
+          mt: 8,
+        }}
+      >
+        <Suspense fallback={null}>
+          <AppRouter />
+        </Suspense>
       </Box>
-
-      <ApiErrorModal />
-    </>
+    </Box>
   );
 };
 
