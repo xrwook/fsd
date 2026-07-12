@@ -89,7 +89,7 @@ export const KeycloakProvider = ({ children }: Props) => {
 
     const handleTokenRefreshError = (error: unknown) => {
       setErrorState(error);
-      loginKeycloak().catch(() => {});
+      loginKeycloak().catch(setErrorState);
     };
 
     if (keycloak) {
@@ -98,7 +98,7 @@ export const KeycloakProvider = ({ children }: Props) => {
         setAuthenticatedState();
       };
       keycloak.onAuthLogout = () => {
-        loginKeycloak().catch(() => {});
+        loginKeycloak().catch(setErrorState);
       };
       keycloak.onAuthRefreshSuccess = () => {
         setState((currentState) => ({
@@ -108,7 +108,7 @@ export const KeycloakProvider = ({ children }: Props) => {
       };
       keycloak.onAuthRefreshError = () => {
         setErrorState(new Error("Keycloak token refresh failed."));
-        loginKeycloak().catch(() => {});
+        loginKeycloak().catch(setErrorState);
       };
       keycloak.onTokenExpired = () => {
         refreshKeycloakToken().catch(handleTokenRefreshError);

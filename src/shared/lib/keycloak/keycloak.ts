@@ -8,6 +8,8 @@ import { env } from "@/shared/config";
 let keycloakInstance: Keycloak | null = null;
 // React StrictMode나 provider 재마운트 상황에서도 init은 한 번만 수행합니다.
 let initKeycloak: Promise<boolean> | null = null;
+// 토큰 갱신 실패 등으로 여러 요청이 동시에 로그인 복구를 시도해도 redirect는 한 번만 시작합니다.
+let loginKeycloakRequest: Promise<void> | null = null;
 
 /**
  * env에 정의된 Keycloak 서버 접속 정보를 keycloak-js 설정 객체로 변환합니다.
@@ -92,7 +94,17 @@ export const initializeKeycloak = () => {
  * Keycloak 로그인 페이지로 이동합니다.
  */
 export const loginKeycloak = async () => {
-  await getKeycloakInstance()?.login();
+  const keycloak = getKeycloakInstance();
+
+  if (!keycloak) {
+    return;
+  }
+
+  loginKeycloakRequest ??= keycloak.login().finally(() => {
+    loginKeycloakRequest = null;
+  });
+
+  await loginKeycloakRequest;
 };
 
 /**
@@ -167,8 +179,7 @@ export const getKeycloakAccessToken = async () => {
   } catch (error) {
     // refresh 실패는 세션 만료로 보고 로컬 토큰을 비운 뒤 Keycloak 로그인으로 되돌립니다.
     keycloak.clearToken();
-    keycloak.login().catch(() => {});
+    await loginKeycloak();
     throw error;
   }
 };
-
