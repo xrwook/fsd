@@ -39,9 +39,12 @@ const MemberInfo = () => {
     setFilterParams(INITIAL_FILTER_PARAMS);
   };
 
-  const handleOpenDetail = (memberId: string) => {
-    goToDetail(memberId, filterParams);
-  };
+  const handleOpenDetail = useCallback(
+    (memberId: string) => {
+      goToDetail(memberId, filterParams);
+    },
+    [filterParams, goToDetail],
+  );
 
   return (
     <Stack spacing={3}>
