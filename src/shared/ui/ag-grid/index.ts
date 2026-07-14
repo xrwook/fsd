@@ -1,3 +1,8 @@
+export type {
+  AgGridOptions,
+  AgGridRowClickedHandler,
+  AgGridRowDoubleClickedHandler,
+} from "./config/defaultGridOptions";
 export {
   createAgGridOptions,
   DEFAULT_AG_GRID_LOADING_TEMPLATE,
@@ -17,5 +22,6 @@ export type {
   ICellRendererParams,
   Module,
   RowClickedEvent,
+  RowDoubleClickedEvent,
   ValueFormatterParams,
 } from "ag-grid-community";

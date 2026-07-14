@@ -1,11 +1,7 @@
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useMemo } from "react";
 
-import {
-  AgGrid,
-  type ColDef,
-  type GridOptions,
-} from "@/shared/ui/ag-grid";
+import { AgGrid, type AgGridOptions, type ColDef } from "@/shared/ui/ag-grid";
 
 import type { MemberSummary } from "../model/member";
 
@@ -41,16 +37,12 @@ export const MemberInfoTable = ({
     ],
     [],
   );
-  const gridProps = useMemo<GridOptions<MemberSummary>>(
+  const gridProps = useMemo<AgGridOptions<MemberSummary>>(
     () => ({
       columnDefs,
       getRowId: ({ data }) => data.id,
       loading: isPending,
-      onRowClicked: ({ data }) => {
-        if (!data) {
-          return;
-        }
-
+      onRowClicked: (data) => {
         onOpenDetail(data.id);
       },
       rowData: members,
@@ -79,10 +71,7 @@ export const MemberInfoTable = ({
 
   return (
     <Box>
-      <AgGrid<MemberSummary>
-        gridProps={gridProps}
-        height={360}
-      />
+      <AgGrid<MemberSummary> gridProps={gridProps} height={360} />
     </Box>
   );
 };

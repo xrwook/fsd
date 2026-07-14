@@ -11,6 +11,7 @@ import {
 import clsx from "clsx";
 import {
   type CSSProperties,
+  forwardRef,
   useEffect,
   useMemo,
   useRef,
@@ -25,9 +26,9 @@ const ROW_HEIGHT_BY_SIZE: Record<DataTableSize, number> = {
   large: 56,
 };
 
-export type DataTableProps<TData> = {
+export type DataTableProps = {
   className?: string;
-  gridProps?: GridOptions<TData>;
+  gridProps?: GridOptions;
   height?: CSSProperties["height"];
   modules?: Module[];
   rowBorder?: boolean;
@@ -38,7 +39,7 @@ export type DataTableProps<TData> = {
   width?: CSSProperties["width"];
 };
 
-export const DataTable = <TData,>({
+export const DataTable = forwardRef<HTMLDivElement, DataTableProps>(({
   className,
   gridProps,
   height = "100%",
@@ -49,9 +50,9 @@ export const DataTable = <TData,>({
   striped = false,
   vertical = false,
   width = "100%",
-}: DataTableProps<TData>) => {
+}, ref) => {
   const gridElementRef = useRef<HTMLDivElement>(null);
-  const gridApiRef = useRef<GridApi<TData> | null>(null);
+  const gridApiRef = useRef<GridApi | null>(null);
   const modulesKey = useMemo(
     () => modules?.map((module) => module.moduleName).join("|") ?? "",
     [modules],
@@ -83,7 +84,7 @@ export const DataTable = <TData,>({
       }),
     [rowBorder, size, vertical],
   );
-  const mergedGridProps = useMemo<GridOptions<TData>>(
+  const mergedGridProps = useMemo<GridOptions>(
     () => ({
       headerHeight: rowHeight,
       rowHeight,
@@ -110,7 +111,7 @@ export const DataTable = <TData,>({
       return;
     }
 
-    const api = createGrid<TData>(
+    const api = createGrid(
       gridElementRef.current,
       latestGridPropsRef.current,
       {
@@ -137,11 +138,12 @@ export const DataTable = <TData,>({
     const updatableGridProps = { ...mergedGridProps };
     delete updatableGridProps.getRowId;
 
-    api.updateGridOptions(updatableGridProps as ManagedGridOptions<TData>);
+    api.updateGridOptions(updatableGridProps as ManagedGridOptions);
   }, [mergedGridProps]);
 
   return (
     <div
+      ref={ref}
       className={clsx(
         "sharedDataTable",
         `sharedDataTable--${size}`,
@@ -157,4 +159,6 @@ export const DataTable = <TData,>({
       <div className="sharedDataTable__grid" ref={gridElementRef} />
     </div>
   );
-};
+});
+
+DataTable.displayName = "DataTable";
