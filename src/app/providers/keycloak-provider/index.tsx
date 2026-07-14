@@ -49,7 +49,6 @@ export const KeycloakProvider = ({ children }: Props) => {
       return;
     }
 
-    let isMounted = true;
     let keycloak: ReturnType<typeof getKeycloakInstance>;
 
     try {
@@ -65,10 +64,6 @@ export const KeycloakProvider = ({ children }: Props) => {
     }
 
     const setAuthenticatedState = () => {
-      if (!isMounted) {
-        return;
-      }
-
       setState({
         status: "authenticated",
         error: null,
@@ -76,10 +71,6 @@ export const KeycloakProvider = ({ children }: Props) => {
     };
 
     const setErrorState = (error: unknown) => {
-      if (!isMounted) {
-        return;
-      }
-
       setState((currentState) => ({
         ...currentState,
         status: "error",
@@ -127,8 +118,6 @@ export const KeycloakProvider = ({ children }: Props) => {
       .catch(setErrorState);
 
     return () => {
-      isMounted = false;
-
       if (keycloak) {
         keycloak.onAuthSuccess = undefined;
         keycloak.onAuthLogout = undefined;
