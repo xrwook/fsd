@@ -1,7 +1,16 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
-import { useMemo } from "react";
-
-import { AgGrid, type AgGridOptions, type ColDef } from "@/shared/ui/ag-grid";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+} from "@mui/material";
 
 import type { MemberSummary } from "../model/member";
 
@@ -20,36 +29,6 @@ export const MemberInfoTable = ({
   onOpenDetail,
   onRetry,
 }: Props) => {
-  const columnDefs = useMemo<ColDef<MemberSummary>[]>(
-    () => [
-      {
-        field: "name",
-        flex: 1.5,
-        headerName: "회원명",
-        minWidth: 180,
-      },
-      {
-        field: "status",
-        headerName: "상태",
-        maxWidth: 140,
-        minWidth: 120,
-      },
-    ],
-    [],
-  );
-  const gridProps = useMemo<AgGridOptions<MemberSummary>>(
-    () => ({
-      columnDefs,
-      getRowId: ({ data }) => data.id,
-      loading: isPending,
-      onRowClicked: (data) => {
-        onOpenDetail(data.id);
-      },
-      rowData: members,
-    }),
-    [columnDefs, isPending, members, onOpenDetail],
-  );
-
   if (isError) {
     return (
       <Stack
@@ -69,9 +48,59 @@ export const MemberInfoTable = ({
     );
   }
 
+  if (isPending) {
+    return (
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: "center",
+          borderBlock: 1,
+          borderColor: "divider",
+          py: 2,
+        }}
+      >
+        <CircularProgress size={18} />
+        <Typography>회원 정보를 조회하고 있습니다.</Typography>
+      </Stack>
+    );
+  }
+
   return (
     <Box>
-      <AgGrid<MemberSummary> gridProps={gridProps} height={360} />
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>회원명</TableCell>
+              <TableCell width={140}>상태</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {members.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={2}>
+                  <Typography color="text.secondary" sx={{ py: 2 }}>
+                    조회 결과가 없습니다.
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : (
+              members.map((member) => (
+                <TableRow
+                  hover
+                  key={member.id}
+                  onClick={() => onOpenDetail(member.id)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <TableCell>{member.name}</TableCell>
+                  <TableCell>{member.status}</TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };
