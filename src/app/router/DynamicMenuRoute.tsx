@@ -6,7 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 
-import { useMenuPermission } from "@/entities/user";
+import { useMainInfo } from "@/entities/user";
 import NotFoundPage from "@/pages/not-found";
 import { flattenTree } from "@/shared/lib/utils";
 
@@ -15,6 +15,7 @@ import { pageMap } from "./menu-page-map";
 import { PageRequestScope } from "./PageRequestScope";
 
 type TResolvedExtraPageRoute = TExtraPageRoute & {
+  pageId: string;
   path: string;
   parentPath: string;
 };
@@ -32,22 +33,22 @@ const resolveExtraPagePath = (parentPath: string, relativePath: string) => {
  */
 export const DynamicMenuRoute = () => {
   const location = useLocation();
-  const { permissionMenus, isPermissionInitialized, canAccessMenu } =
-    useMenuPermission();
+  const { menuPermissions, isMainInfoInitialized, canAccessMenu } =
+    useMainInfo();
 
   // 권한 메뉴를 아직 모르는 시점에는 404/403 판단을 보류합니다.
-  if (!isPermissionInitialized) {
+  if (!isMainInfoInitialized) {
     return null;
   }
 
   const flattenedPermissionMenus = flattenTree(
-    permissionMenus,
+    menuPermissions,
     (menu) => menu.children,
   );
 
   const routes: TResolvedExtraPageRoute[] = extraPageRoutes.flatMap((route) => {
     const parentMenu = flattenedPermissionMenus.find(
-      (menu) => menu.id === route.parentMenuId,
+      (menu) => menu.screenId === route.parentMenuId,
     );
 
     if (!parentMenu?.url) {
@@ -57,6 +58,7 @@ export const DynamicMenuRoute = () => {
     return [
       {
         ...route,
+        pageId: route.screenId,
         parentPath: parentMenu.url,
         path: resolveExtraPagePath(parentMenu.url, route.relativePath),
       },
@@ -69,22 +71,18 @@ export const DynamicMenuRoute = () => {
   if (extraRoute) {
     const { route } = extraRoute;
 
-    if (!canAccessMenu(route.parentMenuId, route.requiredPermission)) {
+    if (!canAccessMenu(route.parentMenuId, route.requirePermission)) {
       return <Navigate to="/403" replace />;
     }
 
-    const ExtraPage = route.page;
+    const ExtraPage = route.pages;
 
     return (
-      <PageRequestScope pageId={route.parentMenuId}>
+      <PageRequestScope pageId={route.pageId}>
         <Routes>
           <Route
             path={route.path}
-            element={
-              <ExtraPage
-                parentPath={route.parentPath}
-              />
-            }
+            element={<ExtraPage parentPath={route.parentPath} />}
           />
         </Routes>
       </PageRequestScope>
@@ -102,24 +100,21 @@ export const DynamicMenuRoute = () => {
     return <NotFoundPage />;
   }
 
-  // URL은 존재하지만 사용자의 read 권한이 없으면 접근을 차단합니다.
+  // URL은 존재하지만 사용자의 canRead 권한이 없으면 접근을 차단합니다.
   if (!canAccessMenu(currentUrl.id)) {
     return <Navigate to="/403" replace />;
   }
-  // menuId에 연결된 page component가 없으면 아직 프론트에 구현되지 않은 메뉴입니다.
-  const MenuPage = pageMap[currentUrl.id];
+  // url에 연결된 page component가 없으면 아직 프론트에 구현되지 않은 메뉴입니다.
+  const MenuPage = pageMap[currentUrl.url];
 
   if (!MenuPage) {
     return <NotFoundPage />;
   }
 
   return (
-    <PageRequestScope pageId={currentUrl.id}>
+    <PageRequestScope pageId={currentUrl.screenId}>
       <Routes>
-        <Route
-          path={currentUrl.url}
-          element={<MenuPage />}
-        />
+        <Route path={currentUrl.url} element={<MenuPage />} />
       </Routes>
     </PageRequestScope>
   );

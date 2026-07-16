@@ -29,25 +29,25 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import type { TMenuId, TMenuPermission } from "@/entities/user";
-import { MENU_ID, useMenuPermission } from "@/entities/user";
+import type { TMenuPermission } from "@/entities/user";
+import { useMainInfo } from "@/entities/user";
 import { flattenTree } from "@/shared/lib/utils";
 
 import { useSidebarFavorites } from "../model/useSidebarFavorites";
 
-const menuIconMap: Partial<Record<TMenuId, SvgIconComponent>> = {
-  [MENU_ID.DASHBOARD]: DashboardOutlined,
-  [MENU_ID.CPOS.CPOS]: BoltOutlined,
-  [MENU_ID.CPOS.STATION_ROOT]: AccountTreeOutlined,
-  [MENU_ID.CPOS.CHARGER_ROOT]: SettingsOutlined,
-  [MENU_ID.EMSP.EMSP]: GroupsOutlined,
-  [MENU_ID.EMSP.EMSP_MEMBER_MANAGEMENT]: GroupsOutlined,
-  [MENU_ID.EMSP.EMSP_CORPORATE_MEMBER]: BusinessOutlined,
-  [MENU_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
+const menuIconMap: Partial<Record<string, SvgIconComponent>> = {
+  DASHBOARD: DashboardOutlined,
+  CPOS: BoltOutlined,
+  "station-root": AccountTreeOutlined,
+  "charger-root": SettingsOutlined,
+  emsp: GroupsOutlined,
+  "emsp-member-management": GroupsOutlined,
+  "emsp-corporate-member": BusinessOutlined,
+  "platform-management": SettingsOutlined,
 };
 
 const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
-  const expandedIds = new Set<TMenuId>();
+  const expandedIds = new Set<string>();
 
   const visit = (items: TMenuPermission[]) => {
     for (const item of items) {
@@ -68,21 +68,21 @@ export const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const {
-    permissionName,
-    permissionDescription,
-    permissionMenus,
-    isPermissionInitialized,
+    userInfo,
+    partnerInfo,
+    menuPermissions,
+    isMainInfoInitialized,
     canAccessMenu,
     canAccessMenuGroup,
-  } = useMenuPermission();
+  } = useMainInfo();
   const { favoriteMenuIds, toggleFavorite } = useSidebarFavorites();
-  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<TMenuId>>(
+  const [expandedMenuIds, setExpandedMenuIds] = useState<Set<string>>(
     () => new Set(),
   );
 
   const initialExpandedMenuIds = useMemo(
-    () => collectExpandedMenuIds(permissionMenus),
-    [permissionMenus],
+    () => collectExpandedMenuIds(menuPermissions),
+    [menuPermissions],
   );
 
   useEffect(() => {
@@ -91,7 +91,7 @@ export const Sidebar = () => {
 
   const favoriteMenus = useMemo(() => {
     const menuById = new Map(
-      flattenTree(permissionMenus, (menu) => menu.children).map((menu) => [
+      flattenTree(menuPermissions, (menu) => menu.children).map((menu) => [
         menu.id,
         menu,
       ]),
@@ -106,9 +106,9 @@ export const Sidebar = () => {
 
       return [menu];
     });
-  }, [canAccessMenu, favoriteMenuIds, permissionMenus]);
+  }, [canAccessMenu, favoriteMenuIds, menuPermissions]);
 
-  const toggleExpanded = (menuId: TMenuId) => {
+  const toggleExpanded = (menuId: string) => {
     setExpandedMenuIds((current) => {
       const next = new Set(current);
 
@@ -264,7 +264,7 @@ export const Sidebar = () => {
           sx={{ mt: 0.25, fontSize: 12, color: "text.secondary" }}
           noWrap
         >
-          {permissionName ?? "메뉴 권한 확인 중"}
+          {partnerInfo?.partnerName ?? "사용자 정보 확인 중"}
         </Typography>
       </Box>
 
@@ -275,9 +275,9 @@ export const Sidebar = () => {
         aria-label="주요 메뉴"
         sx={{ flex: 1, overflowY: "auto", py: 1.25 }}
       >
-        {isPermissionInitialized ? (
+        {isMainInfoInitialized ? (
           <List disablePadding>
-            {permissionMenus.map((menu) => renderMenu(menu))}
+            {menuPermissions.map((menu) => renderMenu(menu))}
           </List>
         ) : (
           <Stack spacing={1} sx={{ px: 2 }}>
@@ -400,7 +400,7 @@ export const Sidebar = () => {
 
       <Box sx={{ px: 2.5, py: 1.75 }}>
         <Typography sx={{ fontSize: 11, color: "text.secondary" }}>
-          {permissionDescription ?? "적용된 메뉴 권한이 없습니다."}
+          {userInfo?.departmentName ?? "사용자 부서 정보가 없습니다."}
         </Typography>
       </Box>
     </Stack>

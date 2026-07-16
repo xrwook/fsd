@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { MENU_ID, useMenuPermission } from "@/entities/user";
+import { useMainInfo } from "@/entities/user";
 import { logoutKeycloak } from "@/shared/lib/keycloak";
 import PermissionGate from "@/shared/ui/permission-gate";
 import { WelcomeWidget } from "@/widgets/welcome";
@@ -41,7 +41,7 @@ const Home = () => {
     setSubmittedValues(values);
   };
 
-  const { canAccessMenu } = useMenuPermission();
+  const { canAccessMenu } = useMainInfo();
 
   return (
     <div className="space-y-4">
@@ -49,7 +49,7 @@ const Home = () => {
       <section className="mx-auto max-w-[320px] rounded-2xl border border-gray-200 p-4">
         <div className="flex gap-2">
           <PermissionGate
-            allow={canAccessMenu(MENU_ID.CPOS.STATION_MANAGEMENT, "write")}
+            allow={canAccessMenu("MNU_201", "canUpdate")}
             fallback={
               <button
                 type="button"
@@ -70,7 +70,7 @@ const Home = () => {
           </PermissionGate>
 
           <PermissionGate
-            allow={canAccessMenu(MENU_ID.DASHBOARD, "download")}
+            allow={canAccessMenu("DASHBOARD", "canDownload")}
             fallback={
               <button
                 type="button"

@@ -1,5 +1,5 @@
 export {
-  getMenuPermissionApi,
-  menuPermissionQueryFactory,
-  useGetMenuPermissionQuery,
-} from "./getMenuPermissionApi";
+  getMainInfoApi,
+  mainInfoQueryFactory,
+  useGetMainInfoQuery,
+} from "./getMainInfoApi";

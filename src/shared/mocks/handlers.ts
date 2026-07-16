@@ -1,6 +1,6 @@
 import { delay, http, HttpResponse, passthrough } from "msw";
 
-import { getMenuPermissionMockApi } from "@/entities/user/api/mocks/getMenuPermissionMockApi";
+import { getMainInfoMockApi } from "@/entities/user/api/mocks/getMainInfoMockApi";
 import type { Response } from "@/shared/lib/api";
 import { SCREEN_ID_HEADER } from "@/shared/lib/api";
 
@@ -29,7 +29,7 @@ export const handlers = [
       );
     }
 
-    const response = await getMenuPermissionMockApi();
+    const response = await getMainInfoMockApi();
 
     return HttpResponse.json(createMockResponse(response));
   }),

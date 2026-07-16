@@ -1,8 +1,6 @@
 import type { ComponentType, LazyExoticComponent } from "react";
 
-import type { TMenuId, TPermissionKey } from "@/entities/user";
-
-type RequiredPermission = Extract<TPermissionKey, "read" | "write">;
+import type { TMenuPermissionField } from "@/entities/user";
 
 export type TExtraPageProps = {
   parentPath: string;
@@ -10,9 +8,10 @@ export type TExtraPageProps = {
 
 export type TExtraPageRoute = {
   relativePath: string;
-  parentMenuId: TMenuId;
-  requiredPermission: RequiredPermission;
-  page: LazyExoticComponent<ComponentType<TExtraPageProps>>;
+  parentMenuId: string;
+  screenId: string;
+  requirePermission: TMenuPermissionField;
+  pages: LazyExoticComponent<ComponentType<TExtraPageProps>>;
 };
 
-export type TExtraPageRouteGroups = Partial<Record<TMenuId, TExtraPageRoute[]>>;
+export type TExtraPageRouteGroups = Record<string, TExtraPageRoute[]>;

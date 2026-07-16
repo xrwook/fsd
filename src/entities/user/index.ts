@@ -1,11 +1,2 @@
-export type {
-  TMenuId,
-  TMenuPermission,
-  TPermissionKey,
-} from "./lib/permission";
-export {
-  isMenuId,
-  MENU_ID,
-  PERMISSION_KEY,
-  useMenuPermission,
-} from "./lib/permission";
+export type { TMenuPermission, TMenuPermissionField } from "./lib/main-info";
+export { useMainInfo } from "./lib/main-info";

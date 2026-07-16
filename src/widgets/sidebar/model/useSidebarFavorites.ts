@@ -1,13 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 
-import type { TMenuId } from "@/entities/user";
-import { isMenuId } from "@/entities/user";
-
 const SIDEBAR_FAVORITES_STORAGE_KEY = "sidebar-favorite-menu-ids";
 
 const getStoredFavoriteMenuIds = () => {
   if (typeof window === "undefined") {
-    return new Set<TMenuId>();
+    return new Set<string>();
   }
 
   try {
@@ -16,12 +13,14 @@ const getStoredFavoriteMenuIds = () => {
     );
 
     if (!Array.isArray(storedValue)) {
-      return new Set<TMenuId>();
+      return new Set<string>();
     }
 
-    return new Set(storedValue.filter((value) => isMenuId(value)));
+    return new Set(
+      storedValue.filter((value): value is string => typeof value === "string"),
+    );
   } catch {
-    return new Set<TMenuId>();
+    return new Set<string>();
   }
 };
 
@@ -37,7 +36,7 @@ export const useSidebarFavorites = () => {
     );
   }, [favoriteMenuIds]);
 
-  const toggleFavorite = useCallback((menuId: TMenuId) => {
+  const toggleFavorite = useCallback((menuId: string) => {
     setFavoriteMenuIds((current) => {
       const next = new Set(current);
 

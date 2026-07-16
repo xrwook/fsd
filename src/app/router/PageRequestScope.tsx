@@ -1,10 +1,9 @@
 import { type PropsWithChildren, useLayoutEffect, useState } from "react";
 
-import type { TMenuId } from "@/entities/user";
 import { clearRequestScreenId, setRequestScreenId } from "@/shared/lib/api";
 
 type TPageRequestScopeProps = PropsWithChildren<{
-  pageId: TMenuId;
+  pageId: string;
 }>;
 
 /**
@@ -14,9 +13,7 @@ export const PageRequestScope = ({
   children,
   pageId,
 }: TPageRequestScopeProps) => {
-  const [registeredPageId, setRegisteredPageId] = useState<TMenuId | null>(
-    null,
-  );
+  const [registeredPageId, setRegisteredPageId] = useState<string | null>(null);
 
   // 자식 페이지의 API 요청보다 먼저 pageId가 등록되도록 layout effect에서 동기화합니다.
   useLayoutEffect(() => {

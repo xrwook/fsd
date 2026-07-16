@@ -1,4 +1,4 @@
-import { permissionMenuMock } from "../../lib/permission/utils";
+import { mainInfoMock } from "../../lib/main-info/utils";
 
 // 실제 API 호출 흐름을 유지하기 위한 mock 응답 지연 시간입니다.
 const MOCK_API_DELAY_MS = 500;
@@ -10,9 +10,9 @@ const delay = (ms: number) => {
   });
 };
 
-export const getMenuPermissionMockApi = async () => {
+export const getMainInfoMockApi = async () => {
   await delay(MOCK_API_DELAY_MS);
 
   // store에서 권한 데이터를 변경해도 원본 mock이 오염되지 않도록 복사본을 반환합니다.
-  return structuredClone(permissionMenuMock);
+  return structuredClone(mainInfoMock);
 };
