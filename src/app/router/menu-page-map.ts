@@ -1,23 +1,24 @@
-import type { ComponentType, LazyExoticComponent } from "react";
-import { lazy } from "react";
+import { type ComponentType, lazy, type LazyExoticComponent } from "react";
+
+import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 
 type TMenuPageProps = {};
 type TMenuPageComponent = LazyExoticComponent<ComponentType<TMenuPageProps>>;
-type TPageMap = Partial<Record<string, TMenuPageComponent>>;
+type TPageMap = Partial<Record<ScreenIdValues, TMenuPageComponent>>;
 
-// API가 내려주는 url을 기준으로 화면 컴포넌트를 연결합니다.
+// API가 내려주는 url은 라우팅에 사용하고, 화면 컴포넌트 연결은 screenId 기준으로 관리합니다.
 export const pageMap: TPageMap = {
-  "/": lazy(() => import("@/pages/home")),
-  "/emsp/member-management/members": lazy(
+  [SCREEN_ID.DASHBOARD]: lazy(() => import("@/pages/home")),
+  [SCREEN_ID.EMSP.MEMBER_INFO]: lazy(
     () => import("@/pages/eMSP/member-management/member-info"),
   ),
-  "/emsp/member-management/member-payment": lazy(
+  [SCREEN_ID.EMSP.MEMBER_PAYMENT]: lazy(
     () => import("@/pages/eMSP/member-management/member-payment"),
   ),
-  "/emsp/corporate-member/corporate-join": lazy(
+  [SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT]: lazy(
     () => import("@/pages/eMSP/corporate-member/corporate-join"),
   ),
-  "/emsp/corporate-member/payment-settlement": lazy(
+  [SCREEN_ID.EMSP.CORPORATE_PAYMENT_SETTLEMENT]: lazy(
     () => import("@/pages/eMSP/corporate-member/payment-settlement"),
   ),
 };

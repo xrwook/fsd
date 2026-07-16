@@ -1,33 +1,35 @@
 import { type PropsWithChildren, useLayoutEffect, useState } from "react";
 
+import type { ScreenIdValues } from "@/shared/config";
 import { clearRequestScreenId, setRequestScreenId } from "@/shared/lib/api";
 
 type TPageRequestScopeProps = PropsWithChildren<{
-  pageId: string;
+  screenId: ScreenIdValues;
 }>;
 
 /**
- * 현재 화면의 pageId를 공통 요청 context에 등록해 Axios 요청 헤더에 사용되도록 합니다.
+ * 현재 화면의 screenId를 공통 요청 context에 등록해 Axios 요청 헤더에 사용되도록 합니다.
  */
 export const PageRequestScope = ({
   children,
-  pageId,
+  screenId,
 }: TPageRequestScopeProps) => {
-  const [registeredPageId, setRegisteredPageId] = useState<string | null>(null);
+  const [registeredScreenId, setRegisteredScreenId] =
+    useState<ScreenIdValues | null>(null);
 
-  // 자식 페이지의 API 요청보다 먼저 pageId가 등록되도록 layout effect에서 동기화합니다.
+  // 자식 페이지의 API 요청보다 먼저 screenId가 등록되도록 layout effect에서 동기화합니다.
   useLayoutEffect(() => {
-    setRequestScreenId(pageId);
-    setRegisteredPageId(pageId);
+    setRequestScreenId(screenId);
+    setRegisteredScreenId(screenId);
 
     return () => {
-      // 다른 화면으로 이동할 때 이전 pageId가 다음 요청에 사용되지 않도록 제거합니다.
-      clearRequestScreenId(pageId);
+      // 다른 화면으로 이동할 때 이전 screenId가 다음 요청에 사용되지 않도록 제거합니다.
+      clearRequestScreenId(screenId);
     };
-  }, [pageId]);
+  }, [screenId]);
 
-  // request context에 pageId가 등록될 때까지 자식 렌더링을 보류해 초기 API 요청의 헤더 누락을 방지합니다.
-  if (registeredPageId !== pageId) {
+  // request context에 screenId가 등록될 때까지 자식 렌더링을 보류해 초기 API 요청의 헤더 누락을 방지합니다.
+  if (registeredScreenId !== screenId) {
     return null;
   }
 

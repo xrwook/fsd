@@ -1,6 +1,8 @@
+import type { ScreenIdValues } from "@/shared/config";
+
 export type MenuData = {
   menuId: number;
-  screenId: string;
+  screenId: ScreenIdValues;
   name: string;
   parentId: number | null;
   url: string;

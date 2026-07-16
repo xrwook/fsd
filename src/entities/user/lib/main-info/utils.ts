@@ -1,3 +1,4 @@
+import { SCREEN_ID } from "@/shared/config";
 import { flattenTree } from "@/shared/lib/utils";
 
 import type { TMenuPermission, TMenuPermissionField } from "./models";
@@ -35,7 +36,7 @@ export const createMenuPermissions = (
 const menuTreeMock: MenuData[] = [
   {
     menuId: 1,
-    screenId: "DASHBOARD",
+    screenId: SCREEN_ID.DASHBOARD,
     parentId: null,
     name: "Dashboard",
     url: "/",
@@ -50,7 +51,7 @@ const menuTreeMock: MenuData[] = [
   },
   {
     menuId: 2,
-    screenId: "CPOS",
+    screenId: SCREEN_ID.CPOS.CPOS,
     parentId: null,
     name: "CPOS",
     url: "",
@@ -64,7 +65,7 @@ const menuTreeMock: MenuData[] = [
     children: [
       {
         menuId: 3,
-        screenId: "station-root",
+        screenId: SCREEN_ID.CPOS.STATION_ROOT,
         parentId: 2,
         name: "충전소 관리",
         url: "",
@@ -78,7 +79,7 @@ const menuTreeMock: MenuData[] = [
         children: [
           {
             menuId: 4,
-            screenId: "MNU_201",
+            screenId: SCREEN_ID.CPOS.STATION_MANAGEMENT,
             parentId: 3,
             name: "충전소 관리",
             url: "",
@@ -93,7 +94,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 5,
-            screenId: "station-fee-management",
+            screenId: SCREEN_ID.CPOS.STATION_FEE_MANAGEMENT,
             parentId: 3,
             name: "충전소 요금 관리",
             url: "",
@@ -108,7 +109,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 6,
-            screenId: "power-bank-management",
+            screenId: SCREEN_ID.CPOS.POWER_BANK_MANAGEMENT,
             parentId: 3,
             name: "파워 뱅크 관리",
             url: "",
@@ -125,7 +126,7 @@ const menuTreeMock: MenuData[] = [
       },
       {
         menuId: 7,
-        screenId: "charger-root",
+        screenId: SCREEN_ID.CPOS.CHARGER_ROOT,
         parentId: 2,
         name: "충전기 관리",
         url: "",
@@ -139,7 +140,7 @@ const menuTreeMock: MenuData[] = [
         children: [
           {
             menuId: 8,
-            screenId: "m2m-modem-management",
+            screenId: SCREEN_ID.CPOS.M2M_MODEM_MANAGEMENT,
             parentId: 7,
             name: "M2M모뎀 관리",
             url: "",
@@ -154,7 +155,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 9,
-            screenId: "MNU_203",
+            screenId: SCREEN_ID.CPOS.CHARGER_STATUS,
             parentId: 7,
             name: "충전기 상태",
             url: "/cpos/charger-status",
@@ -169,7 +170,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 10,
-            screenId: "charger-control",
+            screenId: SCREEN_ID.CPOS.CHARGER_CONTROL,
             parentId: 7,
             name: "충전기 제어",
             url: "",
@@ -184,7 +185,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 11,
-            screenId: "charger-error-management",
+            screenId: SCREEN_ID.CPOS.CHARGER_ERROR_MANAGEMENT,
             parentId: 7,
             name: "충전기 고장 관리",
             url: "",
@@ -203,7 +204,7 @@ const menuTreeMock: MenuData[] = [
   },
   {
     menuId: 12,
-    screenId: "clearing-house",
+    screenId: SCREEN_ID.CPOS.CLEARING_HOUSE,
     parentId: null,
     name: "Clearing House",
     url: "",
@@ -218,7 +219,7 @@ const menuTreeMock: MenuData[] = [
   },
   {
     menuId: 13,
-    screenId: "emsp",
+    screenId: SCREEN_ID.EMSP.EMSP,
     parentId: null,
     name: "eMSP",
     url: "",
@@ -232,7 +233,7 @@ const menuTreeMock: MenuData[] = [
     children: [
       {
         menuId: 14,
-        screenId: "emsp-member-management",
+        screenId: SCREEN_ID.EMSP.MEMBER_MANAGEMENT,
         parentId: 13,
         name: "회원관리",
         url: "",
@@ -246,7 +247,7 @@ const menuTreeMock: MenuData[] = [
         children: [
           {
             menuId: 15,
-            screenId: "emsp-member-info",
+            screenId: SCREEN_ID.EMSP.MEMBER_INFO,
             parentId: 14,
             name: "회원정보",
             url: "/emsp/member-management/members",
@@ -261,7 +262,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 16,
-            screenId: "emsp-member-payment",
+            screenId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
             parentId: 14,
             name: "결제",
             url: "/emsp/member-management/member-payment",
@@ -278,7 +279,7 @@ const menuTreeMock: MenuData[] = [
       },
       {
         menuId: 17,
-        screenId: "emsp-corporate-member",
+        screenId: SCREEN_ID.EMSP.CORPORATE_MEMBER,
         parentId: 13,
         name: "법인회원",
         url: "",
@@ -292,7 +293,7 @@ const menuTreeMock: MenuData[] = [
         children: [
           {
             menuId: 18,
-            screenId: "emsp-corporate-join-management",
+            screenId: SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT,
             parentId: 17,
             name: "가입관리",
             url: "/emsp/corporate-member/corporate-join",
@@ -307,7 +308,7 @@ const menuTreeMock: MenuData[] = [
           },
           {
             menuId: 19,
-            screenId: "emsp-corporate-payment-settlement",
+            screenId: SCREEN_ID.EMSP.CORPORATE_PAYMENT_SETTLEMENT,
             parentId: 17,
             name: "법인 결제/정산",
             url: "/emsp/corporate-member/payment-settlement",
@@ -326,7 +327,7 @@ const menuTreeMock: MenuData[] = [
   },
   {
     menuId: 20,
-    screenId: "platform-management",
+    screenId: SCREEN_ID.PLATFORM_MANAGEMENT,
     parentId: null,
     name: "Platform Mgt.",
     url: "",

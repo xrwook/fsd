@@ -15,7 +15,6 @@ import { pageMap } from "./menu-page-map";
 import { PageRequestScope } from "./PageRequestScope";
 
 type TResolvedExtraPageRoute = TExtraPageRoute & {
-  pageId: string;
   path: string;
   parentPath: string;
 };
@@ -58,7 +57,6 @@ export const DynamicMenuRoute = () => {
     return [
       {
         ...route,
-        pageId: route.screenId,
         parentPath: parentMenu.url,
         path: resolveExtraPagePath(parentMenu.url, route.relativePath),
       },
@@ -78,7 +76,7 @@ export const DynamicMenuRoute = () => {
     const ExtraPage = route.pages;
 
     return (
-      <PageRequestScope pageId={route.pageId}>
+      <PageRequestScope screenId={route.screenId}>
         <Routes>
           <Route
             path={route.path}
@@ -90,31 +88,31 @@ export const DynamicMenuRoute = () => {
   }
 
   // 현재 URL과 API 메뉴의 url을 직접 비교해서 어떤 메뉴 화면인지 찾습니다.
-  const currentUrl =
+  const currentMenu =
     flattenedPermissionMenus.find((menu) => {
       return menu.url === location.pathname;
     }) ?? null;
 
   // API 메뉴에 없는 URL이면 프론트가 렌더링할 메뉴 화면도 없습니다.
-  if (!currentUrl?.url) {
+  if (!currentMenu?.url) {
     return <NotFoundPage />;
   }
 
   // URL은 존재하지만 사용자의 canRead 권한이 없으면 접근을 차단합니다.
-  if (!canAccessMenu(currentUrl.id)) {
+  if (!canAccessMenu(currentMenu.id)) {
     return <Navigate to="/403" replace />;
   }
-  // url에 연결된 page component가 없으면 아직 프론트에 구현되지 않은 메뉴입니다.
-  const MenuPage = pageMap[currentUrl.url];
+  // screenId에 연결된 page component가 없으면 아직 프론트에 구현되지 않은 메뉴입니다.
+  const MenuPage = pageMap[currentMenu.screenId];
 
   if (!MenuPage) {
     return <NotFoundPage />;
   }
 
   return (
-    <PageRequestScope pageId={currentUrl.screenId}>
+    <PageRequestScope screenId={currentMenu.screenId}>
       <Routes>
-        <Route path={currentUrl.url} element={<MenuPage />} />
+        <Route path={currentMenu.url} element={<MenuPage />} />
       </Routes>
     </PageRequestScope>
   );

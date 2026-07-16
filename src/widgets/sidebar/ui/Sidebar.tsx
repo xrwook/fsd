@@ -31,19 +31,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import type { TMenuPermission } from "@/entities/user";
 import { useMainInfo } from "@/entities/user";
+import { SCREEN_ID } from "@/shared/config";
 import { flattenTree } from "@/shared/lib/utils";
 
 import { useSidebarFavorites } from "../model/useSidebarFavorites";
 
 const menuIconMap: Partial<Record<string, SvgIconComponent>> = {
-  DASHBOARD: DashboardOutlined,
-  CPOS: BoltOutlined,
-  "station-root": AccountTreeOutlined,
-  "charger-root": SettingsOutlined,
-  emsp: GroupsOutlined,
-  "emsp-member-management": GroupsOutlined,
-  "emsp-corporate-member": BusinessOutlined,
-  "platform-management": SettingsOutlined,
+  [SCREEN_ID.DASHBOARD]: DashboardOutlined,
+  [SCREEN_ID.CPOS.CPOS]: BoltOutlined,
+  [SCREEN_ID.CPOS.STATION_ROOT]: AccountTreeOutlined,
+  [SCREEN_ID.CPOS.CHARGER_ROOT]: SettingsOutlined,
+  [SCREEN_ID.EMSP.EMSP]: GroupsOutlined,
+  [SCREEN_ID.EMSP.MEMBER_MANAGEMENT]: GroupsOutlined,
+  [SCREEN_ID.EMSP.CORPORATE_MEMBER]: BusinessOutlined,
+  [SCREEN_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
 };
 
 const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
@@ -90,7 +91,7 @@ export const Sidebar = () => {
   }, [initialExpandedMenuIds]);
 
   const favoriteMenus = useMemo(() => {
-    const menuById = new Map(
+    const menuById = new Map<string, TMenuPermission>(
       flattenTree(menuPermissions, (menu) => menu.children).map((menu) => [
         menu.id,
         menu,
