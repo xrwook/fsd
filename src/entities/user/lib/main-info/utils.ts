@@ -1,4 +1,4 @@
-import { SCREEN_ID } from "@/shared/config";
+import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 import { flattenTree } from "@/shared/lib/utils";
 
 import type { TMenuPermission, TMenuPermissionField } from "./models";
@@ -10,11 +10,13 @@ export const createMenuPermissions = (
   depth = 1,
 ): TMenuPermission[] => {
   return menus.map((menu) => {
-    const id = menu.screenId;
-    const children = createMenuPermissions(menu.children, id, depth + 1);
+    const children = createMenuPermissions(
+      menu.children,
+      menu.screenId,
+      depth + 1,
+    );
 
     return {
-      id,
       menuId: menu.menuId,
       screenId: menu.screenId,
       parentId,
@@ -363,11 +365,11 @@ export const mainInfoMock: MainInfoData = {
 
 export const findMenuPermission = (
   menus: TMenuPermission[],
-  menuId: string,
+  screenId: ScreenIdValues,
 ): TMenuPermission | null => {
   return (
     flattenTree(menus, (menu) => menu.children).find(
-      (menu) => menu.id === menuId,
+      (menu) => menu.screenId === screenId,
     ) ?? null
   );
 };
@@ -375,10 +377,10 @@ export const findMenuPermission = (
 // 단일 메뉴는 API가 내려준 canRead/canCreate/... 값을 기준으로 허용 여부를 판단합니다.
 export const hasMenuPermission = (
   menus: TMenuPermission[],
-  menuId: string,
+  screenId: ScreenIdValues,
   permissionField: TMenuPermissionField = "canRead",
 ) => {
-  const menu = findMenuPermission(menus, menuId);
+  const menu = findMenuPermission(menus, screenId);
 
   if (!menu) {
     return false;
@@ -391,10 +393,10 @@ export const hasMenuPermission = (
 // #TODO
 export const hasChildrenMenuPermission = (
   menus: TMenuPermission[],
-  menuId: string,
+  screenId: ScreenIdValues,
   permissionField: TMenuPermissionField = "canRead",
 ) => {
-  const menu = findMenuPermission(menus, menuId);
+  const menu = findMenuPermission(menus, screenId);
 
   if (!menu) {
     return false;

@@ -11,7 +11,7 @@ export type TMenuPermissionField =
  * API 메뉴 데이터를 화면 권한 체크와 사이드바 렌더링에 맞게 가공한 타입입니다.
  */
 export type TMenuPermission = {
-  id: MenuData["screenId"];
+  // id: MenuData["screenId"];
   menuId: MenuData["menuId"];
   screenId: MenuData["screenId"];
   parentId: MenuData["screenId"] | null;

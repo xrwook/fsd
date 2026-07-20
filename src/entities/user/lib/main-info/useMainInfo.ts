@@ -8,6 +8,7 @@ import {
   hasChildrenMenuPermission,
   hasMenuPermission,
 } from "./utils";
+import type { ScreenIdValues } from "@/shared/config";
 
 type TMainMenu = {
   name: string;
@@ -84,47 +85,50 @@ export const useMainInfo = () => {
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
-    (menuId: string, permissionField: TMenuPermissionField = "canRead") => {
+    (
+      screenId: ScreenIdValues,
+      permissionField: TMenuPermissionField = "canRead",
+    ) => {
       if (!isFetched) {
         return false;
       }
 
-      return hasMenuPermission(menuPermissions, menuId, permissionField);
+      return hasMenuPermission(menuPermissions, screenId, permissionField);
     },
     [isFetched, menuPermissions],
   );
 
   const canCreate = useCallback(
-    (menuId: string) => canAccessMenu(menuId, "canCreate"),
+    (screenId: ScreenIdValues) => canAccessMenu(screenId, "canCreate"),
     [canAccessMenu],
   );
 
   const canUpdate = useCallback(
-    (menuId: string) => canAccessMenu(menuId, "canUpdate"),
+    (screenId: ScreenIdValues) => canAccessMenu(screenId, "canUpdate"),
     [canAccessMenu],
   );
 
   const canDelete = useCallback(
-    (menuId: string) => canAccessMenu(menuId, "canDelete"),
+    (screenId: ScreenIdValues) => canAccessMenu(screenId, "canDelete"),
     [canAccessMenu],
   );
 
   const canDownload = useCallback(
-    (menuId: string) => canAccessMenu(menuId, "canDownload"),
+    (screenId: ScreenIdValues) => canAccessMenu(screenId, "canDownload"),
     [canAccessMenu],
   );
 
   // 사이드바/상위 폴더처럼 하위 메뉴 권한까지 포함해서 판단할 때 사용합니다.
   // #TODO
   const canAccessMenuGroup = useCallback(
-    (menuId: string, permissionField: TMenuPermissionField = "canRead") => {
+    (screenId: ScreenIdValues, permissionField: TMenuPermissionField = "canRead") => {
       if (!isFetched) {
         return false;
       }
 
       return hasChildrenMenuPermission(
         menuPermissions,
-        menuId,
+        screenId,
         permissionField,
       );
     },

@@ -125,7 +125,7 @@ export const DynamicMenuRoute = () => {
     }) ?? null;
 
   // API 메뉴에 없는 URL이면 프론트가 렌더링할 메뉴 화면도 없습니다.
-  if (!currentMenu?.url || !currentMenu.id) {
+  if (!currentMenu?.url || !currentMenu.screenId) {
     return <NotFoundPage />;
   }
 

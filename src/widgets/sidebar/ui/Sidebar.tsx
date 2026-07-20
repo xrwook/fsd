@@ -53,7 +53,7 @@ const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
   const visit = (items: TMenuPermission[]) => {
     for (const item of items) {
       if (item.expanded) {
-        expandedIds.add(item.id);
+        expandedIds.add(item.screenId);
       }
 
       visit(item.children ?? []);
@@ -93,7 +93,7 @@ export const Sidebar = () => {
   const favoriteMenus = useMemo(() => {
     const menuById = new Map<string, TMenuPermission>(
       flattenTree(menuPermissions, (menu) => menu.children).map((menu) => [
-        menu.id,
+        menu.screenId,
         menu,
       ]),
     );
@@ -101,7 +101,7 @@ export const Sidebar = () => {
     return [...favoriteMenuIds].flatMap((menuId) => {
       const menu = menuById.get(menuId);
 
-      if (!menu || !menu.url || !canAccessMenu(menu.id)) {
+      if (!menu || !menu.url || !canAccessMenu(menu.screenId)) {
         return [];
       }
 
@@ -126,27 +126,27 @@ export const Sidebar = () => {
   const renderMenu = (menu: TMenuPermission) => {
     const children = (menu.children ?? []).filter((child) =>
       child.children?.length
-        ? canAccessMenuGroup(child.id)
-        : canAccessMenu(child.id),
+        ? canAccessMenuGroup(child.screenId)
+        : canAccessMenu(child.screenId),
     );
     const hasChildren = children.length > 0;
     const canShowMenu = hasChildren
-      ? canAccessMenuGroup(menu.id)
-      : canAccessMenu(menu.id);
+      ? canAccessMenuGroup(menu.screenId)
+      : canAccessMenu(menu.screenId);
 
     if (!canShowMenu) {
       return null;
     }
 
     const route = menu.url ?? null;
-    const isExpanded = expandedMenuIds.has(menu.id);
+    const isExpanded = expandedMenuIds.has(menu.screenId);
     const isSelected = route ? location.pathname === route : false;
-    const isFavorite = favoriteMenuIds.has(menu.id);
-    const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
+    const isFavorite = favoriteMenuIds.has(menu.screenId);
+    const MenuIcon = menuIconMap[menu.screenId] ?? FolderOutlined;
 
     const handleClick = () => {
       if (hasChildren) {
-        toggleExpanded(menu.id);
+        toggleExpanded(menu.screenId);
         return;
       }
 
@@ -156,7 +156,7 @@ export const Sidebar = () => {
     };
 
     return (
-      <Box component="li" key={menu.id} sx={{ listStyle: "none" }}>
+      <Box component="li" key={menu.screenId} sx={{ listStyle: "none" }}>
         <Box
           sx={{
             display: "flex",
@@ -221,7 +221,7 @@ export const Sidebar = () => {
                     ? `${menu.name} 즐겨찾기 해제`
                     : `${menu.name} 즐겨찾기 추가`
                 }
-                onClick={() => toggleFavorite(menu.id)}
+                onClick={() => toggleFavorite(menu.screenId)}
                 size="small"
                 sx={{
                   width: 32,
@@ -324,13 +324,13 @@ export const Sidebar = () => {
                 return null;
               }
 
-              const MenuIcon = menuIconMap[menu.id] ?? FolderOutlined;
+              const MenuIcon = menuIconMap[menu.screenId] ?? FolderOutlined;
               const isSelected = location.pathname === route;
 
               return (
                 <Box
                   component="li"
-                  key={menu.id}
+                  key={menu.screenId}
                   sx={{
                     display: "flex",
                     alignItems: "center",
@@ -371,7 +371,7 @@ export const Sidebar = () => {
                   <Tooltip title="즐겨찾기 해제">
                     <IconButton
                       aria-label={`${menu.name} 즐겨찾기 해제`}
-                      onClick={() => toggleFavorite(menu.id)}
+                      onClick={() => toggleFavorite(menu.screenId)}
                       size="small"
                       sx={{
                         width: 32,
