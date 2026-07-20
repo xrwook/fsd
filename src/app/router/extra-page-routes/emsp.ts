@@ -10,7 +10,7 @@ export const emspExtraPageRoutes = {
   [SCREEN_ID.EMSP.MEMBER_INFO]: [
     {
       relativePath: "/:memberId",
-      parentMenuId: SCREEN_ID.EMSP.MEMBER_INFO,
+      parentScreenId: SCREEN_ID.EMSP.MEMBER_INFO,
       screenId: SCREEN_ID.EMSP.MEMBER_INFO_DETAIL,
       requirePermission: "canRead",
       pages: lazy(
@@ -21,7 +21,7 @@ export const emspExtraPageRoutes = {
   [SCREEN_ID.EMSP.MEMBER_PAYMENT]: [
     {
       relativePath: "/:memberId",
-      parentMenuId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
+      parentScreenId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
       screenId: SCREEN_ID.EMSP.MEMBER_PAYMENT_DETAIL,
       requirePermission: "canRead",
       pages: lazy(

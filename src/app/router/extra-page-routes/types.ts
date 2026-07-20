@@ -5,11 +5,12 @@ import type { ScreenIdValues } from "@/shared/config";
 
 export type TExtraPageProps = {
   parentPath: string;
+  parentScreenId: ScreenIdValues;
 };
 
 export type TExtraPageRoute = {
   relativePath: string;
-  parentMenuId: ScreenIdValues;
+  parentScreenId: ScreenIdValues;
   screenId: ScreenIdValues;
   requirePermission: TMenuPermissionField;
   pages: LazyExoticComponent<ComponentType<TExtraPageProps>>;

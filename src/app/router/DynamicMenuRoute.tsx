@@ -47,7 +47,7 @@ export const DynamicMenuRoute = () => {
 
   const routes: TResolvedExtraPageRoute[] = extraPageRoutes.flatMap((route) => {
     const parentMenu = flattenedPermissionMenus.find(
-      (menu) => menu.screenId === route.parentMenuId,
+      (menu) => menu.screenId === route.parentScreenId,
     );
 
     if (!parentMenu?.url) {
@@ -69,7 +69,7 @@ export const DynamicMenuRoute = () => {
   if (extraRoute) {
     const { route } = extraRoute;
 
-    if (!canAccessMenu(route.parentMenuId, route.requirePermission)) {
+    if (!canAccessMenu(route.parentScreenId, route.requirePermission)) {
       return <Navigate to="/403" replace />;
     }
 
@@ -80,7 +80,12 @@ export const DynamicMenuRoute = () => {
         <Routes>
           <Route
             path={route.path}
-            element={<ExtraPage parentPath={route.parentPath} />}
+            element={
+              <ExtraPage
+                parentPath={route.parentPath}
+                parentScreenId={route.parentScreenId}
+              />
+            }
           />
         </Routes>
       </PageRequestScope>
@@ -112,7 +117,10 @@ export const DynamicMenuRoute = () => {
   return (
     <PageRequestScope screenId={currentMenu.screenId}>
       <Routes>
-        <Route path={currentMenu.url} element={<MenuPage />} />
+        <Route
+          path={currentMenu.url}
+          element={<MenuPage screenId={currentMenu.screenId} />}
+        />
       </Routes>
     </PageRequestScope>
   );

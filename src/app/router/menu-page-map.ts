@@ -2,7 +2,7 @@ import { type ComponentType, lazy, type LazyExoticComponent } from "react";
 
 import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 
-type TMenuPageProps = {};
+type TMenuPageProps = { screenId: ScreenIdValues };
 type TMenuPageComponent = LazyExoticComponent<ComponentType<TMenuPageProps>>;
 type TPageMap = Partial<Record<ScreenIdValues, TMenuPageComponent>>;
 
