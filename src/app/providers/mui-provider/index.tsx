@@ -1,5 +1,5 @@
 import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
-import type { ReactNode } from "react";
+import type { PropsWithChildren } from "react";
 
 const theme = createTheme({
   palette: {
@@ -35,9 +35,7 @@ const theme = createTheme({
   },
 });
 
-interface Props {
-  children: ReactNode;
-}
+type Props = PropsWithChildren;
 
 export const MuiProvider = ({ children }: Props) => {
   return (

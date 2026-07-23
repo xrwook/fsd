@@ -13,6 +13,7 @@ import { Duration } from "luxon";
 import { Suspense, useEffect, useState } from "react";
 
 import { APP_SIDEBAR_WIDTH, AppSidebar } from "@/app/layouts/app-sidebar";
+import { NavigationInitializer } from "@/app/providers/navigation-provider";
 import { AppRouter } from "@/app/router";
 import {
   forceRefreshKeycloakToken,
@@ -22,6 +23,8 @@ import {
 const App = () => {
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <NavigationInitializer />
+
       <AppBar
         position="fixed"
         elevation={0}

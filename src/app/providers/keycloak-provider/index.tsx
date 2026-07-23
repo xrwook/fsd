@@ -1,5 +1,5 @@
 import { Box, CircularProgress, Stack, Typography } from "@mui/material";
-import type { ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 import { env } from "@/shared/config";
@@ -11,9 +11,7 @@ import {
   refreshKeycloakToken,
 } from "@/shared/lib/keycloak";
 
-interface Props {
-  children: ReactNode;
-}
+type Props = PropsWithChildren;
 
 type KeycloakProviderState = {
   status: KeycloakAuthStatus;
