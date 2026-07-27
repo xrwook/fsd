@@ -1,6 +1,7 @@
 import { Stack, Typography } from "@mui/material";
 import { useCallback, useState } from "react";
 
+import { navigateToScreen } from "@/shared/lib/navigation";
 import { useListNavigation } from "@/shared/lib/router";
 
 import {
@@ -11,7 +12,6 @@ import { toApiParams } from "../lib/filter";
 import type { MemberFilterState } from "../model/member";
 import { MemberInfoFilter } from "./MemberInfoFilter";
 import { MemberInfoTable } from "./MemberInfoTable";
-import { navigateToScreen } from "@/shared/lib/navigation";
 
 type FilterQuery = MemberListRequest["query"];
 
@@ -59,7 +59,6 @@ const MemberInfo = () => {
       />
       <button
         onClick={() => {
-          console.log("asdasd");
           navigateToScreen("emsp-member-info-detail", { pathParams: { id: "123" } });
         }}
       >

@@ -112,7 +112,7 @@ export const NavigationInitializer = () => {
     initNavigation(navigate);
 
     return () => {
-      clearNavigation(navigate);
+      clearNavigation();
     };
   }, [navigate]);
 
@@ -125,7 +125,7 @@ export const NavigationInitializer = () => {
     initScreenRouteResolver(resolveScreenPath);
 
     return () => {
-      clearScreenRouteResolver(resolveScreenPath);
+      clearScreenRouteResolver();
     };
   }, [isMainInfoInitialized, resolveScreenPath]);
 
