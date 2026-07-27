@@ -9,7 +9,7 @@ import type { TExtraPageRouteGroups } from "./types";
 export const emspExtraPageRoutes = {
   [SCREEN_ID.EMSP.MEMBER_INFO]: [
     {
-      relativePath: "/:memberId",
+      relativePath: "/:id",
       parentScreenId: SCREEN_ID.EMSP.MEMBER_INFO,
       screenId: SCREEN_ID.EMSP.MEMBER_INFO_DETAIL,
       requirePermission: "canRead",
@@ -20,7 +20,7 @@ export const emspExtraPageRoutes = {
   ],
   [SCREEN_ID.EMSP.MEMBER_PAYMENT]: [
     {
-      relativePath: "/:memberId",
+      relativePath: "/:id",
       parentScreenId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
       screenId: SCREEN_ID.EMSP.MEMBER_PAYMENT_DETAIL,
       requirePermission: "canRead",

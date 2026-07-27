@@ -12,11 +12,9 @@ export {
   initNavigation,
   initScreenRouteResolver,
   isExternalUrl,
-  isNavigationInitialized,
   navigateTo,
   navigateToScreen,
   openExternalUrl,
   replaceTo,
   replaceToScreen,
-  resolveScreenPath,
 } from "./navigation";

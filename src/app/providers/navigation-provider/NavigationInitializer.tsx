@@ -10,7 +10,6 @@ import {
   clearScreenRouteResolver,
   initNavigation,
   initScreenRouteResolver,
-  isNavigationInitialized,
   type ScreenRoutePathParams,
 } from "@/shared/lib/navigation";
 import { flattenTree } from "@/shared/lib/utils";
@@ -110,10 +109,6 @@ export const NavigationInitializer = () => {
   );
 
   useEffect(() => {
-    if (isNavigationInitialized()) {
-      return;
-    }
-
     initNavigation(navigate);
 
     return () => {

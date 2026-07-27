@@ -111,11 +111,6 @@ export const clearScreenRouteResolver = (resolver?: ScreenRouteResolver) => {
   }
 };
 
-/** navigation service가 현재 사용할 수 있는 상태인지 확인합니다. */
-export const isNavigationInitialized = () => {
-  return navigateFunction !== null;
-};
-
 /** http, https, mailto, tel, protocol-relative URL을 외부 URL로 판별합니다. */
 export const isExternalUrl = (url: string) => {
   const normalizedUrl = url.trim();
@@ -138,7 +133,7 @@ export const navigateTo = (to: To, options?: NavigateOptions) => {
 };
 
 /** API 메뉴에서 받은 screenId를 현재 앱 URL로 해석합니다. */
-export const resolveScreenPath = (
+const screenPath = (
   screenId: ScreenIdValues,
   pathParams?: ScreenRoutePathParams,
 ) => {
@@ -162,7 +157,7 @@ export const navigateToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = resolveScreenPath(screenId, options?.pathParams);
+  const path = screenPath(screenId, options?.pathParams);
 
   if (!path) {
     return;
@@ -190,7 +185,7 @@ export const replaceToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = resolveScreenPath(screenId, options?.pathParams);
+  const path = screenPath(screenId, options?.pathParams);
 
   if (!path) {
     return;

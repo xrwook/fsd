@@ -9,7 +9,7 @@ type TMemberInfoDetailProps = {
 };
 
 const MemberInfoDetail = ({ parentPath }: TMemberInfoDetailProps) => {
-  const { memberId } = useParams<{ memberId: string }>();
+  const { id } = useParams<{ id: string }>();
   const { goBackToList } = useListNavigation();
 
   return (
@@ -28,7 +28,7 @@ const MemberInfoDetail = ({ parentPath }: TMemberInfoDetailProps) => {
           회원 상세
         </Typography>
         <Typography color="text.secondary" sx={{ mt: 1 }}>
-          회원 ID: {memberId}
+          회원 ID: {id}
         </Typography>
       </Box>
     </Stack>

@@ -11,6 +11,7 @@ import { toApiParams } from "../lib/filter";
 import type { MemberFilterState } from "../model/member";
 import { MemberInfoFilter } from "./MemberInfoFilter";
 import { MemberInfoTable } from "./MemberInfoTable";
+import { navigateToScreen } from "@/shared/lib/navigation";
 
 type FilterQuery = MemberListRequest["query"];
 
@@ -56,6 +57,14 @@ const MemberInfo = () => {
         onReset={handleReset}
         onSearch={handleSearch}
       />
+      <button
+        onClick={() => {
+          console.log("asdasd");
+          navigateToScreen("emsp-member-info-detail", { pathParams: { id: "123" } });
+        }}
+      >
+        asdasdasd
+      </button>
 
       <MemberInfoTable
         isError={isError}
