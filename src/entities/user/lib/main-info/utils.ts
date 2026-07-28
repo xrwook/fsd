@@ -1,30 +1,35 @@
 import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 import { flattenTree } from "@/shared/lib/utils";
 
+import mainInfoMenus from "./main-info.json";
 import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MainInfoData, MenuData } from "./types";
 
+const normalizeMenuUrl = (url: string) => {
+  return !url || url === "#" ? null : url;
+};
+
 export const createMenuPermissions = (
   menus: MenuData[],
-  parentId: MenuData["screenId"] | null = null,
+  parentId: ScreenIdValues | null = null,
   depth = 1,
 ): TMenuPermission[] => {
   return menus.map((menu) => {
     const children = createMenuPermissions(
-      menu.children,
-      menu.screenId,
+      menu.children ?? [],
+      menu.screenId as ScreenIdValues,
       depth + 1,
     );
 
     return {
       menuId: menu.menuId,
-      screenId: menu.screenId,
+      screenId: menu.screenId as ScreenIdValues,
       parentId,
-      depth,
+      depth: menu.depth ?? depth,
       name: menu.name,
-      type: children.length > 0 || !menu.url ? "folder" : "menu",
-      url: menu.url || null,
-      expanded: children.length > 0,
+      type: menu.type ?? (children.length > 0 || !menu.url ? "folder" : "menu"),
+      url: normalizeMenuUrl(menu.url),
+      expanded: menu.expanded ?? children.length > 0,
       canRead: menu.canRead,
       canCreate: menu.canCreate,
       canUpdate: menu.canUpdate,
@@ -35,7 +40,7 @@ export const createMenuPermissions = (
   });
 };
 
-const menuTreeMock: MenuData[] = [
+const fallbackMenuTreeMock: MenuData[] = [
   {
     menuId: 1,
     screenId: SCREEN_ID.DASHBOARD,
@@ -343,6 +348,11 @@ const menuTreeMock: MenuData[] = [
     children: [],
   },
 ];
+
+const menuTreeMock =
+  (mainInfoMenus as MenuData[]).length > 0
+    ? (mainInfoMenus as MenuData[])
+    : fallbackMenuTreeMock;
 
 // 실제 API 응답의 data shape를 맞춘 main info mock 데이터입니다.
 export const mainInfoMock: MainInfoData = {

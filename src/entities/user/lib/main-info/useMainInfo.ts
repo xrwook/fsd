@@ -19,47 +19,31 @@ type TMainMenu = {
 const EMPTY_MENU_PERMISSIONS: TMenuPermission[] = [];
 const EMPTY_MAIN_MENUS: TMainMenu[] = [];
 
-const sortBySortOrder = (menus: MenuData[]) => {
-  return menus.reduce<MenuData[]>((sortedMenus, menu) => {
-    const insertIndex = sortedMenus.findIndex(
-      (sortedMenu) => menu.sortOrder < sortedMenu.sortOrder,
-    );
-
-    if (insertIndex === -1) {
-      return [...sortedMenus, menu];
-    }
-
-    return [
-      ...sortedMenus.slice(0, insertIndex),
-      menu,
-      ...sortedMenus.slice(insertIndex),
-    ];
-  }, []);
+const isNavigableMenuUrl = (url: string) => {
+  return Boolean(url && url !== "#");
 };
 
-const findFirstSortedMenuPath = (menu: MenuData): string => {
-  const sortedChildren = sortBySortOrder(menu.children);
-
-  for (const child of sortedChildren) {
-    if (child.url) {
+const findFirstMenuPath = (menu: MenuData): string => {
+  for (const child of menu.children) {
+    if (isNavigableMenuUrl(child.url)) {
       return child.url;
     }
 
-    const childPath = findFirstSortedMenuPath(child);
+    const childPath = findFirstMenuPath(child);
 
     if (childPath) {
       return childPath;
     }
   }
 
-  return menu.url;
+  return isNavigableMenuUrl(menu.url) ? menu.url : "";
 };
 
 const createMainMenus = (menus: MenuData[]): TMainMenu[] => {
-  return sortBySortOrder(menus).map((menu) => ({
+  return menus.map((menu) => ({
     name: menu.name,
     screenId: menu.screenId,
-    path: findFirstSortedMenuPath(menu),
+    path: findFirstMenuPath(menu),
   }));
 };
 
@@ -121,7 +105,10 @@ export const useMainInfo = () => {
   // 사이드바/상위 폴더처럼 하위 메뉴 권한까지 포함해서 판단할 때 사용합니다.
   // #TODO
   const canAccessMenuGroup = useCallback(
-    (screenId: ScreenIdValues, permissionField: TMenuPermissionField = "canRead") => {
+    (
+      screenId: ScreenIdValues,
+      permissionField: TMenuPermissionField = "canRead",
+    ) => {
       if (!isFetched) {
         return false;
       }

@@ -2,12 +2,15 @@ import type { ScreenIdValues } from "@/shared/config";
 
 export type MenuData = {
   menuId: number;
-  screenId: ScreenIdValues;
+  screenId: ScreenIdValues | string;
   name: string;
-  parentId: number | null;
+  parentId: number | string | null;
+  depth?: number;
+  type?: "folder" | "menu";
   url: string;
-  sortOrder: number;
-  isLink: boolean;
+  sortOrder?: number;
+  isLink?: boolean;
+  expanded?: boolean;
   canRead: boolean;
   canCreate: boolean;
   canUpdate: boolean;

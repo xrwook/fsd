@@ -1,3 +1,5 @@
+import type { ScreenIdValues } from "@/shared/config";
+
 import type { MenuData } from "./types";
 
 export type TMenuPermissionField =
@@ -13,8 +15,8 @@ export type TMenuPermissionField =
 export type TMenuPermission = {
   // id: MenuData["screenId"];
   menuId: MenuData["menuId"];
-  screenId: MenuData["screenId"];
-  parentId: MenuData["screenId"] | null;
+  screenId: ScreenIdValues;
+  parentId: ScreenIdValues | null;
   depth: number;
   name: MenuData["name"];
   type: "folder" | "menu";
