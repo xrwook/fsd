@@ -67,6 +67,11 @@ export const getFileGroupId = async () => {
 
 export const fileQueryFactory = {
   all: () => fileKeys.all,
+  groupId: () =>
+    queryOptions({
+      queryFn: getFileGroupId,
+      queryKey: fileKeys.groupId(),
+    }),
   groups: (params: FileGroupsRequest) =>
     queryOptions({
       queryFn: () => getFileGroups(params),
@@ -76,6 +81,10 @@ export const fileQueryFactory = {
 
 export const useGetFileGroupsQuery = (params: FileGroupsRequest) => {
   return useQuery(fileQueryFactory.groups(params));
+};
+
+export const useFileGroupIdQuery = () => {
+  return useQuery(fileQueryFactory.groupId());
 };
 
 export const useUploadUrlsMutation = () => {
@@ -89,12 +98,5 @@ export const useImageUploadUrlMutation = () => {
   return useMutation({
     mutationFn: createImageUploadUrl,
     mutationKey: fileKeys.imageUploadUrl(),
-  });
-};
-
-export const useFileGroupIdMutation = () => {
-  return useMutation({
-    mutationFn: getFileGroupId,
-    mutationKey: fileKeys.groupId(),
   });
 };
