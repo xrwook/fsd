@@ -290,6 +290,11 @@
   color: #9ca3af;
 }
 
+.tiptapEditorContent .tiptapViewerEmpty {
+  min-height: 120px;
+  color: #9ca3af;
+}
+
 .tiptapEditorPreviewActions {
   padding: 12px 16px;
 }
