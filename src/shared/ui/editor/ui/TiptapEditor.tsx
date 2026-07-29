@@ -19,6 +19,7 @@ import {
 } from "react";
 
 import { uploadEditorImage } from "../api/editor.service";
+import { DesignedHtmlExtensions } from "../lib/tiptapDesignedHtml";
 import {
   type ImageUploadResult,
   TiptapImageUpload,
@@ -46,7 +47,8 @@ const TiptapImage = Image.extend({
         default: null,
         parseHTML: (element) => element.dataset.imgid,
         renderHTML: (attributes) => {
-          const imgId = typeof attributes.imgId === "string" ? attributes.imgId : "";
+          const imgId =
+            typeof attributes.imgId === "string" ? attributes.imgId : "";
 
           if (!imgId) {
             return {};
@@ -116,6 +118,7 @@ export default function TiptapEditor({
   const editor = useEditor(
     {
       extensions: [
+        ...DesignedHtmlExtensions,
         StarterKit.configure({
           link: false,
         }),

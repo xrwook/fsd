@@ -349,10 +349,10 @@ const fallbackMenuTreeMock: MenuData[] = [
   },
 ];
 
-const menuTreeMock =
-  (mainInfoMenus as MenuData[]).length > 0
-    ? (mainInfoMenus as MenuData[])
-    : fallbackMenuTreeMock;
+const menuTreeMock = fallbackMenuTreeMock;
+  // (mainInfoMenus as MenuData[]).length > 0
+    // ? (mainInfoMenus as MenuData[])
+    // : fallbackMenuTreeMock;
 
 // 실제 API 응답의 data shape를 맞춘 main info mock 데이터입니다.
 export const mainInfoMock: MainInfoData = {

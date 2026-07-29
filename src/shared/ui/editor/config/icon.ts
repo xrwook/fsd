@@ -21,6 +21,7 @@ import RemoveIcon from "../assets/icons/remove.svg?react";
 import StrikethroughIcon from "../assets/icons/strikethrough_s.svg?react";
 import TableIcon from "../assets/icons/table.svg?react";
 import UndoIcon from "../assets/icons/undo.svg?react";
+import VisibilityIcon from "../assets/icons/visibility.svg?react";
 
 export const EDITOR_ICONS = {
   add: AddIcon,
@@ -46,4 +47,5 @@ export const EDITOR_ICONS = {
   strikethrough: StrikethroughIcon,
   table: TableIcon,
   undo: UndoIcon,
+  visibility: VisibilityIcon,
 } as const;

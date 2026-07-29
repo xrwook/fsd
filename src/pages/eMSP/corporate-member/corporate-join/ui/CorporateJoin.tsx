@@ -1,10 +1,21 @@
-import { useState } from "react";
+import { type MouseEvent, useState } from "react";
 
 import { TiptapEditor } from "@/shared/ui/editor";
 
 const CorporateJoin = () => {
   const [content, setContent] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+
+  const handlePreviewClick = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+
+    const button = target.closest<HTMLButtonElement>("button[data-href]");
+    const href = button?.dataset.href;
+    if (!href) return;
+
+    window.open(href, "_blank", "noopener,noreferrer");
+  };
 
   return (
     <div className="space-y-6">
@@ -36,6 +47,22 @@ const CorporateJoin = () => {
         <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-all rounded-md bg-gray-50 p-4 text-xs text-gray-700">
           {content || "(작성된 내용이 없습니다.)"}
         </pre>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-3 font-semibold text-gray-900">미리보기</h2>
+        <div className="max-h-[520px] overflow-auto rounded-md bg-gray-50 p-4">
+          {content ? (
+            <div className="tiptapEditorContent" onClick={handlePreviewClick}>
+              <div
+                className="tiptap"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">(작성된 내용이 없습니다.)</p>
+          )}
+        </div>
       </section>
     </div>
   );
