@@ -4,9 +4,9 @@ import { apiRequest } from "@/shared/lib/api";
 import { fileKeys } from "@/shared/query-keys";
 
 import type {
+  FileGroupIdResponse,
   FileGroupsRequest,
   FileGroupsResponse,
-  FileGroupIdResponse,
   FileUploadUrlRequestItem,
   ImageUploadUrlRequest,
   ImageUploadUrlResponse,
@@ -67,11 +67,6 @@ export const getFileGroupId = async () => {
 
 export const fileQueryFactory = {
   all: () => fileKeys.all,
-  groupId: () =>
-    queryOptions({
-      queryFn: getFileGroupId,
-      queryKey: fileKeys.groupId(),
-    }),
   groups: (params: FileGroupsRequest) =>
     queryOptions({
       queryFn: () => getFileGroups(params),
@@ -83,8 +78,11 @@ export const useGetFileGroupsQuery = (params: FileGroupsRequest) => {
   return useQuery(fileQueryFactory.groups(params));
 };
 
-export const useFileGroupIdQuery = () => {
-  return useQuery(fileQueryFactory.groupId());
+export const useFileGroupIdMutation = () => {
+  return useMutation({
+    mutationFn: getFileGroupId,
+    mutationKey: fileKeys.groupId(),
+  });
 };
 
 export const useUploadUrlsMutation = () => {
