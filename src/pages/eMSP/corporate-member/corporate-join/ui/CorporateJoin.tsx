@@ -1,11 +1,45 @@
 import { useState } from "react";
 
-import { DateTimePicker, parseDateTime } from "@/shared/ui/date-time-picker";
+import {
+  DateRangePicker,
+  type DateRangeQuickRange,
+} from "@/shared/ui/date-range-picker";
 import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
+
+const USE_PERIOD_QUICK_RANGES: DateRangeQuickRange[] = [
+  {
+    amount: 7,
+    label: "1주",
+    unit: "days",
+  },
+  {
+    amount: 1,
+    label: "1개월",
+    unit: "months",
+  },
+  {
+    amount: 3,
+    label: "3개월",
+    unit: "months",
+  },
+  {
+    amount: 6,
+    label: "6개월",
+    unit: "months",
+  },
+  {
+    amount: 12,
+    label: "1년",
+    unit: "months",
+  },
+];
 
 const CorporateJoin = () => {
   const [content, setContent] = useState("");
-  const [dateTime, setDateTime] = useState<Date | null>(new Date());
+  const [usePeriod, setUsePeriod] = useState({
+    endDate: "",
+    startDate: "",
+  });
   const [isUploading, setIsUploading] = useState(false);
 
   return (
@@ -48,12 +82,27 @@ const CorporateJoin = () => {
       </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <h2 className="mb-3 font-semibold text-gray-900">date time picker</h2>
-        <div className="max-h-[520px] overflow-auto rounded-md bg-gray-50 p-4">
-          <DateTimePicker
-            value={dateTime}
-            onChange={(value) => setDateTime(parseDateTime(value))}
-          />
+        <h2 className="mb-3 font-semibold text-gray-900">
+          사용 기한 Date Picker
+        </h2>
+        <div className="overflow-auto rounded-md bg-gray-50 p-4">
+          <div className="flex items-center gap-4">
+            <label className="w-32 shrink-0 text-right text-sm font-medium text-gray-900">
+              사용 기한:<span className="text-red-600">*</span>
+            </label>
+            <DateRangePicker
+              endDate={usePeriod.endDate}
+              onChange={(startDate, endDate) =>
+                setUsePeriod({
+                  endDate,
+                  startDate,
+                })
+              }
+              quickRangeDirection="future"
+              quickRanges={USE_PERIOD_QUICK_RANGES}
+              startDate={usePeriod.startDate}
+            />
+          </div>
         </div>
       </section>
     </div>

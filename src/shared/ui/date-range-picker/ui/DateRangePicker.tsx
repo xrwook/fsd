@@ -4,7 +4,11 @@ import "../assets/date-range-picker.css";
 import { useMemo, useRef, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 
-import { QUICK_RANGES, type QuickRange } from "../config/quickRanges";
+import {
+  isAllQuickRange,
+  QUICK_RANGES,
+  type QuickRange,
+} from "../config/quickRanges";
 import {
   type DisabledRange,
   formatDate,
@@ -25,10 +29,50 @@ export type Props = {
   endDate: string;
   /** 빠른 기간 버튼의 계산 방향. past: 기준일 이전, future: 기준일 이후 */
   quickRangeDirection?: RangeDirection;
+  /** 빠른 기간 버튼 목록. 전체 같은 사용자 정의 액션도 전달할 수 있다. */
+  quickRanges?: QuickRange[];
+  /** 필터형 입력에서 라벨 영역에 표시할 텍스트 */
+  filterLabel?: string;
+  /** 입력 표시 방식. range는 기존 두 칸 입력, filter는 필터바용 단일 입력이다. */
+  inputVariant?: "filter" | "range";
   /** 선택할 수 없는 날짜 구간. react-datepicker의 excludeDateIntervals로 변환된다. */
   disabledRanges?: DisabledRange[];
   /** 날짜가 변경될 때 yyyy-MM-dd 문자열로 반환한다. */
   onChange: (startDate: string, endDate: string) => void;
+};
+
+type QuickRangeSelection = {
+  endDate: string;
+  label: string;
+  startDate: string;
+};
+
+const getDateRangeDisplayValue = (startDate: string, endDate: string) => {
+  if (startDate && endDate) {
+    return `${startDate} ~ ${endDate}`;
+  }
+
+  if (startDate) {
+    return `${startDate} ~`;
+  }
+
+  return "";
+};
+
+const getQuickRangeDisplayValue = (
+  quickRangeSelection: null | QuickRangeSelection,
+  startDate: string,
+  endDate: string,
+) => {
+  if (
+    !quickRangeSelection ||
+    quickRangeSelection.startDate !== startDate ||
+    quickRangeSelection.endDate !== endDate
+  ) {
+    return null;
+  }
+
+  return quickRangeSelection.label;
 };
 
 /**
@@ -39,13 +83,25 @@ export const DateRangePicker = ({
   startDate,
   endDate,
   quickRangeDirection = "past",
+  quickRanges: quickRangeOptions = QUICK_RANGES,
+  filterLabel,
+  inputVariant = "range",
   disabledRanges = [],
   onChange,
 }: Props) => {
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [quickRangeSelection, setQuickRangeSelection] =
+    useState<null | QuickRangeSelection>(null);
   const selectedStartDate = parseDate(startDate);
   const selectedEndDate = parseDate(endDate);
+  const quickRangeDisplayValue = getQuickRangeDisplayValue(
+    quickRangeSelection,
+    startDate,
+    endDate,
+  );
+  const dateRangeDisplayValue = getDateRangeDisplayValue(startDate, endDate);
+  const inputDisplayValue = quickRangeDisplayValue || dateRangeDisplayValue;
   const disabledIntervals = useMemo(
     () => getDisabledInterval(disabledRanges),
     [disabledRanges],
@@ -56,7 +112,7 @@ export const DateRangePicker = ({
     selectedEndDate,
   );
   const quickRanges = getQuickRanges(
-    QUICK_RANGES,
+    quickRangeOptions,
     quickRangeDirection,
     quickRangeBaseDate,
     disabledIntervals,
@@ -64,13 +120,31 @@ export const DateRangePicker = ({
 
   /** 빠른 기간 버튼 클릭 시 기준일과 방향에 맞춰 시작일/종료일을 계산한다. */
   const handleQuickRange = (quickRange: QuickRange) => {
+    if (isAllQuickRange(quickRange)) {
+      setQuickRangeSelection({
+        endDate: "",
+        label: quickRange.label,
+        startDate: "",
+      });
+      onChange("", "");
+      pickerRef.current?.setOpen(false);
+      return;
+    }
+
     const { nextEndDate, nextStartDate } = getQuickRangeDates(
       quickRange,
       quickRangeDirection,
       quickRangeBaseDate,
     );
+    const nextStartDateValue = formatDate(nextStartDate);
+    const nextEndDateValue = formatDate(nextEndDate);
 
-    onChange(formatDate(nextStartDate), formatDate(nextEndDate));
+    setQuickRangeSelection({
+      endDate: nextEndDateValue,
+      label: quickRange.label,
+      startDate: nextStartDateValue,
+    });
+    onChange(nextStartDateValue, nextEndDateValue);
     pickerRef.current?.setOpen(false);
   };
 
@@ -80,9 +154,15 @@ export const DateRangePicker = ({
         calendarClassName="dateRangeCalendar"
         customInput={
           <DateRangeInput
+            displayValue={inputDisplayValue}
             endValue={endDate}
+            filterLabel={filterLabel}
+            inputVariant={inputVariant}
             isOpen={isOpen}
-            onClear={() => onChange("", "")}
+            onClear={() => {
+              setQuickRangeSelection(null);
+              onChange("", "");
+            }}
             startValue={startDate}
           />
         }
@@ -93,9 +173,10 @@ export const DateRangePicker = ({
         monthsShown={2}
         onCalendarClose={() => setIsOpen(false)}
         onCalendarOpen={() => setIsOpen(true)}
-        onChange={([nextStartDate, nextEndDate]) =>
-          onChange(formatDate(nextStartDate), formatDate(nextEndDate))
-        }
+        onChange={([nextStartDate, nextEndDate]) => {
+          setQuickRangeSelection(null);
+          onChange(formatDate(nextStartDate), formatDate(nextEndDate));
+        }}
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
         ref={pickerRef}
@@ -113,4 +194,5 @@ export const DateRangePicker = ({
   );
 };
 
+export type { QuickRange } from "../config/quickRanges";
 export type { DisabledRange, RangeDirection } from "../lib/date";

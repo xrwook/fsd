@@ -2,7 +2,10 @@ import { Button, Stack, TextField } from "@mui/material";
 import { useEffect, useEffectEvent, useRef } from "react";
 
 import { useUrlSearchParams } from "@/shared/lib/router";
-import { DateRangePicker } from "@/shared/ui/date-range-picker";
+import {
+  DateRangePicker,
+  type DateRangeQuickRange,
+} from "@/shared/ui/date-range-picker";
 
 import {
   INITIAL_MEMBER_FILTER_STATE,
@@ -13,6 +16,38 @@ type Props = {
   onReset: () => void;
   onSearch: (filter: MemberFilterState) => void;
 };
+
+const MEMBER_DATE_QUICK_RANGES: DateRangeQuickRange[] = [
+  {
+    label: "전체",
+    type: "all",
+  },
+  {
+    amount: 7,
+    label: "1주",
+    unit: "days",
+  },
+  {
+    amount: 1,
+    label: "1개월",
+    unit: "months",
+  },
+  {
+    amount: 3,
+    label: "3개월",
+    unit: "months",
+  },
+  {
+    amount: 6,
+    label: "6개월",
+    unit: "months",
+  },
+  {
+    amount: 12,
+    label: "1년",
+    unit: "months",
+  },
+];
 
 export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
   const [filter, setFilter] = useUrlSearchParams<MemberFilterState>(
@@ -40,6 +75,8 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
     <Stack spacing={1}>
       <DateRangePicker
         endDate={filter.endDate}
+        filterLabel="기간"
+        inputVariant="filter"
         onChange={(startDate, endDate) =>
           setFilter((previous) => ({
             ...previous,
@@ -47,6 +84,7 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
             startDate,
           }))
         }
+        quickRanges={MEMBER_DATE_QUICK_RANGES}
         quickRangeDirection="future"
         startDate={filter.startDate}
         disabledRanges={[

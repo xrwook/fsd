@@ -1,10 +1,22 @@
-export type QuickRange = {
+export type DateQuickRange = {
   amount: number;
   label: string;
   unit: "days" | "months";
 };
 
-export const QUICK_RANGES: QuickRange[] = [
+export type AllQuickRange = {
+  label: string;
+  type: "all";
+};
+
+export type QuickRange = AllQuickRange | DateQuickRange;
+
+export const isAllQuickRange = (
+  quickRange: QuickRange,
+): quickRange is AllQuickRange =>
+  "type" in quickRange && quickRange.type === "all";
+
+export const QUICK_RANGES: DateQuickRange[] = [
   {
     amount: 7,
     label: "1주",

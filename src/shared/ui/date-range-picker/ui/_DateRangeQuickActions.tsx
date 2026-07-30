@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { QuickRange } from "../config/quickRanges";
 
 type QuickRangeAction = QuickRange & {
@@ -14,7 +16,14 @@ export const DateRangeQuickActions = ({
   onSelect,
   quickRanges,
 }: DateRangeQuickActionsProps) => (
-  <div className="dateRangeQuickActions">
+  <div
+    className="dateRangeQuickActions"
+    style={
+      {
+        "--date-range-quick-action-count": quickRanges.length,
+      } as CSSProperties
+    }
+  >
     {quickRanges.map((quickRange) => (
       <button
         className="dateRangeQuickButton"

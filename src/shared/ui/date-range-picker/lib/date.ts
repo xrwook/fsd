@@ -1,6 +1,10 @@
 import { DateTime } from "luxon";
 
-import type { QuickRange } from "../config/quickRanges";
+import {
+  type DateQuickRange,
+  isAllQuickRange,
+  type QuickRange,
+} from "../config/quickRanges";
 
 const DATE_FORMAT = "yyyy-MM-dd";
 
@@ -112,6 +116,13 @@ export const getQuickRanges = (
   disabledInterval: DisabledInterval[],
 ): Array<QuickRange & { disabled: boolean }> =>
   quickRanges.map((quickRange) => {
+    if (isAllQuickRange(quickRange)) {
+      return {
+        ...quickRange,
+        disabled: false,
+      };
+    }
+
     const { nextEndDate, nextStartDate } = getQuickRangeDates(
       quickRange,
       direction,
@@ -136,7 +147,7 @@ export const getQuickRanges = (
  * 예: past + 3개월이면 기준일-3개월 ~ 기준일.
  */
 export const getQuickRangeDates = (
-  quickRange: QuickRange,
+  quickRange: DateQuickRange,
   direction: RangeDirection,
   baseDate: Date,
 ): { nextEndDate: Date; nextStartDate: Date } => {
