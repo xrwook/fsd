@@ -1,9 +1,11 @@
 import { useState } from "react";
 
+import { DateTimePicker, parseDateTime } from "@/shared/ui/date-time-picker";
 import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
 
 const CorporateJoin = () => {
   const [content, setContent] = useState("");
+  const [dateTime, setDateTime] = useState<Date | null>(new Date());
   const [isUploading, setIsUploading] = useState(false);
 
   return (
@@ -42,6 +44,16 @@ const CorporateJoin = () => {
         <h2 className="mb-3 font-semibold text-gray-900">미리보기</h2>
         <div className="max-h-[520px] overflow-auto rounded-md bg-gray-50 p-4">
           <TiptapViewer value={content} />
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-3 font-semibold text-gray-900">date time picker</h2>
+        <div className="max-h-[520px] overflow-auto rounded-md bg-gray-50 p-4">
+          <DateTimePicker
+            value={dateTime}
+            onChange={(value) => setDateTime(parseDateTime(value))}
+          />
         </div>
       </section>
     </div>
