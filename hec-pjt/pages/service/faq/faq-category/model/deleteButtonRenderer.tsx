@@ -12,6 +12,11 @@ export const DeleteButtonRenderer = (
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (props.context?.onCategoryDelete) {
+      props.context.onCategoryDelete(data);
+      return;
+    }
+
     api.applyTransaction({ remove: [data] });
   };
 

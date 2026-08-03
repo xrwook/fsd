@@ -31,6 +31,36 @@ const createRow = (overrides: Partial<CategoryRow> = {}): CategoryRow => ({
   ...overrides,
 });
 
+const validateRows = (rows: CategoryRow[]) => {
+  const categoryCount = rows.reduce<Map<string, number>>((acc, row) => {
+    const category = row.category.trim();
+    if (!category) return acc;
+
+    acc.set(category, (acc.get(category) ?? 0) + 1);
+    return acc;
+  }, new Map());
+
+  return rows.map((row) => {
+    const category = row.category.trim();
+    let categoryError: string | undefined;
+
+    if (!category) {
+      categoryError = "카테고리명을 입력해 주세요.";
+    } else if ((categoryCount.get(category) ?? 0) > 1) {
+      categoryError = "중복된 카테고리명입니다.";
+    }
+
+    return {
+      ...row,
+      categoryError: row.readOnly ? undefined : categoryError,
+    };
+  });
+};
+
+const hasValidationError = (rows: CategoryRow[]) => {
+  return rows.some((row) => !!row.categoryError);
+};
+
 interface CategoryModalProps {
   open: boolean;
   onOpen: (open: boolean) => void;
@@ -84,6 +114,14 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
     setIsDirty(true);
   }, []);
 
+  const handleDeleteRow = useCallback((target: CategoryRow) => {
+    gridApiRef.current?.applyTransaction({ remove: [target] });
+    setRowData((prev) =>
+      prev.filter((row) => String(row.id) !== String(target.id)),
+    );
+    setIsDirty(true);
+  }, []);
+
   const handleGridReady = useCallback(
     (params: { api: GridApi<CategoryRow> }) => {
       gridApiRef.current = params.api;
@@ -96,6 +134,16 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
     gridApiRef.current?.forEachNode((node) => {
       if (node.data) latestRows.push(node.data);
     });
+
+    const validatedRows = validateRows(latestRows);
+    if (hasValidationError(validatedRows)) {
+      setRowData(validatedRows);
+      setIsDirty(true);
+      requestAnimationFrame(() => {
+        gridApiRef.current?.resetRowHeights();
+      });
+      return;
+    }
 
     const latestServerIds = new Set(
       latestRows
@@ -110,6 +158,11 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
     );
     const sortedCategories: FaqCategorySaveItem[] = [
       ...latestRows
+        .map((row) => ({
+          ...row,
+          category: row.category.trim(),
+          categoryError: undefined,
+        }))
         .filter((row) => !row.readOnly && row.category.trim())
         .map((row) => ({
           id: typeof row.id === "string" ? row.id : null,
@@ -174,7 +227,17 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
                 columnDefs: POPUP_COLUMN_DEFS,
                 rowData,
                 rowClassRules: CategoryRowClassRules,
+                context: {
+                  onCategoryChange: handleGridChange,
+                  onCategoryDelete: handleDeleteRow,
+                },
                 getRowId: (p: any) => String(p.data.id),
+                getRowHeight: (params: any) =>
+                  params.data?.categoryError ? 80 : undefined,
+                getRowStyle: (params: any) =>
+                  params.data?.categoryError
+                    ? { backgroundColor: "#F4F7FD" }
+                    : undefined,
                 rowDragManaged: true,
                 animateRows: true,
                 suppressCellFocus: true,

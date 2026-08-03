@@ -6,6 +6,7 @@ import { NameInputRenderer } from "./nameInputRenderer";
 export interface CategoryRow {
   id: number | string;
   category: string;
+  categoryError?: string;
   fixedType?: string;
   faqCount?: number;
   isDeleted?: boolean;
@@ -45,5 +46,6 @@ export const POPUP_COLUMN_DEFS: ColDef<CategoryRow>[] = [
 ];
 
 export const CategoryRowClassRules = {
+  rowInvalid: (params: any) => !!params.data?.categoryError,
   rowReadOnly: (params: any) => !!params.data?.readOnly,
 };
