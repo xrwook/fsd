@@ -6,8 +6,7 @@ import {
 } from "@tanstack/react-query";
 
 import { apiRequest, type Request, type Response } from "@/shared/lib/api";
-
-import { faqListQueryFactory } from "../../faq-list/api/faqList";
+import { serviceKeys } from "@/shared/query-keys";
 
 export type FaqDisplayItem = {
   id: string;
@@ -57,14 +56,9 @@ export const faqDisplaySortApi = async (params: FaqDisplaySortRequest) => {
 };
 
 export const faqDisplayQueryFactory = {
-  all: () => ["faq-display"] as const,
   displayAll: (params: FaqDisplayAllRequest, enabled = true) =>
     queryOptions({
-      queryKey: [
-        ...faqDisplayQueryFactory.all(),
-        "displayAll",
-        params,
-      ] as const,
+      queryKey: serviceKeys.faq.display(params),
       queryFn: () => getFaqDisplayAll(params),
       enabled,
     }),
@@ -83,8 +77,7 @@ export const useFaqDisplaySortMutation = () => {
   return useMutation({
     mutationFn: (params: FaqDisplaySortRequest) => faqDisplaySortApi(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: faqDisplayQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqListQueryFactory.all() });
+      queryClient.invalidateQueries({ queryKey: serviceKeys.faq.all() });
     },
   });
 };

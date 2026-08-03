@@ -5,6 +5,7 @@ import {
   type PagingRequest,
   type PagingResponse,
 } from "@/shared/lib/api";
+import { serviceKeys } from "@/shared/query-keys";
 
 import type { FaqListItem } from "../model/faqList";
 
@@ -33,10 +34,9 @@ export const getFaqList = async (params: FaqListRequest) => {
 };
 
 export const faqListQueryFactory = {
-  all: () => ["faq-list"] as const,
   list: (params: FaqListRequest, enabled = true) =>
     queryOptions({
-      queryKey: [...faqListQueryFactory.all(), "list", params] as const,
+      queryKey: serviceKeys.faq.list(params),
       queryFn: () => getFaqList(params),
       enabled,
     }),

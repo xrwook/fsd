@@ -2,10 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import type { FaqValuesSchema } from "@/features/faq-form/model/schema";
 import { apiRequest, type Request, type Response } from "@/shared/lib/api";
-
-import { faqCreateQueryFactory } from "../../faq-create/api/faqCreate";
-import { faqDetailQueryFactory } from "../../faq-detail/api/faqDetail";
-import { faqListQueryFactory } from "../../faq-list/api/faqList";
+import { serviceKeys } from "@/shared/query-keys";
 
 export type FaqUpdateType = Omit<FaqValuesSchema, "scheduledAt"> & {
   scheduledAt: string | null;
@@ -33,9 +30,7 @@ export const useFaqUpdateMutation = () => {
   return useMutation({
     mutationFn: (params: FaqUpdateRequest) => faqUpdateApi(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: faqCreateQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqDetailQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqListQueryFactory.all() });
+      queryClient.invalidateQueries({ queryKey: serviceKeys.faq.all() });
     },
   });
 };

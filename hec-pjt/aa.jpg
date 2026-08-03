@@ -1,0 +1,202 @@
+import {
+  Badge,
+  TextBadge,
+  Typography,
+  type HdsBadgeSemantic,
+  type HdsBadgeStyleOption,
+} from '@hae-fe/elements';
+import type { ColDef, ICellRendererParams } from 'ag-grid-community';
+import type { ReactNode } from 'react';
+
+export type BadgeConfig = {
+  semantic?: HdsBadgeSemantic;
+  styleOption?: HdsBadgeStyleOption;
+  badgeContent: ReactNode;
+};
+
+export type BadgeCellRendererProps = {
+  prefix?: ReactNode;
+  suffix?: ReactNode;
+  semantic?: HdsBadgeSemantic;
+  styleOption?: HdsBadgeStyleOption;
+  badgeContent?: ReactNode;
+};
+
+export type BadgeCellRendererField<
+  TData = any,
+  TValue = any,
+  TContext = any,
+> = Omit<ColDef<TData>, 'cellRendererParams'> & {
+  cellRendererParams?:
+    | BadgeCellRendererParams<TData>
+    | ((
+        params: ICellRendererParams<TData, TValue, TContext>,
+      ) => BadgeCellRendererParams<TData>);
+};
+
+export type BadgeCellRendererParams<
+  TData = any,
+  TValue = any,
+  TContext = any,
+> = BadgeCellRendererProps & {
+  mode?: 'badge' | 'text' | 'textBadge';
+
+  badgeField?: keyof TData;
+  textField?: keyof TData;
+
+  badgeText?: string;
+
+  /**
+   * 문자열도 가능
+   * {
+   *   PUBLISHED: "게시"
+   * }
+   *
+   * 객체도 가능
+   * {
+   *   PUBLISHED: {
+   *     semantic: "success",
+   *     styleOption: "fill-pastel",
+   *     badgeContent: "게시",
+   *   }
+   * }
+   */
+  labelMap?: Record<string, string | BadgeConfig>;
+};
+
+/**
+ * table renderer 배지
+ */
+export const BadgeCellRenderer = <
+  TData = any,
+  TValue = any,
+  TContext = any,
+>(
+  props: ICellRendererParams<TData, TValue, TContext> &
+    BadgeCellRendererParams<TData>,
+) => {
+  const {
+    data,
+    value,
+
+    prefix,
+    suffix,
+
+    mode = 'badge',
+
+    badgeField,
+    textField,
+
+    badgeText,
+    labelMap,
+
+    semantic,
+    styleOption = 'fill-pastel',
+    badgeContent,
+  } = props;
+
+  const status =
+    badgeField && data
+      ? data[badgeField]
+      : value;
+
+  const text =
+    textField && data
+      ? String(data[textField] ?? '-')
+      : String(value ?? '-');
+
+  const mapValue = labelMap?.[String(status)];
+
+  const badge =
+    typeof mapValue === 'object' && mapValue !== null
+      ? mapValue
+      : undefined;
+
+  const resolvedBadgeContent =
+    badgeText ??
+    (typeof mapValue === 'string'
+      ? mapValue
+      : badge?.badgeContent ?? badgeContent);
+
+  const resolvedSemantic =
+    badge?.semantic ?? semantic ?? 'neutral';
+
+  const resolvedStyleOption =
+    badge?.styleOption ?? styleOption;
+
+  const hasBadge =
+    typeof status === 'boolean'
+      ? status
+      : Boolean(resolvedBadgeContent);
+
+  switch (mode) {
+    case 'text':
+      return (
+        <Typography
+          hdsProps={{
+            weight: 'regular',
+            type: 'body',
+            size: '15',
+          }}
+        >
+          {text}
+        </Typography>
+      );
+
+    case 'textBadge':
+      return (
+        <div className="flex items-center gap-2">
+          {hasBadge && (
+            <TextBadge
+              size="small"
+              expressive
+              badgeContent={
+                badgeText ??
+                resolvedBadgeContent
+              }
+            />
+          )}
+
+          <Typography
+            hdsProps={{
+              weight: 'regular',
+              type: 'body',
+              size: '15',
+            }}
+          >
+            {text}
+          </Typography>
+        </div>
+      );
+
+    case 'badge':
+      return (
+        <Badge
+          type="text"
+          semantic={resolvedSemantic}
+          size="small"
+          styleOption={resolvedStyleOption}
+          badgeContent={resolvedBadgeContent ?? '-'}
+        />
+      );
+
+    default:
+      return (
+        <div className="flex gap-1">
+          {prefix}
+
+          {resolvedBadgeContent && (
+            <Badge
+              type="text"
+              semantic={resolvedSemantic}
+              size="small"
+              styleOption={resolvedStyleOption}
+              badgeContent={resolvedBadgeContent}
+            />
+          )}
+
+          {suffix}
+        </div>
+      );
+  }
+};

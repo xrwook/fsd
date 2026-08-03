@@ -21,7 +21,8 @@ hec-pjt에서 [기능명]을 Notice 패턴 기준으로 다시 구현해줘.
 - import alias나 외부 패키지 해석 문제는 신경 쓰지 말고 기존 Notice 작성 스타일에 맞춘다.
 - FSD 구조는 Notice처럼 정리한다.
 - 같은 화면에서 쓰는 API는 너무 잘게 쪼개지 말고 화면 단위로 통합한다.
-- query parameter가 2개 이상인 조회 API는 `queryFactory`를 만든다.
+- query key는 `hec-pjt/serviceKeys.ts`의 `serviceKeys`에서 중앙 관리한다.
+- query parameter가 2개 이상인 조회 API는 hook/queryOptions factory를 만들되, query key는 반드시 `serviceKeys.[domain].*`를 사용한다.
 - 등록/수정이 같은 폼을 쓰면 `features/[기능명]-form`으로 공통 폼을 분리한다.
 - 등록/수정 페이지 또는 모달은 `react-hook-form`과 zod resolver를 사용한다.
 - filter는 Notice list filter처럼 `FormProvider` + `useFormContext`를 사용한다.
@@ -45,7 +46,8 @@ Notice 참고 파일:
 원하는 산출물:
 
 - API 타입 및 hook
-- queryFactory
+- `serviceKeys` query key
+- hook/queryOptions factory
 - list page
 - list filter
 - table
@@ -65,6 +67,7 @@ Notice 참고 파일:
 - 퍼블 전용 mock 로직 제거
 - Swagger request/response 필드명 반영
 - Notice와 같은 `apiRequest`, `serviceKeys`, `navigateToScreen`, `PageLayout`, `DataGrid/DataTable`, `DynamicFilter` 사용 방식 유지
+- API 파일 내부에서 `["domain-list"]` 같은 임시 query key를 만들지 않고 `serviceKeys.[domain].all/list/detail`만 사용
 - formatter는 Notice처럼 `formatUtc`, `formatDateTime`, `toUtcStartOfDay`, `toUtcEndOfDay` 등을 사용
 - mutation 성공 시 snackbar, navigate, invalidate 흐름 확인
 - prettier 적용
@@ -146,8 +149,47 @@ hec-pjt/pages/service/[domain]/
 
 4. API를 만든다.
    - 화면 단위로 파일을 묶는다.
-   - query가 복수 조건이면 `queryFactory`를 만든다.
+   - query key는 `hec-pjt/serviceKeys.ts`의 `serviceKeys`에 먼저 추가한다.
+   - query가 복수 조건이면 hook/queryOptions factory를 만들되 `queryKey`는 `serviceKeys.[domain].*`를 사용한다.
    - mutation 성공 시 관련 list/detail/category/display query를 invalidate한다.
+
+### Query Key Management
+
+Query key는 API 파일마다 새로 만들지 않고 `hec-pjt/serviceKeys.ts`에서 아래처럼 한 곳에서 관리한다.
+
+```ts
+import type { QueryKeyParams } from "@/shared/query-keys/types";
+
+const ROOT = ["serviceKeys"] as const;
+
+export const serviceKeys = {
+  event: {
+    all: () => [...ROOT, "event"] as const,
+    lists: [...ROOT, "event", "lists"] as const,
+    list: (params?: QueryKeyParams) =>
+      [...ROOT, "event", "list", params] as const,
+    detail: (id: string) => [...ROOT, "event", "detail", id] as const,
+  },
+  notice: {
+    all: () => [...ROOT, "notice"] as const,
+    list: (params?: QueryKeyParams) =>
+      [...ROOT, "notice", "list", params] as const,
+    detail: (id: string) => [...ROOT, "notice", "detail", id] as const,
+  },
+  faq: {
+    all: () => [...ROOT, "faq"] as const,
+    list: (params?: QueryKeyParams) =>
+      [...ROOT, "faq", "list", params] as const,
+    category: (params?: QueryKeyParams) =>
+      [...ROOT, "faq", "category", params] as const,
+    display: (params?: QueryKeyParams) =>
+      [...ROOT, "faq", "display", params] as const,
+    top10Status: (params?: QueryKeyParams) =>
+      [...ROOT, "faq", "top10Status", params] as const,
+    detail: (id: string) => [...ROOT, "faq", "detail", id] as const,
+  },
+} as const;
+```
 
 5. list를 Notice 방식으로 구성한다.
    - `useState(filter)`

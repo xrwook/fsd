@@ -6,9 +6,7 @@ import {
 } from "@tanstack/react-query";
 
 import { apiRequest, type Request, type Response } from "@/shared/lib/api";
-
-import { faqCreateQueryFactory } from "../../faq-create/api/faqCreate";
-import { faqListQueryFactory } from "../../faq-list/api/faqList";
+import { serviceKeys } from "@/shared/query-keys";
 
 export type FaqDetailData = {
   id: string;
@@ -60,10 +58,9 @@ export const deleteFaqApi = async (request: DeleteFaqRequest) => {
 };
 
 export const faqDetailQueryFactory = {
-  all: () => ["faq-detail"] as const,
   detail: (params: FaqDetailRequest, enabled = true) =>
     queryOptions({
-      queryKey: [...faqDetailQueryFactory.all(), "detail", params] as const,
+      queryKey: serviceKeys.faq.detail(params.path.id),
       queryFn: () => getFaqDetail(params),
       enabled,
     }),
@@ -82,9 +79,7 @@ export const useDeleteFaqMutation = () => {
   return useMutation({
     mutationFn: (request: DeleteFaqRequest) => deleteFaqApi(request),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: faqCreateQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqDetailQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqListQueryFactory.all() });
+      queryClient.invalidateQueries({ queryKey: serviceKeys.faq.all() });
     },
   });
 };

@@ -7,8 +7,7 @@ import {
 
 import type { FaqValuesSchema } from "@/features/faq-form/model/schema";
 import { apiRequest, type Request, type Response } from "@/shared/lib/api";
-
-import { faqListQueryFactory } from "../../faq-list/api/faqList";
+import { serviceKeys } from "@/shared/query-keys";
 
 export type FaqCreateType = Omit<FaqValuesSchema, "scheduledAt"> & {
   scheduledAt: string | null;
@@ -50,14 +49,9 @@ export const getFaqTop10Status = async (params: FaqTop10StatusRequest = {}) => {
 };
 
 export const faqCreateQueryFactory = {
-  all: () => ["faq-create"] as const,
   top10Status: (params: FaqTop10StatusRequest = {}, enabled = true) =>
     queryOptions({
-      queryKey: [
-        ...faqCreateQueryFactory.all(),
-        "top10Status",
-        params,
-      ] as const,
+      queryKey: serviceKeys.faq.top10Status(params),
       queryFn: () => getFaqTop10Status(params),
       enabled,
     }),
@@ -76,8 +70,7 @@ export const useFaqCreateMutation = () => {
   return useMutation({
     mutationFn: (params: FaqCreateRequest) => faqCreateApi(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: faqCreateQueryFactory.all() });
-      queryClient.invalidateQueries({ queryKey: faqListQueryFactory.all() });
+      queryClient.invalidateQueries({ queryKey: serviceKeys.faq.all() });
     },
   });
 };

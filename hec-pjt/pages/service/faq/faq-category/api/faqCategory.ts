@@ -6,8 +6,7 @@ import {
 } from "@tanstack/react-query";
 
 import { apiRequest, type Request, type Response } from "@/shared/lib/api";
-
-import { faqListQueryFactory } from "../../faq-list/api/faqList";
+import { serviceKeys } from "@/shared/query-keys";
 
 export type FaqCategoryFixedType = "TOP10" | "NORMAL";
 
@@ -62,10 +61,9 @@ export const faqCategorySaveApi = async (params: FaqCategorySaveRequest) => {
 };
 
 export const faqCategoryQueryFactory = {
-  all: () => ["faq-category"] as const,
   list: (params: FaqCategoryListRequest = {}, enabled = true) =>
     queryOptions({
-      queryKey: [...faqCategoryQueryFactory.all(), "list", params] as const,
+      queryKey: serviceKeys.faq.category(params),
       queryFn: () => getFaqCategoryList(params),
       enabled,
     }),
@@ -84,10 +82,7 @@ export const useFaqCategorySaveMutation = () => {
   return useMutation({
     mutationFn: (params: FaqCategorySaveRequest) => faqCategorySaveApi(params),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: faqCategoryQueryFactory.all(),
-      });
-      queryClient.invalidateQueries({ queryKey: faqListQueryFactory.all() });
+      queryClient.invalidateQueries({ queryKey: serviceKeys.faq.all() });
     },
   });
 };
