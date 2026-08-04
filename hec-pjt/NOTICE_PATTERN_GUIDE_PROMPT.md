@@ -21,6 +21,7 @@ hec-pjt에서 [기능명]을 Notice 패턴 기준으로 다시 구현해줘.
 - import alias나 외부 패키지 해석 문제는 신경 쓰지 말고 기존 Notice 작성 스타일에 맞춘다.
 - FSD 구조는 Notice처럼 정리한다.
 - 같은 화면에서 쓰는 API는 너무 잘게 쪼개지 말고 화면 단위로 통합한다.
+- 참고로 screenId 는 반영할필요없어
 - query key는 `hec-pjt/serviceKeys.ts`의 `serviceKeys`에서 중앙 관리한다.
 - query parameter가 2개 이상인 조회 API는 hook/queryOptions factory를 만들되, query key는 반드시 `serviceKeys.[domain].*`를 사용한다.
 - 등록/수정이 같은 폼을 쓰면 `features/[기능명]-form`으로 공통 폼을 분리한다.

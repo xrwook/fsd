@@ -28,4 +28,14 @@ export const serviceKeys = {
       [...ROOT, "faq", "top10Status", params] as const,
     detail: (id: string) => [...ROOT, "faq", "detail", id] as const,
   },
+  policy: {
+    all: () => [...ROOT, "policy"] as const,
+    terms: (params?: QueryKeyParams) =>
+      [...ROOT, "policy", "terms", params] as const,
+    versionList: (params?: QueryKeyParams) =>
+      [...ROOT, "policy", "versionList", params] as const,
+    nextVersion: (params?: QueryKeyParams) =>
+      [...ROOT, "policy", "nextVersion", params] as const,
+    detail: (id: string) => [...ROOT, "policy", "detail", id] as const,
+  },
 } as const;
