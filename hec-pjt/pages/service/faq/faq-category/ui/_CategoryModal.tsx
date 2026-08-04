@@ -31,7 +31,18 @@ const createRow = (overrides: Partial<CategoryRow> = {}): CategoryRow => ({
   ...overrides,
 });
 
-const validateRows = (rows: CategoryRow[]) => {
+const isChangedRow = (row: CategoryRow, originalRows: CategoryRow[]) => {
+  if (typeof row.id !== "string") return true;
+
+  const originalRow = originalRows.find(
+    (original) => String(original.id) === String(row.id),
+  );
+  if (!originalRow) return true;
+
+  return originalRow.category.trim() !== row.category.trim();
+};
+
+const validateRows = (rows: CategoryRow[], originalRows: CategoryRow[]) => {
   const categoryCount = rows.reduce<Map<string, number>>((acc, row) => {
     const category = row.category.trim();
     if (!category) return acc;
@@ -42,11 +53,12 @@ const validateRows = (rows: CategoryRow[]) => {
 
   return rows.map((row) => {
     const category = row.category.trim();
+    const changed = isChangedRow(row, originalRows);
     let categoryError: string | undefined;
 
-    if (!category) {
+    if (changed && !category) {
       categoryError = "카테고리명을 입력해 주세요.";
-    } else if ((categoryCount.get(category) ?? 0) > 1) {
+    } else if (changed && (categoryCount.get(category) ?? 0) > 1) {
       categoryError = "중복된 카테고리명입니다.";
     }
 
@@ -135,7 +147,7 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
       if (node.data) latestRows.push(node.data);
     });
 
-    const validatedRows = validateRows(latestRows);
+    const validatedRows = validateRows(latestRows, originalRowsRef.current);
     if (hasValidationError(validatedRows)) {
       setRowData(validatedRows);
       setIsDirty(true);
