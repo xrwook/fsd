@@ -15,13 +15,15 @@ import {
   faqValueSchema,
 } from "@/features/faq-form";
 
+import { useModalLeaveConfirm } from "../../../../../lib/useModalLeaveConfirm";
+
 import { useGetFaqTop10StatusQuery } from "../api/faqCreate";
 
 interface FaqCreateModalProps {
   categoryOptions?: DropdownOption[];
   modalOpen: boolean;
   onModalOpen: (value: boolean) => void;
-  onSubmit: (values: FaqFormValues) => void;
+  onSubmit: (values: FaqFormValues) => Promise<void> | void;
 }
 
 export const FaqCreateModal = ({
@@ -38,22 +40,29 @@ export const FaqCreateModal = ({
     control,
     handleSubmit,
     reset,
-    formState: { isValid },
+    formState: { isDirty, isSubmitSuccessful, isSubmitting, isValid },
   } = useForm<FaqFormValues>({
     defaultValues: DEFAULT_VALUES,
     mode: "onChange",
     resolver: zodResolver(faqValueSchema),
   });
+  const { confirmLeave } = useModalLeaveConfirm({
+    isDirty: isDirty && !isSubmitSuccessful,
+  });
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
+    const confirmed = await confirmLeave();
+    if (!confirmed) return;
+
     reset(DEFAULT_VALUES);
     onModalOpen(false);
   };
 
-  const handleConfirm = handleSubmit((values) => {
+  const handleConfirm = handleSubmit(async (values) => {
+    await onSubmit(values);
+
     reset(DEFAULT_VALUES);
     onModalOpen(false);
-    onSubmit(values);
   });
 
   return (
@@ -84,7 +93,7 @@ export const FaqCreateModal = ({
           positiveButton: {
             children: "등록",
             onClick: handleConfirm,
-            disabled: !isValid,
+            disabled: !isValid || isSubmitting,
           },
         }}
       />

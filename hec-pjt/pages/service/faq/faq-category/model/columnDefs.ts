@@ -1,7 +1,7 @@
 import type { ColDef } from "ag-grid-community";
 
+import { GridTextInputRenderer } from "../../../../../shared/ui/ag-grid";
 import { DeleteButtonRenderer } from "./deleteButtonRenderer";
-import { NameInputRenderer } from "./nameInputRenderer";
 
 export interface CategoryRow {
   id: number | string;
@@ -31,7 +31,14 @@ export const POPUP_COLUMN_DEFS: ColDef<CategoryRow>[] = [
     sortable: false,
     filter: false,
     resizable: false,
-    cellRenderer: NameInputRenderer,
+    cellRenderer: GridTextInputRenderer,
+    cellRendererParams: {
+      fieldName: "category",
+      errorFieldName: "categoryError",
+      placeholder: "카테고리명을 입력하세요",
+      disabled: (data: CategoryRow) => !!data.readOnly,
+      onChangeContextName: "onCategoryChange",
+    },
     cellClass: "inputCell",
   },
   {
