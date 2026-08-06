@@ -67,6 +67,7 @@ export const TERM_TYPE_COLUMN_DEFS: ColDef<TermTypeRow>[] = [
   {
     field: "termName",
     headerName: "약관 종류",
+    minWidth: 240,
     flex: 1,
     sortable: false,
     filter: false,
@@ -83,6 +84,7 @@ export const TERM_TYPE_COLUMN_DEFS: ColDef<TermTypeRow>[] = [
   {
     field: "termCode",
     headerName: "약관 코드",
+    minWidth: 240,
     flex: 1,
     sortable: false,
     filter: false,

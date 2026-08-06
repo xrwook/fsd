@@ -41,6 +41,7 @@ const callContextChangeHandler = <TData extends object>({
 };
 
 export const GridTextInputRenderer = <TData extends object>({
+  api,
   data,
   node,
   fieldName,
@@ -63,11 +64,18 @@ export const GridTextInputRenderer = <TData extends object>({
 
     node.setData(nextData);
     callContextChangeHandler({ context, onChangeContextName, nextData });
+
+    if (errorFieldName) {
+      requestAnimationFrame(() => {
+        api.resetRowHeights();
+      });
+    }
   };
 
   return (
-    <div className="flex h-full flex-col justify-center gap-1 py-1">
+    <div className="flex h-full w-full flex-col justify-center gap-1 py-1">
       <TextField
+        className="w-full"
         hdsProps={{ helpText: "", clearable: true }}
         value={String(data[fieldName] ?? "")}
         onChange={handleChange}
