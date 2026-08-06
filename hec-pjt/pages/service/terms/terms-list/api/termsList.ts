@@ -14,16 +14,15 @@ import {
 } from "@/shared/lib/api";
 import { serviceKeys } from "@/shared/query-keys";
 
-import type { TermTypeItem, TermVersionListItem } from "../model/termsList";
+import type {
+  TermTypeItem,
+  TermTypeSaveItem,
+} from "../../../../../features/term-type-manage-modal";
+import type { TermVersionListItem } from "../model/termsList";
 
 const skipScreenIdConfig = { skipScreenId: true } as const;
 
 export type TermTypeListResponse = Response<TermTypeItem[]>;
-
-export type TermTypeSaveItem = {
-  termCode: string;
-  termName: string;
-};
 
 export type TermTypeSaveRequest = Request<{
   requestBody: {

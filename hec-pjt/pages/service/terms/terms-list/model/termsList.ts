@@ -1,11 +1,5 @@
 export type TermDeployStatus = "R" | "D" | "C";
 
-export type TermTypeItem = {
-  termCode: string;
-  termName: string;
-  sortOrder: number;
-};
-
 export type TermVersionListItem = {
   id: string;
   termCode: string;
@@ -26,15 +20,4 @@ export type TermVersionListItem = {
   modifiedBy?: string;
   modifiedByName: string;
   modifiedDate: string;
-};
-
-export type TermTypeRow = {
-  id: number | string;
-  termCode: string;
-  termName: string;
-  isNew?: boolean;
-  sortOrder?: number;
-  termCodeError?: string;
-  termNameError?: string;
-  readOnlyCode?: boolean;
 };
