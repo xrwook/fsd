@@ -34,7 +34,7 @@ export const TermTypeManageModal = ({ open, onOpen, onSave }: Props) => {
           },
         },
         {
-          onSuccess,
+          onSuccess: () => onSuccess(),
         },
       );
     },
@@ -50,7 +50,7 @@ export const TermTypeManageModal = ({ open, onOpen, onSave }: Props) => {
           },
         },
         {
-          onSuccess,
+          onSuccess: () => onSuccess(),
         },
       );
     },
