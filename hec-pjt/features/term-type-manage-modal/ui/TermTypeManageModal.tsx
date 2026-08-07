@@ -169,6 +169,7 @@ const TermTypeRowClassRules = {
 
 type MutationOptions = {
   onSuccess: () => void;
+  onError: (message: string, nextItems?: TermTypeItem[]) => void;
 };
 
 type Props = {
@@ -191,12 +192,10 @@ export const TermTypeManageModal = ({
   const gridApiRef = useRef<GridApi<TermTypeRow> | null>(null);
   const [rowData, setRowData] = useState<TermTypeRow[]>([]);
   const [isDirty, setIsDirty] = useState(false);
-  const { dangerConfirm, snackbar } = useSystemModal();
+  const { alert, dangerConfirm, snackbar } = useSystemModal();
 
-  useEffect(() => {
-    if (!open || !items) return;
-
-    const rows = items.map((term) =>
+  const resetTermRows = useCallback((nextItems: TermTypeItem[]) => {
+    const rows = nextItems.map((term) =>
       createRow({
         id: term.termCode,
         termCode: term.termCode,
@@ -209,7 +208,13 @@ export const TermTypeManageModal = ({
 
     setRowData(rows);
     setIsDirty(false);
-  }, [items, open]);
+  }, []);
+
+  useEffect(() => {
+    if (!open || !items) return;
+
+    resetTermRows(items);
+  }, [items, open, resetTermRows]);
 
   const handleClose = useCallback(() => {
     onOpen(false);
@@ -252,9 +257,13 @@ export const TermTypeManageModal = ({
           removeRow(target);
           snackbar({ message: "삭제가 완료되었습니다." });
         },
+        onError: (message, nextItems) => {
+          alert({ message });
+          if (nextItems) resetTermRows(nextItems);
+        },
       });
     },
-    [dangerConfirm, onDeleteItem, removeRow, snackbar],
+    [alert, dangerConfirm, onDeleteItem, removeRow, resetTermRows, snackbar],
   );
 
   const handleGridReady = useCallback(
@@ -292,9 +301,13 @@ export const TermTypeManageModal = ({
           handleClose();
           setIsDirty(false);
         },
+        onError: (message, nextItems) => {
+          alert({ message });
+          if (nextItems) resetTermRows(nextItems);
+        },
       },
     );
-  }, [handleClose, onSave, onSaveItems]);
+  }, [alert, handleClose, onSave, onSaveItems, resetTermRows]);
 
   return (
     <Dialog
