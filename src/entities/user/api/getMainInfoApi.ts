@@ -1,4 +1,4 @@
-import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 
 import { apiRequest, type Response } from "@/shared/lib/api";
 
@@ -6,6 +6,7 @@ import type { MainInfoData } from "../lib/main-info";
 import { getMainInfoMockApi } from "./mocks/getMainInfoMockApi";
 
 type MainInfoResponse = Response<MainInfoData>;
+type RecentVisitResponse = Response<string>;
 
 const requestMainInfo = async () => {
   const response = await apiRequest<MainInfoResponse>(
@@ -35,6 +36,24 @@ export const getMainInfoApi = async (): Promise<MainInfoData> => {
   }
 
   return requestMainInfo();
+};
+
+export const postRecentVisitApi = async (screenId: string) => {
+  const response = await apiRequest<RecentVisitResponse>(
+    "post",
+    "/v1/backoffice/home/main/recent-visits",
+    undefined,
+    { screenId },
+  );
+
+  return response.data.data;
+};
+
+export const usePostRecentVisitMutation = () => {
+  return useMutation({
+    mutationFn: postRecentVisitApi,
+    retry: false,
+  });
 };
 
 export const mainInfoQueryFactory = {

@@ -23,6 +23,7 @@ type TResolvedExtraPageRoute = TExtraPageRoute & {
 
 type TAuthorizedRouteRenderParams = {
   path: string | null;
+  recordRecentVisit?: boolean;
   requestScreenId?: ScreenIdValues;
   screenId: ScreenIdValues;
   permissionScreenId: ScreenIdValues;
@@ -58,6 +59,7 @@ export const DynamicMenuRoute = () => {
 
   const renderAuthorizedRoute = ({
     path,
+    recordRecentVisit = true,
     requestScreenId,
     screenId,
     permissionScreenId,
@@ -73,7 +75,10 @@ export const DynamicMenuRoute = () => {
     }
 
     return (
-      <PageRequestScope screenId={requestScreenId ?? screenId}>
+      <PageRequestScope
+        recordRecentVisit={recordRecentVisit}
+        screenId={requestScreenId ?? screenId}
+      >
         <Routes>
           <Route path={path} element={element} />
         </Routes>
@@ -108,6 +113,7 @@ export const DynamicMenuRoute = () => {
 
     return renderAuthorizedRoute({
       path: route.path,
+      recordRecentVisit: false,
       requestScreenId: route.parentScreenId,
       screenId: route.screenId,
       permissionScreenId: route.parentScreenId,

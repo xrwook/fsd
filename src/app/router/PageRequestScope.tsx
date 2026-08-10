@@ -1,9 +1,16 @@
-import { type PropsWithChildren, useLayoutEffect, useState } from "react";
+import {
+  type PropsWithChildren,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from "react";
 
+import { usePostRecentVisitMutation } from "@/entities/user";
 import type { ScreenIdValues } from "@/shared/config";
 import { clearRequestScreenId, setRequestScreenId } from "@/shared/lib/api";
 
 type TPageRequestScopeProps = PropsWithChildren<{
+  recordRecentVisit?: boolean;
   screenId: ScreenIdValues;
 }>;
 
@@ -12,8 +19,10 @@ type TPageRequestScopeProps = PropsWithChildren<{
  */
 export const PageRequestScope = ({
   children,
+  recordRecentVisit = true,
   screenId,
 }: TPageRequestScopeProps) => {
+  const { mutate: postRecentVisit } = usePostRecentVisitMutation();
   const [registeredScreenId, setRegisteredScreenId] =
     useState<ScreenIdValues | null>(null);
 
@@ -27,6 +36,14 @@ export const PageRequestScope = ({
       clearRequestScreenId(screenId);
     };
   }, [screenId]);
+
+  useEffect(() => {
+    if (!recordRecentVisit || registeredScreenId !== screenId) {
+      return;
+    }
+
+    postRecentVisit(screenId);
+  }, [postRecentVisit, recordRecentVisit, registeredScreenId, screenId]);
 
   // request context에 screenId가 등록될 때까지 자식 렌더링을 보류해 초기 API 요청의 헤더 누락을 방지합니다.
   if (registeredScreenId !== screenId) {

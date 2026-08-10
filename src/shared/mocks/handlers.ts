@@ -33,6 +33,16 @@ export const handlers = [
 
     return HttpResponse.json(createMockResponse(response));
   }),
+  http.post("/api/v1/backoffice/home/main/recent-visits", ({ request }) => {
+    if (!request.headers.has(SCREEN_ID_HEADER)) {
+      return HttpResponse.json(
+        { message: `${SCREEN_ID_HEADER} header is required.` },
+        { status: 400 },
+      );
+    }
+
+    return HttpResponse.json(createMockResponse("success"));
+  }),
   http.get("/api/emsp/members", async ({ request }) => {
     await delay(300);
 
