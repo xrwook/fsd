@@ -38,4 +38,14 @@ export const serviceKeys = {
       [...ROOT, "policy", "nextVersion", params] as const,
     detail: (id: string) => [...ROOT, "policy", "detail", id] as const,
   },
+  partnership: {
+    all: () => [...ROOT, "partnership"] as const,
+    list: (params?: QueryKeyParams) =>
+      [...ROOT, "partnership", "list", params] as const,
+    detail: (id: number) => [...ROOT, "partnership", "detail", id] as const,
+    receivers: () => [...ROOT, "partnership", "receivers"] as const,
+    receiverList: () => [...ROOT, "partnership", "receivers", "list"] as const,
+    registrableReceiverList: (params?: QueryKeyParams) =>
+      [...ROOT, "partnership", "receivers", "registrable", params] as const,
+  },
 } as const;

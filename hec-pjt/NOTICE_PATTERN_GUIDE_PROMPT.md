@@ -19,6 +19,8 @@ hec-pjt에서 [기능명]을 Notice 패턴 기준으로 다시 구현해줘.
 - 사용자가 제공한 퍼블리싱 이미지를 절대 기준으로 작업한다. 퍼블 코드만 보고 이미지와 다르게 구현하지 않는다.
 - `hec-pjt/pages/service/notice` 구현을 우선 참고한다.
 - UI/디자인/CSS/className/HTML 요소/레이아웃/간격/컴포넌트 배치는 사용자가 제공한 퍼블 기준을 절대 변경하지 않는다.
+- 퍼블 이미지/코드에서 특정 컴포넌트를 사용하고 있으면 그 컴포넌트를 그대로 사용한다. Notice 패턴이나 개인 판단을 이유로 `SearchTextField`를 `AutoCompleteSearch`처럼 다른 컴포넌트로 바꾸지 않는다.
+- 퍼블 코드에 있는 className, style, hdsProps, props, HTML 속성은 절대 임의 수정하지 않는다. Notice 패턴이나 개인 판단을 이유로 퍼블 className을 Notice className으로 대체하지 않는다.
 - 퍼블 코드의 className은 오타 수정이나 동작 구현에 필요한 최소 변경을 제외하고 임의로 변경하지 않는다.
 - 퍼블 코드의 HTML 요소는 하나도 임의로 빼거나 합치거나 다른 요소로 대체하지 않는다.
 - 임의로 더 예쁘게 만들거나 Notice/기획을 이유로 퍼블 디자인을 바꾸지 않는다. Notice는 구조와 로직 기준으로만 참고한다.
