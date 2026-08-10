@@ -27,6 +27,8 @@ import type { TermTypeItem, TermTypeRow, TermTypeSaveItem } from "../model";
 let rowIdSeq = 100;
 
 const TERM_CODE_PATTERN = /^[A-Z0-9_]+$/;
+const TERM_NAME_MAX_LENGTH = 100;
+const TERM_CODE_MAX_LENGTH = 50;
 
 const createRow = (overrides: Partial<TermTypeRow> = {}): TermTypeRow => ({
   id: `new-${rowIdSeq++}`,
@@ -37,14 +39,100 @@ const createRow = (overrides: Partial<TermTypeRow> = {}): TermTypeRow => ({
   ...overrides,
 });
 
-const validateRows = (rows: TermTypeRow[]) => {
-  const termCodeCount = rows.reduce<Map<string, number>>((acc, row) => {
-    const termCode = row.termCode.trim();
-    if (!termCode) return acc;
+const findOriginalRow = (row: TermTypeRow, originalRows: TermTypeRow[]) => {
+  return originalRows.find(
+    (originalRow) => String(originalRow.id) === String(row.id),
+  );
+};
 
-    acc.set(termCode, (acc.get(termCode) ?? 0) + 1);
+const isTermNameInput = (row: TermTypeRow, originalRows: TermTypeRow[]) => {
+  const originalRow = findOriginalRow(row, originalRows);
+
+  return !originalRow || originalRow.termName.trim() !== row.termName.trim();
+};
+
+const isTermCodeInput = (row: TermTypeRow, originalRows: TermTypeRow[]) => {
+  const originalRow = findOriginalRow(row, originalRows);
+
+  return !originalRow || originalRow.termCode.trim() !== row.termCode.trim();
+};
+
+const createInputCountMap = (
+  rows: TermTypeRow[],
+  originalRows: TermTypeRow[],
+  fieldName: "termCode" | "termName",
+  isInput: (row: TermTypeRow, originalRows: TermTypeRow[]) => boolean,
+) => {
+  return rows.reduce<Map<string, number>>((acc, row) => {
+    if (!isInput(row, originalRows)) return acc;
+
+    const value = row[fieldName].trim();
+    if (!value) return acc;
+
+    acc.set(value, (acc.get(value) ?? 0) + 1);
     return acc;
   }, new Map());
+};
+
+const createExistingValueSet = (
+  rows: TermTypeRow[],
+  originalRows: TermTypeRow[],
+  fieldName: "termCode" | "termName",
+  isInput: (row: TermTypeRow, originalRows: TermTypeRow[]) => boolean,
+) => {
+  return rows.reduce<Set<string>>((acc, row) => {
+    if (isInput(row, originalRows)) return acc;
+
+    const value = row[fieldName].trim();
+    if (value) acc.add(value);
+
+    return acc;
+  }, new Set());
+};
+
+const validateRows = (rows: TermTypeRow[], originalRows: TermTypeRow[]) => {
+  const termNameInputCount = createInputCountMap(
+    rows,
+    originalRows,
+    "termName",
+    isTermNameInput,
+  );
+  const termCodeInputCount = createInputCountMap(
+    rows,
+    originalRows,
+    "termCode",
+    isTermCodeInput,
+  );
+  const existingTermNameSet = createExistingValueSet(
+    rows,
+    originalRows,
+    "termName",
+    isTermNameInput,
+  );
+  const existingTermCodeSet = createExistingValueSet(
+    rows,
+    originalRows,
+    "termCode",
+    isTermCodeInput,
+  );
+
+  const hasDuplicateTermName = (row: TermTypeRow, termName: string) => {
+    if (!isTermNameInput(row, originalRows)) return false;
+
+    return (
+      (termNameInputCount.get(termName) ?? 0) > 1 ||
+      existingTermNameSet.has(termName)
+    );
+  };
+
+  const hasDuplicateTermCode = (row: TermTypeRow, termCode: string) => {
+    if (!isTermCodeInput(row, originalRows)) return false;
+
+    return (
+      (termCodeInputCount.get(termCode) ?? 0) > 1 ||
+      existingTermCodeSet.has(termCode)
+    );
+  };
 
   return rows.map((row) => {
     const termCode = row.termCode.trim();
@@ -54,23 +142,25 @@ const validateRows = (rows: TermTypeRow[]) => {
 
     if (!termName) {
       termNameError = "약관 종류를 입력해 주세요.";
-    } else if (termName.length > 100) {
-      termNameError = "약관 종류는 100자 이하로 입력해 주세요.";
+    } else if (termName.length > TERM_NAME_MAX_LENGTH) {
+      termNameError = "최대 100자까지 입력할 수 있습니다.";
+    } else if (hasDuplicateTermName(row, termName)) {
+      termNameError = "중복된 약관 종류입니다.";
     }
 
     if (!termCode) {
       termCodeError = "약관 코드를 입력해 주세요.";
-    } else if (termCode.length > 50) {
-      termCodeError = "약관 코드는 50자 이하로 입력해 주세요.";
+    } else if (termCode.length > TERM_CODE_MAX_LENGTH) {
+      termCodeError = "최대 50자까지 입력할 수 있습니다.";
     } else if (!TERM_CODE_PATTERN.test(termCode)) {
-      termCodeError = "대문자, 숫자, 언더스코어만 입력해 주세요.";
-    } else if ((termCodeCount.get(termCode) ?? 0) > 1) {
+      termCodeError = "영문 대문자, 숫자, 언더스코어(_)만 사용 가능합니다.";
+    } else if (hasDuplicateTermCode(row, termCode)) {
       termCodeError = "중복된 약관 코드입니다.";
     }
 
     return {
       ...row,
-      termCode: termCode.toUpperCase(),
+      termCode,
       termName,
       termCodeError,
       termNameError,
@@ -190,6 +280,7 @@ export const TermTypeManageModal = ({
   onDeleteItem,
 }: Props) => {
   const gridApiRef = useRef<GridApi<TermTypeRow> | null>(null);
+  const originalRowsRef = useRef<TermTypeRow[]>([]);
   const [rowData, setRowData] = useState<TermTypeRow[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const { alert, dangerConfirm, snackbar } = useSystemModal();
@@ -206,6 +297,7 @@ export const TermTypeManageModal = ({
       }),
     );
 
+    originalRowsRef.current = rows;
     setRowData(rows);
     setIsDirty(false);
   }, []);
@@ -279,7 +371,7 @@ export const TermTypeManageModal = ({
       if (node.data) latestRows.push(node.data);
     });
 
-    const validatedRows = validateRows(latestRows);
+    const validatedRows = validateRows(latestRows, originalRowsRef.current);
 
     if (hasValidationError(validatedRows)) {
       setRowData(validatedRows);
