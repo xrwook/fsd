@@ -190,6 +190,51 @@ const extractLocationHref = (value: unknown) => {
   return sanitizeUrl(match?.[2]);
 };
 
+const getClipboardHtmlFragment = (value: string) => {
+  const startMarker = "<!--StartFragment-->";
+  const endMarker = "<!--EndFragment-->";
+  const startIndex = value.indexOf(startMarker);
+  const endIndex = value.indexOf(endMarker);
+
+  if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
+    return value.slice(startIndex + startMarker.length, endIndex).trim();
+  }
+
+  return value.trim();
+};
+
+const getPlainProseMirrorParagraphText = (
+  htmlText: string | undefined,
+  plainText: string | undefined,
+) => {
+  const plainValue = plainText?.trim();
+  if (!htmlText || !plainValue || typeof document === "undefined") return null;
+
+  const fragment = getClipboardHtmlFragment(htmlText);
+  if (!fragment.includes("data-pm-slice")) return null;
+
+  const template = document.createElement("template");
+  template.innerHTML = fragment;
+
+  const nodes = [...template.content.childNodes].filter((node) => {
+    const textContent = node.textContent?.trim();
+    return node.nodeType !== 8 && (node.nodeType !== 3 || !!textContent);
+  });
+
+  if (nodes.length !== 1) return null;
+
+  const [node] = nodes;
+  if (!(node instanceof HTMLElement) || node.tagName.toLowerCase() !== "p") {
+    return null;
+  }
+
+  if (node.textContent?.trim() !== plainValue || node.children.length > 0) {
+    return null;
+  }
+
+  return plainValue;
+};
+
 export const DesignedHtmlAttributes = Extension.create({
   name: "designedHtmlAttributes",
 
@@ -365,13 +410,24 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
         props: {
           handlePaste: (_view, event) => {
             const plainText = event.clipboardData?.getData("text/plain");
+            const htmlText = plainText?.trim();
+            const plainParagraphText = getPlainProseMirrorParagraphText(
+              event.clipboardData?.getData("text/html"),
+              plainText,
+            );
 
-            if (!plainText || !isDesignedHtmlText(plainText)) {
+            if (plainParagraphText) {
+              event.preventDefault();
+              this.editor.commands.insertContent(plainParagraphText);
+              return true;
+            }
+
+            if (!htmlText || !isDesignedHtmlText(htmlText)) {
               return false;
             }
 
             event.preventDefault();
-            this.editor.commands.insertContent(plainText);
+            this.editor.commands.insertContent(htmlText);
             return true;
           },
         },
