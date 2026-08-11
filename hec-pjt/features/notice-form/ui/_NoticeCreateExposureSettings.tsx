@@ -36,7 +36,11 @@ const getUpdatePublishedAt = ({
   }
 
   if (nextPublishType === 'UNPUBLISHED') {
-    return initialPublishType === 'SCHEDULED' ? null : (initialPublishedAt ?? null);
+    if (initialPublishType === 'SCHEDULED') {
+      return null;
+    }
+
+    return initialPublishedAt ?? null;
   }
 
   return null;
