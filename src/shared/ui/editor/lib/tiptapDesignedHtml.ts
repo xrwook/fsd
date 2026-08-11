@@ -203,7 +203,7 @@ const getClipboardHtmlFragment = (value: string) => {
   return value.trim();
 };
 
-const getPlainProseMirrorParagraphText = (
+const getProseMirrorParagraphContent = (
   htmlText: string | undefined,
   plainText: string | undefined,
 ) => {
@@ -228,11 +228,12 @@ const getPlainProseMirrorParagraphText = (
     return null;
   }
 
-  if (node.textContent?.trim() !== plainValue || node.children.length > 0) {
+  if (node.textContent?.trim() !== plainValue) {
     return null;
   }
 
-  return plainValue;
+  const inlineHtml = node.innerHTML.trim();
+  return inlineHtml || plainValue;
 };
 
 export const DesignedHtmlAttributes = Extension.create({
@@ -411,14 +412,14 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
           handlePaste: (_view, event) => {
             const plainText = event.clipboardData?.getData("text/plain");
             const htmlText = plainText?.trim();
-            const plainParagraphText = getPlainProseMirrorParagraphText(
+            const proseMirrorParagraphContent = getProseMirrorParagraphContent(
               event.clipboardData?.getData("text/html"),
               plainText,
             );
 
-            if (plainParagraphText) {
+            if (proseMirrorParagraphContent) {
               event.preventDefault();
-              this.editor.commands.insertContent(plainParagraphText);
+              this.editor.commands.insertContent(proseMirrorParagraphContent);
               return true;
             }
 
