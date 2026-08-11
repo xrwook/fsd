@@ -106,7 +106,7 @@ const NoticeUpdate = () => {
         requestBody: {
           ...values,
           attachFileId: detail?.attachFileId || '',
-          publishedAt: values.publishType === 'SCHEDULED' && values.publishedAt ? formatUtc(values.publishedAt) : null,
+          publishedAt: values.publishedAt ? formatUtc(values.publishedAt) : null,
           fileConfirm: {
             groups: [
               {
@@ -159,7 +159,11 @@ const NoticeUpdate = () => {
         onFilesSelected={handleFilesSelected}
       />
 
-      <NoticeCreateExposureSettings control={control} />
+      <NoticeCreateExposureSettings
+        control={control}
+        initialPublishedAt={detail?.publishedAt ? new Date(detail.publishedAt) : null}
+        initialPublishType={detail?.publishType}
+      />
     </PageLayout>
   );
 };

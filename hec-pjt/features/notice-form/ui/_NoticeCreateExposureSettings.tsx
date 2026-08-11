@@ -1,6 +1,5 @@
 import { RadioButton, RadioGroup } from '@hae-fe/elements';
 import { Form, FormField, FormFieldRow } from '@hae-fe/pattern';
-import { useEffect } from 'react';
 import { type Control, Controller, useController, useWatch } from 'react-hook-form';
 
 import { AreaHeader } from '@/shared/ui/area-header';
@@ -11,9 +10,43 @@ import type { NoticeFormValues } from '../model/noticeValues';
 
 type Props = {
   control: Control<NoticeFormValues>;
+  initialPublishedAt?: Date | null;
+  initialPublishType?: string;
 };
 
-export const NoticeCreateExposureSettings = ({ control }: Props) => {
+const getUpdatePublishedAt = ({
+  initialPublishedAt,
+  initialPublishType,
+  nextPublishType,
+}: {
+  initialPublishedAt?: Date | null;
+  initialPublishType?: string;
+  nextPublishType: string;
+}) => {
+  if (!initialPublishType) {
+    return nextPublishType === 'SCHEDULED' ? undefined : null;
+  }
+
+  if (nextPublishType === 'SCHEDULED') {
+    return initialPublishType === 'SCHEDULED' ? (initialPublishedAt ?? null) : null;
+  }
+
+  if (nextPublishType === 'PUBLISHED') {
+    return initialPublishType === 'PUBLISHED' ? (initialPublishedAt ?? null) : null;
+  }
+
+  if (nextPublishType === 'UNPUBLISHED') {
+    return initialPublishType === 'SCHEDULED' ? null : (initialPublishedAt ?? null);
+  }
+
+  return null;
+};
+
+export const NoticeCreateExposureSettings = ({
+  control,
+  initialPublishedAt,
+  initialPublishType,
+}: Props) => {
   const publishType = useWatch({
     control,
     name: 'publishType',
@@ -24,11 +57,19 @@ export const NoticeCreateExposureSettings = ({ control }: Props) => {
     name: 'publishedAt',
   });
 
-  useEffect(() => {
-    if (publishType !== 'SCHEDULED') {
-      scheduledAtField.onChange(null);
+  const handlePublishTypeChange = (nextPublishType: string, onChange: (value: string) => void) => {
+    const nextPublishedAt = getUpdatePublishedAt({
+      initialPublishedAt,
+      initialPublishType,
+      nextPublishType,
+    });
+
+    onChange(nextPublishType);
+
+    if (nextPublishedAt !== undefined) {
+      scheduledAtField.onChange(nextPublishedAt ?? null);
     }
-  }, [publishType, scheduledAtField.onChange]);
+  };
 
   return (
     <>
@@ -49,7 +90,7 @@ export const NoticeCreateExposureSettings = ({ control }: Props) => {
                     direction="horizontal"
                     size="medium"
                     value={field.value}
-                    onChange={e => field.onChange(e.target.value)}
+                    onChange={e => handlePublishTypeChange(e.target.value, field.onChange)}
                   >
                     {TERM_DEPLOY_STATUS.map(x => {
                       const value = `${x.value}`;
