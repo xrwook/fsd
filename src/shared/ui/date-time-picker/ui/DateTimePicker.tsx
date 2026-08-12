@@ -21,6 +21,9 @@ import {
 import { DateTimeInput } from "./_DateTimeInput";
 import { DateTimePanel } from "./_DateTimePanel";
 
+const DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS =
+  "dateTimeInputOutsideClickIgnore";
+
 export type DateTimePickerProps = {
   /** 선택된 날짜/시간 */
   value: Date | null;
@@ -146,6 +149,9 @@ export const DateTimePicker = ({
             disabled={disabled}
             isOpen={isOpen}
             onClear={() => onChange("")}
+            outsideClickIgnoreClassName={
+              DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
+            }
             placeholder={placeholder}
           />
         }
@@ -164,6 +170,7 @@ export const DateTimePicker = ({
           setIsOpen(true);
         }}
         onChange={handleDateChange}
+        outsideClickIgnoreClass={DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}
         placeholderText={placeholder}
         popperClassName="dateTimePopper"
         popperPlacement="bottom-start"

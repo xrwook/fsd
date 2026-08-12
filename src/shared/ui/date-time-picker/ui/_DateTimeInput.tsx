@@ -6,6 +6,8 @@ import {
   forwardRef,
   type KeyboardEventHandler,
   type MouseEventHandler,
+  useImperativeHandle,
+  useRef,
 } from "react";
 
 import DateTimeCalendarIcon from "../assets/icons/calendar.svg?react";
@@ -22,6 +24,7 @@ type DateTimeInputProps = {
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
+  outsideClickIgnoreClassName?: string;
   value?: string;
 };
 
@@ -38,11 +41,16 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       onClick,
       onFocus,
       onKeyDown,
+      outsideClickIgnoreClassName,
       placeholder = "YYYY-MM-DD HH:MM",
       value = "",
     },
     ref,
   ) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
+
     const handleClear = () => {
       if (onChange) {
         onChange({
@@ -55,6 +63,28 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       onClear();
     };
 
+    const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+      if (disabled) {
+        event.preventDefault();
+        return;
+      }
+
+      if (
+        event.target instanceof HTMLElement &&
+        event.target.closest(".dateTimeClearButton")
+      ) {
+        return;
+      }
+
+      inputRef.current?.focus({ preventScroll: true });
+    };
+
+    const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
+      if (disabled || event.target === inputRef.current) return;
+
+      inputRef.current?.click();
+    };
+
     return (
       <div
         aria-disabled={disabled}
@@ -65,12 +95,14 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
             dateTimeInputDisabled: disabled,
           },
           className,
+          outsideClickIgnoreClassName,
         )}
-        onMouseDown={disabled ? (event) => event.preventDefault() : undefined}
+        onClick={handleClick}
+        onMouseDown={handleMouseDown}
       >
         <input
           aria-label="날짜 시간"
-          className="dateTimeInputField"
+          className={clsx("dateTimeInputField", outsideClickIgnoreClassName)}
           disabled={disabled}
           onBlur={disabled ? undefined : onBlur}
           onChange={disabled ? undefined : onChange}
@@ -78,14 +110,14 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           onFocus={disabled ? undefined : onFocus}
           onKeyDown={disabled ? undefined : onKeyDown}
           placeholder={placeholder}
-          ref={ref}
+          ref={inputRef}
           value={value}
         />
 
         {value && !disabled ? (
           <button
             aria-label="날짜 시간 초기화"
-            className="dateTimeClearButton"
+            className={clsx("dateTimeClearButton", outsideClickIgnoreClassName)}
             onClick={(event) => {
               event.stopPropagation();
               handleClear();
@@ -95,14 +127,14 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           >
             <DateTimeCloseIcon
               aria-hidden="true"
-              className="dateTimeCloseIcon"
+              className={clsx("dateTimeCloseIcon", outsideClickIgnoreClassName)}
             />
           </button>
         ) : null}
 
         <DateTimeCalendarIcon
           aria-hidden="true"
-          className="dateTimeCalendarIcon"
+          className={clsx("dateTimeCalendarIcon", outsideClickIgnoreClassName)}
         />
       </div>
     );
