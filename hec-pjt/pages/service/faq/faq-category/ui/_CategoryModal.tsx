@@ -6,14 +6,14 @@ import {
   DialogHeader,
 } from "@hae-fe/elements";
 import { DataTable } from "@hae-fe/pattern";
-import { type GridApi } from "ag-grid-community";
+import type {
+  GetRowIdParams,
+  GridApi,
+  RowClassParams,
+  RowHeightParams,
+} from "ag-grid-community";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  type CategoryRow,
-  CategoryRowClassRules,
-  POPUP_COLUMN_DEFS,
-} from "../model/columnDefs";
 import { DataTableToolbarKr } from "@/shared/ui/layout";
 
 import {
@@ -21,12 +21,18 @@ import {
   useFaqCategorySaveMutation,
   useGetFaqCategoryListQuery,
 } from "../api/faqCategory";
+import {
+  type CategoryRow,
+  CategoryRowClassRules,
+  POPUP_COLUMN_DEFS,
+} from "../model/columnDefs";
 
 let rowIdSeq = 100;
 
 const createRow = (overrides: Partial<CategoryRow> = {}): CategoryRow => ({
   id: rowIdSeq++,
   category: "",
+  isError: false,
   readOnly: false,
   ...overrides,
 });
@@ -65,12 +71,13 @@ const validateRows = (rows: CategoryRow[], originalRows: CategoryRow[]) => {
     return {
       ...row,
       categoryError: row.readOnly ? undefined : categoryError,
+      isError: !row.readOnly && !!categoryError,
     };
   });
 };
 
 const hasValidationError = (rows: CategoryRow[]) => {
-  return rows.some((row) => !!row.categoryError);
+  return rows.some((row) => !!row.isError);
 };
 
 interface CategoryModalProps {
@@ -174,6 +181,7 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
           ...row,
           category: row.category.trim(),
           categoryError: undefined,
+          isError: false,
         }))
         .filter((row) => !row.readOnly && row.category.trim())
         .map((row) => ({
@@ -243,11 +251,12 @@ const CategoryModal = ({ open, onOpen, onSave }: CategoryModalProps) => {
                   onCategoryChange: handleGridChange,
                   onCategoryDelete: handleDeleteRow,
                 },
-                getRowId: (p: any) => String(p.data.id),
-                getRowHeight: (params: any) =>
-                  params.data?.categoryError ? 80 : undefined,
-                getRowStyle: (params: any) =>
-                  params.data?.categoryError
+                getRowId: (p: GetRowIdParams<CategoryRow>) =>
+                  String(p.data.id),
+                getRowHeight: (params: RowHeightParams<CategoryRow>) =>
+                  params.data?.isError ? 80 : undefined,
+                getRowStyle: (params: RowClassParams<CategoryRow>) =>
+                  params.data?.isError
                     ? { backgroundColor: "#F4F7FD" }
                     : undefined,
                 rowDragManaged: true,

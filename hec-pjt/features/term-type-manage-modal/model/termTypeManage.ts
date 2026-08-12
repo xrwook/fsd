@@ -16,6 +16,8 @@ export type TermTypeRow = {
   isNew?: boolean;
   sortOrder?: number;
   termCodeError?: string;
+  termCodeIsError?: boolean;
   termNameError?: string;
+  termNameIsError?: boolean;
   readOnlyCode?: boolean;
 };

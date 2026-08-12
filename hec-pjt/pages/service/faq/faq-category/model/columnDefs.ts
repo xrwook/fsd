@@ -1,4 +1,4 @@
-import type { ColDef } from "ag-grid-community";
+import type { ColDef, RowClassParams } from "ag-grid-community";
 
 import { GridTextInputRenderer } from "../../../../../shared/ui/ag-grid";
 import { DeleteButtonRenderer } from "./deleteButtonRenderer";
@@ -7,6 +7,7 @@ export interface CategoryRow {
   id: number | string;
   category: string;
   categoryError?: string;
+  isError?: boolean;
   fixedType?: string;
   faqCount?: number;
   isDeleted?: boolean;
@@ -35,6 +36,7 @@ export const POPUP_COLUMN_DEFS: ColDef<CategoryRow>[] = [
     cellRendererParams: {
       fieldName: "category",
       errorFieldName: "categoryError",
+      isErrorFieldName: "isError",
       placeholder: "카테고리명을 입력하세요",
       disabled: (data: CategoryRow) => !!data.readOnly,
       onChangeContextName: "onCategoryChange",
@@ -53,6 +55,7 @@ export const POPUP_COLUMN_DEFS: ColDef<CategoryRow>[] = [
 ];
 
 export const CategoryRowClassRules = {
-  rowInvalid: (params: any) => !!params.data?.categoryError,
-  rowReadOnly: (params: any) => !!params.data?.readOnly,
+  rowInvalid: (params: RowClassParams<CategoryRow>) => !!params.data?.isError,
+  rowReadOnly: (params: RowClassParams<CategoryRow>) =>
+    !!params.data?.readOnly,
 };

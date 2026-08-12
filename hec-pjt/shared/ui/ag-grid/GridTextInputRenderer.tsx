@@ -7,6 +7,7 @@ type DataFieldName<TData extends object> = Extract<keyof TData, string>;
 type Props<TData extends object> = ICellRendererParams<TData> & {
   fieldName: DataFieldName<TData>;
   errorFieldName?: DataFieldName<TData>;
+  isErrorFieldName?: DataFieldName<TData>;
   placeholder?: string;
   disabled?: boolean | ((data: TData) => boolean);
   onChangeContextName?: string;
@@ -46,6 +47,7 @@ export const GridTextInputRenderer = <TData extends object>({
   node,
   fieldName,
   errorFieldName,
+  isErrorFieldName,
   placeholder,
   disabled,
   context,
@@ -54,18 +56,20 @@ export const GridTextInputRenderer = <TData extends object>({
   if (!data) return null;
 
   const errorMessage = errorFieldName ? data[errorFieldName] : undefined;
+  const hasError = isErrorFieldName ? !!data[isErrorFieldName] : false;
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const nextData = {
       ...data,
       [fieldName]: e.target.value,
       ...(errorFieldName ? { [errorFieldName]: undefined } : {}),
+      ...(isErrorFieldName ? { [isErrorFieldName]: false } : {}),
     } as TData;
 
     node.setData(nextData);
     callContextChangeHandler({ context, onChangeContextName, nextData });
 
-    if (errorFieldName) {
+    if (errorFieldName || isErrorFieldName) {
       requestAnimationFrame(() => {
         api.resetRowHeights();
       });
@@ -81,10 +85,10 @@ export const GridTextInputRenderer = <TData extends object>({
         onChange={handleChange}
         onClick={(e: MouseEvent) => e.stopPropagation()}
         disabled={getDisabled(disabled, data)}
-        error={!!errorMessage}
+        error={hasError}
         placeholder={placeholder}
       />
-      {!!errorMessage && (
+      {hasError && !!errorMessage && (
         <Typography
           className="text-(--color-text-attention-strong)"
           hdsProps={{ weight: "regular", type: "body", size: "13" }}

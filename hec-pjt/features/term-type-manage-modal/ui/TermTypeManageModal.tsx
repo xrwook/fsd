@@ -8,20 +8,26 @@ import {
 } from "@hae-fe/elements";
 import { IconTrash } from "@hae-fe/icon-library/react";
 import { DataTable } from "@hae-fe/pattern";
-import type { ColDef, GridApi, ICellRendererParams } from "ag-grid-community";
+import type {
+  ColDef,
+  GetRowIdParams,
+  GridApi,
+  ICellRendererParams,
+  RowClassParams,
+  RowHeightParams,
+} from "ag-grid-community";
 import {
+  type MouseEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type MouseEvent,
 } from "react";
 
 import { useSystemModal } from "@/shared/lib/modal";
 import { DataTableToolbarKr } from "@/shared/ui/layout";
 
 import { GridTextInputRenderer } from "../../../shared/ui/ag-grid";
-
 import type { TermTypeItem, TermTypeRow, TermTypeSaveItem } from "../model";
 
 let rowIdSeq = 100;
@@ -35,6 +41,8 @@ const createRow = (overrides: Partial<TermTypeRow> = {}): TermTypeRow => ({
   termCode: "",
   termName: "",
   isNew: true,
+  termCodeIsError: false,
+  termNameIsError: false,
   readOnlyCode: false,
   ...overrides,
 });
@@ -163,13 +171,19 @@ const validateRows = (rows: TermTypeRow[], originalRows: TermTypeRow[]) => {
       termCode,
       termName,
       termCodeError,
+      termCodeIsError: !!termCodeError,
       termNameError,
+      termNameIsError: !!termNameError,
     };
   });
 };
 
+const hasTermTypeError = (row?: TermTypeRow) => {
+  return !!row?.termCodeIsError || !!row?.termNameIsError;
+};
+
 const hasValidationError = (rows: TermTypeRow[]) => {
-  return rows.some((row) => !!row.termCodeError || !!row.termNameError);
+  return rows.some((row) => hasTermTypeError(row));
 };
 
 const TermTypeDeleteButtonRenderer = (
@@ -218,6 +232,7 @@ const TERM_TYPE_COLUMN_DEFS: ColDef<TermTypeRow>[] = [
     cellRendererParams: {
       fieldName: "termName",
       errorFieldName: "termNameError",
+      isErrorFieldName: "termNameIsError",
       placeholder: "약관 종류를 입력해 주세요.",
       onChangeContextName: "onTermTypeChange",
     },
@@ -235,6 +250,7 @@ const TERM_TYPE_COLUMN_DEFS: ColDef<TermTypeRow>[] = [
     cellRendererParams: {
       fieldName: "termCode",
       errorFieldName: "termCodeError",
+      isErrorFieldName: "termCodeIsError",
       placeholder: "약관 코드를 입력해 주세요.",
       disabled: (data: TermTypeRow) => !!data.readOnlyCode,
       onChangeContextName: "onTermTypeChange",
@@ -253,8 +269,8 @@ const TERM_TYPE_COLUMN_DEFS: ColDef<TermTypeRow>[] = [
 ];
 
 const TermTypeRowClassRules = {
-  rowInvalid: (params: any) =>
-    !!params.data?.termCodeError || !!params.data?.termNameError,
+  rowInvalid: (params: RowClassParams<TermTypeRow>) =>
+    hasTermTypeError(params.data),
 };
 
 type MutationOptions = {
@@ -434,13 +450,11 @@ export const TermTypeManageModal = ({
               onTermTypeChange: handleGridChange,
               onTermTypeDelete: handleDeleteRow,
             },
-            getRowId: (p: any) => String(p.data.id),
-            getRowHeight: (params: any) =>
-              params.data?.termCodeError || params.data?.termNameError
-                ? 80
-                : undefined,
-            getRowStyle: (params: any) =>
-              params.data?.termCodeError || params.data?.termNameError
+            getRowId: (p: GetRowIdParams<TermTypeRow>) => String(p.data.id),
+            getRowHeight: (params: RowHeightParams<TermTypeRow>) =>
+              hasTermTypeError(params.data) ? 80 : undefined,
+            getRowStyle: (params: RowClassParams<TermTypeRow>) =>
+              hasTermTypeError(params.data)
                 ? { backgroundColor: "#F4F7FD" }
                 : undefined,
             rowDragManaged: true,
