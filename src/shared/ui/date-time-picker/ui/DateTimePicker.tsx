@@ -4,6 +4,7 @@ import "../assets/date-time-picker.css";
 import { DateTime } from "luxon";
 import {
   type ComponentProps,
+  type SyntheticEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -52,7 +53,6 @@ export const DateTimePicker = ({
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const selectedDate = normalizeDateTimeValue(value);
-  const displayValue = formatDateTime(selectedDate);
 
   const closePicker = useCallback(() => {
     setIsOpen(false);
@@ -66,7 +66,7 @@ export const DateTimePicker = ({
   }, [closePicker, disabled]);
 
   const handleDateChange = useCallback(
-    (nextDate: Date | null) => {
+    (nextDate: Date | null, event?: SyntheticEvent<HTMLElement>) => {
       if (disabled) return;
 
       if (!nextDate) {
@@ -74,8 +74,13 @@ export const DateTimePicker = ({
         return;
       }
 
-      const selectedHour = selectedDate?.getHours() ?? 0;
-      const selectedMinute = selectedDate?.getMinutes() ?? 0;
+      const isTextInputChange = event?.type === "change";
+      const selectedHour = isTextInputChange
+        ? nextDate.getHours()
+        : (selectedDate?.getHours() ?? 0);
+      const selectedMinute = isTextInputChange
+        ? nextDate.getMinutes()
+        : (selectedDate?.getMinutes() ?? 0);
       const nextDateTime = DateTime.fromJSDate(nextDate)
         .set({
           hour: selectedHour,
@@ -142,7 +147,6 @@ export const DateTimePicker = ({
             isOpen={isOpen}
             onClear={() => onChange("")}
             placeholder={placeholder}
-            value={displayValue}
           />
         }
         dateFormat="yyyy-MM-dd HH:mm"
@@ -160,12 +164,14 @@ export const DateTimePicker = ({
           setIsOpen(true);
         }}
         onChange={handleDateChange}
+        placeholderText={placeholder}
         popperClassName="dateTimePopper"
         popperPlacement="bottom-start"
         ref={pickerRef}
         selected={selectedDate}
         shouldCloseOnSelect={false}
         showPopperArrow={false}
+        strictParsing
         open={disabled ? false : undefined}
       />
     </div>
