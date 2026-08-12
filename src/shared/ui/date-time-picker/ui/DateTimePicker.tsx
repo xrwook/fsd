@@ -16,6 +16,7 @@ import ReactDatePicker, { CalendarContainer } from "react-datepicker";
 import {
   formatDateTime,
   normalizeDateTimeValue,
+  parseDateTime,
   setDateTimePart,
 } from "../lib/dateTime";
 import { DateTimeInput } from "./_DateTimeInput";
@@ -57,6 +58,31 @@ export const DateTimePicker = ({
   const [isOpen, setIsOpen] = useState(false);
   const selectedDate = normalizeDateTimeValue(value);
 
+  const isDateSelectable = useCallback(
+    (date: Date) => {
+      if (minDate && date < minDate) return false;
+      if (maxDate && date > maxDate) return false;
+
+      return true;
+    },
+    [maxDate, minDate],
+  );
+
+  const commitInputValue = useCallback(
+    (inputValue: string) => {
+      if (disabled) return;
+
+      const nextDate = parseDateTime(inputValue.trim());
+      if (!nextDate || !isDateSelectable(nextDate)) return;
+
+      const nextValue = formatDateTime(nextDate);
+      if (nextValue === formatDateTime(selectedDate)) return;
+
+      onChange(nextValue);
+    },
+    [disabled, isDateSelectable, onChange, selectedDate],
+  );
+
   const closePicker = useCallback(() => {
     setIsOpen(false);
     pickerRef.current?.setOpen(false);
@@ -78,6 +104,14 @@ export const DateTimePicker = ({
       }
 
       const isTextInputChange = event?.type === "change";
+      const inputValue =
+        event?.target instanceof HTMLInputElement ? event.target.value : "";
+
+      if (isTextInputChange && inputValue) {
+        commitInputValue(inputValue);
+        return;
+      }
+
       const selectedHour = isTextInputChange
         ? nextDate.getHours()
         : (selectedDate?.getHours() ?? 0);
@@ -95,7 +129,7 @@ export const DateTimePicker = ({
 
       onChange(formatDateTime(nextDateTime));
     },
-    [disabled, onChange, selectedDate],
+    [commitInputValue, disabled, onChange, selectedDate],
   );
 
   const handleHourChange = useCallback(
@@ -149,6 +183,7 @@ export const DateTimePicker = ({
             disabled={disabled}
             isOpen={isOpen}
             onClear={() => onChange("")}
+            onInputCommit={commitInputValue}
             outsideClickIgnoreClassName={
               DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
             }

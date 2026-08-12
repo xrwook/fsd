@@ -22,6 +22,7 @@ type DateTimeInputProps = {
   onClear: () => void;
   onClick?: MouseEventHandler<HTMLInputElement>;
   onFocus?: FocusEventHandler<HTMLInputElement>;
+  onInputCommit?: (value: string) => void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
   outsideClickIgnoreClassName?: string;
@@ -40,6 +41,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       onClear,
       onClick,
       onFocus,
+      onInputCommit,
       onKeyDown,
       outsideClickIgnoreClassName,
       placeholder = "YYYY-MM-DD HH:MM",
@@ -85,6 +87,24 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       inputRef.current?.click();
     };
 
+    const handleInputBlur: FocusEventHandler<HTMLInputElement> = (event) => {
+      onInputCommit?.(event.currentTarget.value);
+      onBlur?.(event);
+    };
+
+    const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (
+      event,
+    ) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        onInputCommit?.(event.currentTarget.value);
+        event.currentTarget.blur();
+        return;
+      }
+
+      onKeyDown?.(event);
+    };
+
     return (
       <div
         aria-disabled={disabled}
@@ -104,11 +124,11 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           aria-label="날짜 시간"
           className={clsx("dateTimeInputField", outsideClickIgnoreClassName)}
           disabled={disabled}
-          onBlur={disabled ? undefined : onBlur}
+          onBlur={disabled ? undefined : handleInputBlur}
           onChange={disabled ? undefined : onChange}
           onClick={disabled ? undefined : onClick}
           onFocus={disabled ? undefined : onFocus}
-          onKeyDown={disabled ? undefined : onKeyDown}
+          onKeyDown={disabled ? undefined : handleInputKeyDown}
           placeholder={placeholder}
           ref={inputRef}
           value={value}
