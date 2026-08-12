@@ -1,3 +1,5 @@
+import { MenuItem, Select } from "@mui/material";
+import type { SelectChangeEvent } from "@mui/material/Select";
 import type { ChangeEvent } from "react";
 
 import { FONT_FAMILIES, FONT_SIZES } from "../config/font";
@@ -8,6 +10,61 @@ import { ToolbarButton } from "./_ToolbarButton";
 
 type Props = EditorControlProps;
 type HeadingLevel = 1 | 2 | 3 | 4;
+
+const FONT_SELECT_SX = {
+  height: 32,
+  width: 122,
+  backgroundColor: "#fff",
+  color: "#374151",
+  fontSize: 12,
+  "& .MuiSelect-select": {
+    alignItems: "center",
+    display: "flex",
+    minHeight: "unset",
+    padding: "0 25px 0 8px",
+  },
+  "& .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#d1d5db",
+    borderRadius: "5px",
+  },
+  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+    borderColor: "#2563eb",
+    borderWidth: "2px",
+  },
+  "&.Mui-disabled": {
+    backgroundColor: "#f3f4f6",
+    color: "#9ca3af",
+    cursor: "not-allowed",
+  },
+} as const;
+
+const FONT_SELECT_MENU_PROPS = {
+  slotProps: {
+    paper: {
+      sx: {
+        border: "1px solid #d1d5db",
+        borderRadius: 0,
+        boxShadow: "0 6px 16px rgb(15 23 42 / 12%)",
+        mt: 0.5,
+      },
+    },
+  },
+} as const;
+
+const FONT_MENU_ITEM_SX = {
+  fontSize: 12,
+  minHeight: 32,
+  "&.Mui-selected": {
+    backgroundColor: "#bada55",
+    color: "#111827",
+  },
+  "&.Mui-selected:hover": {
+    backgroundColor: "#bada55",
+  },
+  "&:hover": {
+    backgroundColor: "rgb(186 218 85 / 24%)",
+  },
+} as const;
 
 const colorInputValue = (color: unknown, fallback: string) =>
   typeof color === "string" && /^#[\da-f]{6}$/i.test(color) ? color : fallback;
@@ -30,7 +87,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
     chain.setHeading({ level: Number(value) as HeadingLevel }).run();
   };
 
-  const handleFontFamilyChange = (event: ChangeEvent<HTMLSelectElement>) => {
+  const handleFontFamilyChange = (event: SelectChangeEvent<string>) => {
     const fontFamily = event.target.value;
     const chain = editor.chain().focus();
 
@@ -54,20 +111,25 @@ export const FontControls = ({ disabled, editor }: Props) => {
 
   return (
     <div className="tiptapToolbarGroup">
-      <select
+      <Select<string>
         aria-label="글꼴"
-        className="tiptapToolbarSelect tiptapToolbarSelectFont"
+        className="tiptapToolbarSelectFont"
+        displayEmpty
         disabled={disabled}
+        MenuProps={FONT_SELECT_MENU_PROPS}
+        size="small"
+        sx={FONT_SELECT_SX}
         title="글꼴"
         value={(textStyle.fontFamily as string | undefined) ?? ""}
+        variant="outlined"
         onChange={handleFontFamilyChange}
       >
         {FONT_FAMILIES.map((font) => (
-          <option key={font.label} value={font.value}>
+          <MenuItem key={font.label} sx={FONT_MENU_ITEM_SX} value={font.value}>
             {font.label}
-          </option>
+          </MenuItem>
         ))}
-      </select>
+      </Select>
       <select
         aria-label="글자 크기"
         className="tiptapToolbarSelect tiptapToolbarSelectSize"
