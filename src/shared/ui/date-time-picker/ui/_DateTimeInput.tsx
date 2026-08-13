@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import {
-  type ChangeEvent,
   type ChangeEventHandler,
   type FocusEventHandler,
   forwardRef,
@@ -18,11 +17,11 @@ type DateTimeInputProps = {
   disabled?: boolean;
   isOpen: boolean;
   onBlur?: FocusEventHandler<HTMLInputElement>;
-  onChange?: ChangeEventHandler<HTMLInputElement>;
   onClear: () => void;
   onClick?: MouseEventHandler<HTMLInputElement>;
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onInputCommit?: (value: string) => void;
+  onInputValueChange?: (value: string) => void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
   outsideClickIgnoreClassName?: string;
@@ -37,11 +36,11 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       disabled,
       isOpen,
       onBlur,
-      onChange,
       onClear,
       onClick,
       onFocus,
       onInputCommit,
+      onInputValueChange,
       onKeyDown,
       outsideClickIgnoreClassName,
       placeholder = "YYYY-MM-DD HH:MM",
@@ -54,14 +53,6 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
     const handleClear = () => {
-      if (onChange) {
-        onChange({
-          currentTarget: { value: "" },
-          target: { value: "" },
-        } as ChangeEvent<HTMLInputElement>);
-        return;
-      }
-
       onClear();
     };
 
@@ -87,6 +78,10 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       inputRef.current?.click();
     };
 
+    const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+      onInputValueChange?.(event.currentTarget.value);
+    };
+
     const handleInputBlur: FocusEventHandler<HTMLInputElement> = (event) => {
       onInputCommit?.(event.currentTarget.value);
       onBlur?.(event);
@@ -97,7 +92,6 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     ) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        onInputCommit?.(event.currentTarget.value);
         event.currentTarget.blur();
         return;
       }
@@ -125,7 +119,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           className={clsx("dateTimeInputField", outsideClickIgnoreClassName)}
           disabled={disabled}
           onBlur={disabled ? undefined : handleInputBlur}
-          onChange={disabled ? undefined : onChange}
+          onChange={disabled ? undefined : handleInputChange}
           onClick={disabled ? undefined : onClick}
           onFocus={disabled ? undefined : onFocus}
           onKeyDown={disabled ? undefined : handleInputKeyDown}

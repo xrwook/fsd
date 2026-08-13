@@ -57,6 +57,12 @@ export const DateTimePicker = ({
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const selectedDate = normalizeDateTimeValue(value);
+  const displayValue = formatDateTime(selectedDate);
+  const [inputValue, setInputValue] = useState(displayValue);
+
+  useEffect(() => {
+    setInputValue(displayValue);
+  }, [displayValue]);
 
   const isDateSelectable = useCallback(
     (date: Date) => {
@@ -69,18 +75,30 @@ export const DateTimePicker = ({
   );
 
   const commitInputValue = useCallback(
-    (inputValue: string) => {
+    (nextInputValue: string) => {
       if (disabled) return;
 
-      const nextDate = parseDateTime(inputValue.trim());
-      if (!nextDate || !isDateSelectable(nextDate)) return;
+      const trimmedValue = nextInputValue.trim();
+
+      if (!trimmedValue) {
+        setInputValue("");
+        if (displayValue) onChange("");
+        return;
+      }
+
+      const nextDate = parseDateTime(trimmedValue);
+      if (!nextDate || !isDateSelectable(nextDate)) {
+        setInputValue(displayValue);
+        return;
+      }
 
       const nextValue = formatDateTime(nextDate);
-      if (nextValue === formatDateTime(selectedDate)) return;
+      setInputValue(nextValue);
+      if (nextValue === displayValue) return;
 
       onChange(nextValue);
     },
-    [disabled, isDateSelectable, onChange, selectedDate],
+    [disabled, displayValue, isDateSelectable, onChange],
   );
 
   const closePicker = useCallback(() => {
@@ -94,18 +112,39 @@ export const DateTimePicker = ({
     }
   }, [closePicker, disabled]);
 
+  const handleInputValueChange = useCallback(
+    (nextInputValue: string) => {
+      if (disabled) return;
+
+      setInputValue(nextInputValue);
+    },
+    [disabled],
+  );
+
+  const emitDateTimeChange = useCallback(
+    (nextDate: Date | null) => {
+      const nextValue = formatDateTime(nextDate);
+
+      setInputValue(nextValue);
+      onChange(nextValue);
+    },
+    [onChange],
+  );
+
   const handleDateChange = useCallback(
     (nextDate: Date | null, event?: SyntheticEvent<HTMLElement>) => {
       if (disabled) return;
 
       if (!nextDate) {
-        onChange("");
+        emitDateTimeChange(null);
         return;
       }
 
       const isTextInputChange = event?.type === "change";
       const inputValue =
-        event?.target instanceof HTMLInputElement ? event.target.value : "";
+        "value" in (event?.target ?? {})
+          ? String((event?.target as HTMLInputElement).value)
+          : "";
 
       if (isTextInputChange && inputValue) {
         commitInputValue(inputValue);
@@ -127,27 +166,27 @@ export const DateTimePicker = ({
         })
         .toJSDate();
 
-      onChange(formatDateTime(nextDateTime));
+      emitDateTimeChange(nextDateTime);
     },
-    [commitInputValue, disabled, onChange, selectedDate],
+    [commitInputValue, disabled, emitDateTimeChange, selectedDate],
   );
 
   const handleHourChange = useCallback(
     (hour: number) => {
       if (disabled) return;
 
-      onChange(formatDateTime(setDateTimePart(selectedDate, "hour", hour)));
+      emitDateTimeChange(setDateTimePart(selectedDate, "hour", hour));
     },
-    [disabled, onChange, selectedDate],
+    [disabled, emitDateTimeChange, selectedDate],
   );
 
   const handleMinuteChange = useCallback(
     (minute: number) => {
       if (disabled) return;
 
-      onChange(formatDateTime(setDateTimePart(selectedDate, "minute", minute)));
+      emitDateTimeChange(setDateTimePart(selectedDate, "minute", minute));
     },
-    [disabled, onChange, selectedDate],
+    [disabled, emitDateTimeChange, selectedDate],
   );
 
   const calendarContainer = useMemo(
@@ -182,8 +221,9 @@ export const DateTimePicker = ({
           <DateTimeInput
             disabled={disabled}
             isOpen={isOpen}
-            onClear={() => onChange("")}
+            onClear={() => emitDateTimeChange(null)}
             onInputCommit={commitInputValue}
+            onInputValueChange={handleInputValueChange}
             outsideClickIgnoreClassName={
               DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
             }
@@ -214,6 +254,7 @@ export const DateTimePicker = ({
         shouldCloseOnSelect={false}
         showPopperArrow={false}
         strictParsing
+        value={inputValue}
         open={disabled ? false : undefined}
       />
     </div>

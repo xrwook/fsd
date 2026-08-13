@@ -10,6 +10,17 @@ export const serviceKeys = {
       [...ROOT, "event", "list", params] as const,
     detail: (id: string) => [...ROOT, "event", "detail", id] as const,
   },
+  home: {
+    all: () => [...ROOT, "home"] as const,
+    recentVisits: (params?: QueryKeyParams) =>
+      [...ROOT, "home", "recentVisits", params] as const,
+    notices: (params?: QueryKeyParams) =>
+      [...ROOT, "home", "notices", params] as const,
+    noticeDetail: (id: string) =>
+      [...ROOT, "home", "notices", "detail", id] as const,
+    favorites: (params?: QueryKeyParams) =>
+      [...ROOT, "home", "favorites", params] as const,
+  },
   notice: {
     all: () => [...ROOT, "notice"] as const,
     list: (params?: QueryKeyParams) =>

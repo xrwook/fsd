@@ -5,6 +5,7 @@ import {
   type DateRangeQuickRange,
 } from "@/shared/ui/date-range-picker";
 import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
+import { DateTimePicker } from "@/shared/ui/date-time-picker";
 
 const USE_PERIOD_QUICK_RANGES: DateRangeQuickRange[] = [
   {
@@ -50,6 +51,13 @@ const CorporateJoin = () => {
           기업 소개 내용을 작성해 주세요.
         </p>
       </div>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <DateTimePicker 
+          value={new Date()}
+          onChange={(value) => console.log(value)}
+        />
+      </section>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
