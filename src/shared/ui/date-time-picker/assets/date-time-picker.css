@@ -1,4 +1,5 @@
 .dateTimePicker {
+  position: relative;
   width: fit-content;
 }
 
@@ -98,6 +99,21 @@
 
 .dateTimePopper {
   z-index: 1400;
+}
+
+.dateTimeTimePopper {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1400;
+  color: #16181d;
+  font-family: inherit;
+}
+
+.dateTimeTimePopper .dateTimePanel {
+  height: 264px;
+  border: 1px solid #20242b;
+  box-shadow: 0 6px 16px rgb(16 24 40 / 14%);
 }
 
 .dateTimeCalendar {

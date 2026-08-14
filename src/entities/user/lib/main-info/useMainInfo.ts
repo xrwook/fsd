@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from "react";
 
+import type { ScreenIdValues } from "@/shared/config";
+
 import { useGetMainInfoQuery } from "../../api";
 import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MenuData } from "./types";
@@ -8,7 +10,6 @@ import {
   hasChildrenMenuPermission,
   hasMenuPermission,
 } from "./utils";
-import type { ScreenIdValues } from "@/shared/config";
 
 type TMainMenu = {
   name: string;
@@ -21,6 +22,26 @@ const EMPTY_MAIN_MENUS: TMainMenu[] = [];
 
 const isNavigableMenuUrl = (url: string) => {
   return Boolean(url && url !== "#");
+};
+
+const trimTrailingSlash = (pathname: string) => {
+  return pathname === "/" ? pathname : pathname.replace(/\/+$/, "");
+};
+
+const getMenuPathname = (url: string | null) => {
+  if (!url || url === "#") {
+    return "";
+  }
+
+  return trimTrailingSlash(url.split(/[?#]/)[0] ?? "");
+};
+
+const isSameOrChildPath = (pathname: string, menuPathname: string) => {
+  if (menuPathname === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === menuPathname || pathname.startsWith(`${menuPathname}/`);
 };
 
 const findFirstMenuPath = (menu: MenuData): string => {
@@ -45,6 +66,30 @@ const createMainMenus = (menus: MenuData[]): TMainMenu[] => {
     screenId: menu.screenId,
     path: findFirstMenuPath(menu),
   }));
+};
+
+const findTopParentMenuByPathnameFromTree = (
+  menus: TMenuPermission[],
+  pathname: string,
+) => {
+  const currentPathname = trimTrailingSlash(pathname);
+
+  if (!currentPathname) {
+    return null;
+  }
+
+  const hasMatchedMenuUrl = (menu: TMenuPermission): boolean => {
+    const menuPathname = getMenuPathname(menu.url);
+
+    return (
+      Boolean(
+        menuPathname && isSameOrChildPath(currentPathname, menuPathname),
+      ) ||
+      menu.children.some((child) => hasMatchedMenuUrl(child))
+    );
+  };
+
+  return menus.find((menu) => hasMatchedMenuUrl(menu)) ?? null;
 };
 
 /**
@@ -122,6 +167,12 @@ export const useMainInfo = () => {
     [isFetched, menuPermissions],
   );
 
+  const findTopParentMenuByPathname = useCallback(
+    (pathname: string) =>
+      findTopParentMenuByPathnameFromTree(menuPermissions, pathname),
+    [menuPermissions],
+  );
+
   return {
     mainInfoData,
     userInfo,
@@ -131,6 +182,7 @@ export const useMainInfo = () => {
     isMainInfoInitialized: isFetched,
     canAccessMenu,
     canAccessMenuGroup,
+    findTopParentMenuByPathname,
     canCreate,
     canUpdate,
     canDelete,

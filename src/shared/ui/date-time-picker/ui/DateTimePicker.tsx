@@ -15,8 +15,11 @@ import ReactDatePicker, { CalendarContainer } from "react-datepicker";
 
 import {
   formatDateTime,
+  formatTime,
   normalizeDateTimeValue,
+  normalizeTimeValue,
   parseDateTime,
+  parseTime,
   setDateTimePart,
 } from "../lib/dateTime";
 import { DateTimeInput } from "./_DateTimeInput";
@@ -25,27 +28,59 @@ import { DateTimePanel } from "./_DateTimePanel";
 const DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS =
   "dateTimeInputOutsideClickIgnore";
 
-export type DateTimePickerProps = {
-  /** 선택된 날짜/시간 */
-  value: Date | null;
+type DateTimePickerMode = "dateTime" | "time";
+
+type DateTimePickerBaseProps = {
+  /** 선택된 날짜/시간 또는 시간 */
+  value: Date | string | null;
+  /** 선택 가능한 최소 날짜 */
+  minDate?: Date;
+  /** 선택 가능한 최대 날짜 */
+  maxDate?: Date;
   /** 비활성화 여부 */
   disabled?: boolean;
   /** 입력 영역 placeholder */
   placeholder?: string;
   /** 분 선택 간격 */
   minuteStep?: number;
-  /** 선택 가능한 최소 날짜 */
-  minDate?: Date;
-  /** 선택 가능한 최대 날짜 */
-  maxDate?: Date;
-  /** 날짜/시간이 변경될 때 yyyy-MM-dd HH:mm 문자열로 반환한다. */
+  /** 선택값이 변경될 때 dateTime은 yyyy-MM-dd HH:mm, time은 HH:mm 문자열로 반환한다. */
   onChange: (value: string) => void;
 };
+
+export type DateTimePickerProps =
+  | (DateTimePickerBaseProps & {
+      /** 날짜+시간 또는 시간 전용 선택 모드 */
+      mode?: "dateTime";
+      value: Date | null;
+    })
+  | (DateTimePickerBaseProps & {
+      /** 날짜+시간 또는 시간 전용 선택 모드 */
+      mode: "time";
+      value: Date | string | null;
+    });
+
+const getPlaceholder = (
+  mode: DateTimePickerMode,
+  placeholder: string | undefined,
+) => placeholder ?? (mode === "time" ? "HH:mm" : "YYYY-MM-DD HH:mm");
+
+const formatPickerValue = (mode: DateTimePickerMode, date: Date | null) =>
+  mode === "time" ? formatTime(date) : formatDateTime(date);
+
+const parsePickerValue = (mode: DateTimePickerMode, value: string) =>
+  mode === "time" ? parseTime(value) : parseDateTime(value);
+
+const normalizePickerValue = (
+  mode: DateTimePickerMode,
+  value: Date | string | null,
+) =>
+  mode === "time" ? normalizeTimeValue(value) : normalizeDateTimeValue(value);
 
 /**
  * 날짜 달력과 시/분 선택 컬럼을 함께 보여주는 단일 날짜/시간 선택 컴포넌트.
  */
 export const DateTimePicker = ({
+  mode = "dateTime",
   value,
   disabled = false,
   placeholder,
@@ -54,24 +89,35 @@ export const DateTimePicker = ({
   maxDate,
   onChange,
 }: DateTimePickerProps) => {
+  const rootRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const selectedDate = normalizeDateTimeValue(value);
-  const displayValue = formatDateTime(selectedDate);
+  const externalSelectedDate = useMemo(
+    () => normalizePickerValue(mode, value),
+    [mode, value],
+  );
+  const displayValue = formatPickerValue(mode, externalSelectedDate);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    () => externalSelectedDate,
+  );
   const [inputValue, setInputValue] = useState(displayValue);
+  const inputPlaceholder = getPlaceholder(mode, placeholder);
+  const selectedDisplayValue = formatPickerValue(mode, selectedDate);
 
   useEffect(() => {
+    setSelectedDate(externalSelectedDate);
     setInputValue(displayValue);
-  }, [displayValue]);
+  }, [displayValue, externalSelectedDate]);
 
   const isDateSelectable = useCallback(
     (date: Date) => {
+      if (mode === "time") return true;
       if (minDate && date < minDate) return false;
       if (maxDate && date > maxDate) return false;
 
       return true;
     },
-    [maxDate, minDate],
+    [maxDate, minDate, mode],
   );
 
   const commitInputValue = useCallback(
@@ -81,24 +127,26 @@ export const DateTimePicker = ({
       const trimmedValue = nextInputValue.trim();
 
       if (!trimmedValue) {
+        setSelectedDate(null);
         setInputValue("");
-        if (displayValue) onChange("");
+        if (selectedDisplayValue) onChange("");
         return;
       }
 
-      const nextDate = parseDateTime(trimmedValue);
+      const nextDate = parsePickerValue(mode, trimmedValue);
       if (!nextDate || !isDateSelectable(nextDate)) {
-        setInputValue(displayValue);
+        setInputValue(selectedDisplayValue);
         return;
       }
 
-      const nextValue = formatDateTime(nextDate);
+      const nextValue = formatPickerValue(mode, nextDate);
+      setSelectedDate(nextDate);
       setInputValue(nextValue);
-      if (nextValue === displayValue) return;
+      if (nextValue === selectedDisplayValue) return;
 
       onChange(nextValue);
     },
-    [disabled, displayValue, isDateSelectable, onChange],
+    [disabled, isDateSelectable, mode, onChange, selectedDisplayValue],
   );
 
   const closePicker = useCallback(() => {
@@ -121,14 +169,15 @@ export const DateTimePicker = ({
     [disabled],
   );
 
-  const emitDateTimeChange = useCallback(
+  const emitPickerChange = useCallback(
     (nextDate: Date | null) => {
-      const nextValue = formatDateTime(nextDate);
+      const nextValue = formatPickerValue(mode, nextDate);
 
+      setSelectedDate(nextDate);
       setInputValue(nextValue);
       onChange(nextValue);
     },
-    [onChange],
+    [mode, onChange],
   );
 
   const handleDateChange = useCallback(
@@ -136,7 +185,7 @@ export const DateTimePicker = ({
       if (disabled) return;
 
       if (!nextDate) {
-        emitDateTimeChange(null);
+        emitPickerChange(null);
         return;
       }
 
@@ -166,28 +215,63 @@ export const DateTimePicker = ({
         })
         .toJSDate();
 
-      emitDateTimeChange(nextDateTime);
+      emitPickerChange(nextDateTime);
     },
-    [commitInputValue, disabled, emitDateTimeChange, selectedDate],
+    [commitInputValue, disabled, emitPickerChange, selectedDate],
   );
 
   const handleHourChange = useCallback(
     (hour: number) => {
       if (disabled) return;
 
-      emitDateTimeChange(setDateTimePart(selectedDate, "hour", hour));
+      emitPickerChange(setDateTimePart(selectedDate, "hour", hour));
     },
-    [disabled, emitDateTimeChange, selectedDate],
+    [disabled, emitPickerChange, selectedDate],
   );
 
   const handleMinuteChange = useCallback(
     (minute: number) => {
       if (disabled) return;
 
-      emitDateTimeChange(setDateTimePart(selectedDate, "minute", minute));
+      emitPickerChange(setDateTimePart(selectedDate, "minute", minute));
     },
-    [disabled, emitDateTimeChange, selectedDate],
+    [disabled, emitPickerChange, selectedDate],
   );
+
+  useEffect(() => {
+    if (mode !== "time" || !isOpen) return;
+
+    const handleDocumentMouseDown = (event: MouseEvent) => {
+      if (
+        event.target instanceof Node &&
+        rootRef.current?.contains(event.target)
+      ) {
+        return;
+      }
+
+      setIsOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+    };
+  }, [isOpen, mode]);
+
+  const openTimePicker = useCallback(() => {
+    if (disabled) return;
+
+    setIsOpen(true);
+  }, [disabled]);
+
+  const handleTimeInputBlur = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (!rootRef.current?.contains(document.activeElement)) {
+        setIsOpen(false);
+      }
+    });
+  }, []);
 
   const calendarContainer = useMemo(
     () =>
@@ -212,8 +296,40 @@ export const DateTimePicker = ({
     [handleHourChange, handleMinuteChange, minuteStep, selectedDate],
   );
 
+  if (mode === "time") {
+    return (
+      <div className="dateTimePicker dateTimePickerTimeOnly" ref={rootRef}>
+        <DateTimeInput
+          ariaLabel="시간"
+          disabled={disabled}
+          iconType="time"
+          isOpen={isOpen}
+          onBlur={handleTimeInputBlur}
+          onClear={() => emitPickerChange(null)}
+          onClick={openTimePicker}
+          onFocus={openTimePicker}
+          onInputCommit={commitInputValue}
+          onInputValueChange={handleInputValueChange}
+          placeholder={inputPlaceholder}
+          value={inputValue}
+        />
+
+        {isOpen ? (
+          <div className="dateTimeTimePopper">
+            <DateTimePanel
+              minuteStep={minuteStep}
+              selectedDate={selectedDate}
+              onHourChange={handleHourChange}
+              onMinuteChange={handleMinuteChange}
+            />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
-    <div className="dateTimePicker">
+    <div className="dateTimePicker" ref={rootRef}>
       <ReactDatePicker
         calendarClassName="dateTimeCalendar"
         calendarContainer={calendarContainer}
@@ -221,13 +337,13 @@ export const DateTimePicker = ({
           <DateTimeInput
             disabled={disabled}
             isOpen={isOpen}
-            onClear={() => emitDateTimeChange(null)}
+            onClear={() => emitPickerChange(null)}
             onInputCommit={commitInputValue}
             onInputValueChange={handleInputValueChange}
             outsideClickIgnoreClassName={
               DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
             }
-            placeholder={placeholder}
+            placeholder={inputPlaceholder}
           />
         }
         dateFormat="yyyy-MM-dd HH:mm"
@@ -246,7 +362,7 @@ export const DateTimePicker = ({
         }}
         onChange={handleDateChange}
         outsideClickIgnoreClass={DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}
-        placeholderText={placeholder}
+        placeholderText={inputPlaceholder}
         popperClassName="dateTimePopper"
         popperPlacement="bottom-start"
         ref={pickerRef}

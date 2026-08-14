@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 
 export const DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm";
+export const TIME_FORMAT = "HH:mm";
 
 export const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !Number.isNaN(value.getTime());
@@ -17,9 +18,34 @@ export const parseDateTime = (value: string): Date | null => {
   return date.isValid ? date.toJSDate() : null;
 };
 
+export const formatTime = (date: Date | null): string => {
+  if (!isValidDate(date)) return "";
+
+  return DateTime.fromJSDate(date).toFormat(TIME_FORMAT);
+};
+
+export const parseTime = (value: string): Date | null => {
+  const time = DateTime.fromFormat(value, TIME_FORMAT);
+
+  if (!time.isValid) return null;
+
+  return DateTime.now()
+    .startOf("day")
+    .set({ hour: time.hour, minute: time.minute })
+    .toJSDate();
+};
+
 export const normalizeDateTimeValue = (value: unknown): Date | null => {
   if (isValidDate(value)) return value;
   if (typeof value === "string") return parseDateTime(value);
+
+  return null;
+};
+
+export const normalizeTimeValue = (value: unknown): Date | null => {
+  if (isValidDate(value)) return value;
+  if (typeof value === "string")
+    return parseTime(value) ?? parseDateTime(value);
 
   return null;
 };

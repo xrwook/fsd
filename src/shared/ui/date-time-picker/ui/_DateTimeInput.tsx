@@ -10,11 +10,14 @@ import {
 } from "react";
 
 import DateTimeCalendarIcon from "../assets/icons/calendar.svg?react";
+import DateTimeClockIcon from "../assets/icons/clock.svg?react";
 import DateTimeCloseIcon from "../assets/icons/close.svg?react";
 
 type DateTimeInputProps = {
+  ariaLabel?: string;
   className?: string;
   disabled?: boolean;
+  iconType?: "calendar" | "time";
   isOpen: boolean;
   onBlur?: FocusEventHandler<HTMLInputElement>;
   onClear: () => void;
@@ -32,8 +35,10 @@ type DateTimeInputProps = {
 export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
   (
     {
+      ariaLabel = "날짜 시간",
       className,
       disabled,
+      iconType = "calendar",
       isOpen,
       onBlur,
       onClear,
@@ -49,6 +54,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
+    const Icon = iconType === "time" ? DateTimeClockIcon : DateTimeCalendarIcon;
 
     useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
 
@@ -115,7 +121,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
         onMouseDown={handleMouseDown}
       >
         <input
-          aria-label="날짜 시간"
+          aria-label={ariaLabel}
           className={clsx("dateTimeInputField", outsideClickIgnoreClassName)}
           disabled={disabled}
           onBlur={disabled ? undefined : handleInputBlur}
@@ -146,7 +152,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           </button>
         ) : null}
 
-        <DateTimeCalendarIcon
+        <Icon
           aria-hidden="true"
           className={clsx("dateTimeCalendarIcon", outsideClickIgnoreClassName)}
         />

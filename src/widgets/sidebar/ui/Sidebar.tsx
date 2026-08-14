@@ -75,6 +75,7 @@ export const Sidebar = () => {
     isMainInfoInitialized,
     canAccessMenu,
     canAccessMenuGroup,
+    findTopParentMenuByPathname,
   } = useMainInfo();
   const { favoriteMenuIds, toggleFavorite } = useSidebarFavorites();
   const [expandedMenuIds, setExpandedMenuIds] = useState<Set<string>>(
@@ -87,8 +88,31 @@ export const Sidebar = () => {
   );
 
   useEffect(() => {
-    setExpandedMenuIds(initialExpandedMenuIds);
-  }, [initialExpandedMenuIds]);
+    if (!isMainInfoInitialized) {
+      return;
+    }
+
+    const topParentMenu = findTopParentMenuByPathname(location.pathname);
+
+    setExpandedMenuIds((current) => {
+      const next = new Set(current);
+
+      for (const menuId of initialExpandedMenuIds) {
+        next.add(menuId);
+      }
+
+      if (topParentMenu) {
+        next.add(topParentMenu.screenId);
+      }
+
+      return next;
+    });
+  }, [
+    findTopParentMenuByPathname,
+    initialExpandedMenuIds,
+    isMainInfoInitialized,
+    location.pathname,
+  ]);
 
   const favoriteMenus = useMemo(() => {
     const menuById = new Map<string, TMenuPermission>(
