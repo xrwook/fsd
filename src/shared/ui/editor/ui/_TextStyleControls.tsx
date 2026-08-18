@@ -69,11 +69,16 @@ const FONT_MENU_ITEM_SX = {
 const colorInputValue = (color: unknown, fallback: string) =>
   typeof color === "string" && /^#[\da-f]{6}$/i.test(color) ? color : fallback;
 
+const DEFAULT_FONT_FAMILY_VALUE = FONT_FAMILIES[0]?.value ?? "";
+
 export const FontControls = ({ disabled, editor }: Props) => {
   const headingLevel = ([1, 2, 3, 4] as const).find((level) =>
     editor.isActive("heading", { level }),
   );
   const textStyle = editor.getAttributes("textStyle");
+  const currentFontFamily = (textStyle.fontFamily as string | undefined) ?? "";
+  const selectedFontFamilyValue =
+    currentFontFamily || DEFAULT_FONT_FAMILY_VALUE;
 
   const handleHeadingChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
@@ -91,7 +96,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
     const fontFamily = event.target.value;
     const chain = editor.chain().focus();
 
-    if (fontFamily) {
+    if (fontFamily && fontFamily !== DEFAULT_FONT_FAMILY_VALUE) {
       chain.setFontFamily(fontFamily).run();
     } else {
       chain.unsetFontFamily().run();
@@ -120,7 +125,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
         size="small"
         sx={FONT_SELECT_SX}
         title="글꼴"
-        value={(textStyle.fontFamily as string | undefined) ?? ""}
+        value={selectedFontFamilyValue}
         variant="outlined"
         onChange={handleFontFamilyChange}
       >
