@@ -92,6 +92,42 @@ const findTopParentMenuByPathnameFromTree = (
   return menus.find((menu) => hasMatchedMenuUrl(menu)) ?? null;
 };
 
+const findFirstAccessibleMenuScreenId = (
+  menu: TMenuPermission,
+  permissionField: TMenuPermissionField = "canRead",
+): ScreenIdValues | null => {
+  for (const child of menu.children) {
+    const childScreenId = findFirstAccessibleMenuScreenId(
+      child,
+      permissionField,
+    );
+
+    if (childScreenId) {
+      return childScreenId;
+    }
+  }
+
+  if (menu.url && menu[permissionField]) {
+    return menu.screenId;
+  }
+
+  return null;
+};
+
+const findFirstAccessibleScreenIdByTopScreenIdFromTree = (
+  menus: TMenuPermission[],
+  screenId: ScreenIdValues,
+  permissionField: TMenuPermissionField = "canRead",
+) => {
+  const topMenu = menus.find((menu) => menu.screenId === screenId) ?? null;
+
+  if (!topMenu) {
+    return null;
+  }
+
+  return findFirstAccessibleMenuScreenId(topMenu, permissionField);
+};
+
 /**
  * 로그인 사용자의 기본 정보와 메뉴 접근 권한을 관리하는 훅입니다.
  */
@@ -173,6 +209,19 @@ export const useMainInfo = () => {
     [menuPermissions],
   );
 
+  const findFirstAccessibleScreenIdByTopScreenId = useCallback(
+    (
+      screenId: ScreenIdValues,
+      permissionField: TMenuPermissionField = "canRead",
+    ) =>
+      findFirstAccessibleScreenIdByTopScreenIdFromTree(
+        menuPermissions,
+        screenId,
+        permissionField,
+      ),
+    [menuPermissions],
+  );
+
   return {
     mainInfoData,
     userInfo,
@@ -183,6 +232,7 @@ export const useMainInfo = () => {
     canAccessMenu,
     canAccessMenuGroup,
     findTopParentMenuByPathname,
+    findFirstAccessibleScreenIdByTopScreenId,
     canCreate,
     canUpdate,
     canDelete,
