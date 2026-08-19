@@ -55,8 +55,10 @@ const CorporateJoin = () => {
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <DateTimePicker 
           value={new Date()}
-          mode="time"
+          // mode="time"
           onChange={(value) => console.log(value)}
+          dateFormat="yyyy-MM"
+          showMonthYearPicker
         />
       </section>
 

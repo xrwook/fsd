@@ -14,6 +14,7 @@ import {
 import ReactDatePicker, { CalendarContainer } from "react-datepicker";
 
 import {
+  DATE_TIME_FORMAT,
   formatDateTime,
   formatTime,
   normalizeDateTimeValue,
@@ -31,8 +32,6 @@ const DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS =
 type DateTimePickerMode = "dateTime" | "time";
 
 type DateTimePickerBaseProps = {
-  /** 선택된 날짜/시간 또는 시간 */
-  value: Date | string | null;
   /** 선택 가능한 최소 날짜 */
   minDate?: Date;
   /** 선택 가능한 최대 날짜 */
@@ -43,38 +42,66 @@ type DateTimePickerBaseProps = {
   placeholder?: string;
   /** 분 선택 간격 */
   minuteStep?: number;
-  /** 선택값이 변경될 때 dateTime은 yyyy-MM-dd HH:mm, time은 HH:mm 문자열로 반환한다. */
+  /** date format */ // 수정됨
+  dateFormat?: string; // 수정됨
+  /** 년, 월 용 달력 */ // 수정됨
+  showMonthYearPicker?: boolean;
+  /** yyyy-MM-dd HH:mm return. */
   onChange: (value: string) => void;
 };
 
 export type DateTimePickerProps =
   | (DateTimePickerBaseProps & {
       /** 날짜+시간 또는 시간 전용 선택 모드 */
-      mode?: "dateTime";
-      value: Date | null;
+      mode: "time";
+      value: Date | string | null;
     })
   | (DateTimePickerBaseProps & {
       /** 날짜+시간 또는 시간 전용 선택 모드 */
-      mode: "time";
-      value: Date | string | null;
+      mode?: "dateTime";
+      value: Date | null;
     });
 
 const getPlaceholder = (
   mode: DateTimePickerMode,
   placeholder: string | undefined,
-) => placeholder ?? (mode === "time" ? "HH:mm" : "YYYY-MM-DD HH:mm");
+  dateFormat: string, // 수정됨
+) => {
+  if (placeholder) return placeholder;
+  if (mode === "time") return "HH:mm";
 
-const formatPickerValue = (mode: DateTimePickerMode, date: Date | null) =>
-  mode === "time" ? formatTime(date) : formatDateTime(date);
+  return dateFormat; // 수정됨
+};
 
-const parsePickerValue = (mode: DateTimePickerMode, value: string) =>
-  mode === "time" ? parseTime(value) : parseDateTime(value);
+const formatPickerValue = (
+  mode: DateTimePickerMode,
+  date: Date | null,
+  dateFormat: string, // 수정됨
+) => {
+  if (mode === "time") return formatTime(date);
+
+  return formatDateTime(date, dateFormat); // 수정됨
+};
+
+const parsePickerValue = (
+  mode: DateTimePickerMode,
+  value: string,
+  dateFormat: string, // 수정됨
+) => {
+  if (mode === "time") return parseTime(value);
+
+  return parseDateTime(value, dateFormat); // 수정됨
+};
 
 const normalizePickerValue = (
   mode: DateTimePickerMode,
   value: Date | string | null,
-) =>
-  mode === "time" ? normalizeTimeValue(value) : normalizeDateTimeValue(value);
+  dateFormat: string, // 수정됨
+) => {
+  if (mode === "time") return normalizeTimeValue(value);
+
+  return normalizeDateTimeValue(value, dateFormat); // 수정됨
+};
 
 /**
  * 날짜 달력과 시/분 선택 컬럼을 함께 보여주는 단일 날짜/시간 선택 컴포넌트.
@@ -85,6 +112,8 @@ export const DateTimePicker = ({
   disabled = false,
   placeholder,
   minuteStep = 5,
+  dateFormat = DATE_TIME_FORMAT, // 수정됨
+  showMonthYearPicker = false,
   minDate,
   maxDate,
   onChange,
@@ -93,16 +122,24 @@ export const DateTimePicker = ({
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const externalSelectedDate = useMemo(
-    () => normalizePickerValue(mode, value),
-    [mode, value],
+    () => normalizePickerValue(mode, value, dateFormat), // 수정됨
+    [dateFormat, mode, value], // 수정됨
   );
-  const displayValue = formatPickerValue(mode, externalSelectedDate);
+  const displayValue = formatPickerValue(
+    mode,
+    externalSelectedDate,
+    dateFormat,
+  ); // 수정됨
   const [selectedDate, setSelectedDate] = useState<Date | null>(
     () => externalSelectedDate,
   );
   const [inputValue, setInputValue] = useState(displayValue);
-  const inputPlaceholder = getPlaceholder(mode, placeholder);
-  const selectedDisplayValue = formatPickerValue(mode, selectedDate);
+  const inputPlaceholder = getPlaceholder(mode, placeholder, dateFormat); // 수정됨
+  const selectedDisplayValue = formatPickerValue(
+    mode,
+    selectedDate,
+    dateFormat,
+  ); // 수정됨
 
   useEffect(() => {
     setSelectedDate(externalSelectedDate);
@@ -112,6 +149,7 @@ export const DateTimePicker = ({
   const isDateSelectable = useCallback(
     (date: Date) => {
       if (mode === "time") return true;
+
       if (minDate && date < minDate) return false;
       if (maxDate && date > maxDate) return false;
 
@@ -133,20 +171,27 @@ export const DateTimePicker = ({
         return;
       }
 
-      const nextDate = parsePickerValue(mode, trimmedValue);
+      const nextDate = parsePickerValue(mode, trimmedValue, dateFormat); // 수정됨
       if (!nextDate || !isDateSelectable(nextDate)) {
         setInputValue(selectedDisplayValue);
         return;
       }
 
-      const nextValue = formatPickerValue(mode, nextDate);
+      const nextValue = formatPickerValue(mode, nextDate, dateFormat); // 수정됨
       setSelectedDate(nextDate);
       setInputValue(nextValue);
       if (nextValue === selectedDisplayValue) return;
 
       onChange(nextValue);
     },
-    [disabled, isDateSelectable, mode, onChange, selectedDisplayValue],
+    [
+      dateFormat,
+      disabled,
+      isDateSelectable,
+      mode,
+      onChange,
+      selectedDisplayValue,
+    ], // 수정됨
   );
 
   const closePicker = useCallback(() => {
@@ -171,13 +216,13 @@ export const DateTimePicker = ({
 
   const emitPickerChange = useCallback(
     (nextDate: Date | null) => {
-      const nextValue = formatPickerValue(mode, nextDate);
+      const nextValue = formatPickerValue(mode, nextDate, dateFormat); // 수정됨
 
       setSelectedDate(nextDate);
       setInputValue(nextValue);
       onChange(nextValue);
     },
-    [mode, onChange],
+    [dateFormat, mode, onChange], // 수정됨
   );
 
   const handleDateChange = useCallback(
@@ -328,11 +373,12 @@ export const DateTimePicker = ({
     );
   }
 
+  // 수정됨: showMonthYearPicker와 dateFormat을 ReactDatePicker에 전달하는 방식으로 단순화한다.
   return (
     <div className="dateTimePicker" ref={rootRef}>
       <ReactDatePicker
         calendarClassName="dateTimeCalendar"
-        calendarContainer={calendarContainer}
+        calendarContainer={showMonthYearPicker ? undefined : calendarContainer}
         customInput={
           <DateTimeInput
             disabled={disabled}
@@ -346,8 +392,8 @@ export const DateTimePicker = ({
             placeholder={inputPlaceholder}
           />
         }
-        dateFormat="yyyy-MM-dd HH:mm"
-        dateFormatCalendar="yyyy MMM"
+        dateFormat={dateFormat}
+        dateFormatCalendar="yyyy MM"
         disabled={disabled}
         maxDate={maxDate}
         minDate={minDate}
@@ -368,6 +414,7 @@ export const DateTimePicker = ({
         ref={pickerRef}
         selected={selectedDate}
         shouldCloseOnSelect={false}
+        showMonthYearPicker={showMonthYearPicker}
         showPopperArrow={false}
         strictParsing
         value={inputValue}
