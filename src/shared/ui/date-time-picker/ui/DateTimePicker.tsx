@@ -158,6 +158,19 @@ export const DateTimePicker = ({
     [maxDate, minDate, mode],
   );
 
+  // 수정됨: 날짜를 선택했을 때 기존 선택 시간이 minDate/maxDate 범위를 벗어나면 가장 가까운 제한값으로 보정한다.
+  const clampDateTimeToRange = useCallback(
+    (date: Date) => {
+      if (mode === "time") return date;
+
+      if (minDate && date < minDate) return minDate;
+      if (maxDate && date > maxDate) return maxDate;
+
+      return date;
+    },
+    [maxDate, minDate, mode],
+  );
+
   const commitInputValue = useCallback(
     (nextInputValue: string) => {
       if (disabled) return;
@@ -260,27 +273,39 @@ export const DateTimePicker = ({
         })
         .toJSDate();
 
-      emitPickerChange(nextDateTime);
+      emitPickerChange(clampDateTimeToRange(nextDateTime)); // 수정됨
     },
-    [commitInputValue, disabled, emitPickerChange, selectedDate],
+    [
+      clampDateTimeToRange, // 수정됨
+      commitInputValue,
+      disabled,
+      emitPickerChange,
+      selectedDate,
+    ],
   );
 
   const handleHourChange = useCallback(
     (hour: number) => {
       if (disabled) return;
 
-      emitPickerChange(setDateTimePart(selectedDate, "hour", hour));
+      const nextDate = setDateTimePart(selectedDate, "hour", hour); // 수정됨
+      if (!isDateSelectable(nextDate)) return; // 수정됨
+
+      emitPickerChange(nextDate); // 수정됨
     },
-    [disabled, emitPickerChange, selectedDate],
+    [disabled, emitPickerChange, isDateSelectable, selectedDate], // 수정됨
   );
 
   const handleMinuteChange = useCallback(
     (minute: number) => {
       if (disabled) return;
 
-      emitPickerChange(setDateTimePart(selectedDate, "minute", minute));
+      const nextDate = setDateTimePart(selectedDate, "minute", minute); // 수정됨
+      if (!isDateSelectable(nextDate)) return; // 수정됨
+
+      emitPickerChange(nextDate); // 수정됨
     },
-    [disabled, emitPickerChange, selectedDate],
+    [disabled, emitPickerChange, isDateSelectable, selectedDate], // 수정됨
   );
 
   useEffect(() => {
@@ -329,7 +354,9 @@ export const DateTimePicker = ({
             <div className="dateTimeCalendarLayout">
               <div className="dateTimeMonthPane">{children}</div>
               <DateTimePanel
+                minDate={minDate} // 수정됨
                 minuteStep={minuteStep}
+                maxDate={maxDate} // 수정됨
                 selectedDate={selectedDate}
                 onHourChange={handleHourChange}
                 onMinuteChange={handleMinuteChange}
@@ -338,7 +365,14 @@ export const DateTimePicker = ({
           </CalendarContainer>
         );
       },
-    [handleHourChange, handleMinuteChange, minuteStep, selectedDate],
+    [
+      handleHourChange,
+      handleMinuteChange,
+      maxDate, // 수정됨
+      minDate, // 수정됨
+      minuteStep,
+      selectedDate,
+    ],
   );
 
   if (mode === "time") {
@@ -362,7 +396,9 @@ export const DateTimePicker = ({
         {isOpen ? (
           <div className="dateTimeTimePopper">
             <DateTimePanel
+              minDate={minDate} // 수정됨
               minuteStep={minuteStep}
+              maxDate={maxDate} // 수정됨
               selectedDate={selectedDate}
               onHourChange={handleHourChange}
               onMinuteChange={handleMinuteChange}

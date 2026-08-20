@@ -292,6 +292,15 @@
   background: #165dff;
 }
 
+/* 수정됨: minDate/maxDate 범위를 벗어난 시간/분 옵션을 비활성 상태로 표시한다. */
+.dateTimeOption:disabled,
+.dateTimeOption:disabled:hover,
+.dateTimeOption:disabled:focus-visible {
+  color: #c4c9d1;
+  background: #fff;
+  cursor: not-allowed;
+}
+
 @media (width <= 700px) {
   .dateTimePicker,
   .dateTimeInput {
