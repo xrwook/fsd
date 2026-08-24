@@ -41,21 +41,17 @@ const toInitialFileUploadItem = (
   id: file.id ?? file.fileDtlId,
   fileDtlId: file.fileDtlId,
   name: file.originalName,
-  type: file.contentType,
   size: file.fileSize,
   downloadUrl: file.downloadUrl,
-  status: "success",
-  progress: 100,
+  status: "idle",
 });
 
 const toPendingFileUploadItem = (file: File): FileUploadItem => ({
   id: createLocalFileId(),
   name: file.name,
-  type: file.type,
   size: file.size,
   status: "uploading",
   progress: 0,
-  sourceFile: file,
 });
 
 const toUploadedFileUploadItem = (
@@ -65,10 +61,9 @@ const toUploadedFileUploadItem = (
   ...pendingFile,
   fileDtlId: uploadUrlItem.fileDtlId,
   downloadUrl: uploadUrlItem.downloadUrl,
-  status: "success",
-  progress: 100,
-  errorMessage: undefined,
-  sourceFile: undefined,
+  status: "idle",
+  error: undefined,
+  progress: undefined,
 });
 
 const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
@@ -95,17 +90,12 @@ export const useFileUpload = ({
     initialFiles.map((file) => toInitialFileUploadItem(file)),
   );
   const [uploadError, setUploadError] = useState<Error | null>(null);
-  const filesReference = useRef(files);
   const fileGroupIdPromiseReference = useRef<Promise<string> | null>(null);
 
   const { isPending: isCreatingFileGroupId, mutateAsync: createFileGroupId } =
     useFileGroupIdMutation();
   const { isPending: isCreatingUploadUrls, mutateAsync: createUploadUrls } =
     useUploadUrlsMutation();
-
-  useEffect(() => {
-    filesReference.current = files;
-  }, [files]);
 
   const updateFile = useCallback(
     (fileId: string, updater: (file: FileUploadItem) => FileUploadItem) => {
@@ -125,7 +115,7 @@ export const useFileUpload = ({
         ...file,
         status: "error",
         progress: 0,
-        errorMessage,
+        error: errorMessage,
       }));
     },
     [updateFile],
@@ -163,12 +153,12 @@ export const useFileUpload = ({
   }, [autoCreateGroupId, ensureFileGroupId, fileGroupId]);
 
   const uploadPendingFile = useCallback(
-    async (pendingFile: FileUploadItem, uploadUrlItem: FileUploadUrlItem) => {
-      if (!pendingFile.sourceFile) {
-        throw new Error("업로드할 파일을 찾을 수 없습니다.");
-      }
-
-      await uploadToSignedUrl(pendingFile.sourceFile, uploadUrlItem.uploadUrl);
+    async (
+      pendingFile: FileUploadItem,
+      selectedFile: File,
+      uploadUrlItem: FileUploadUrlItem,
+    ) => {
+      await uploadToSignedUrl(selectedFile, uploadUrlItem.uploadUrl);
 
       const uploadedFile = toUploadedFileUploadItem(pendingFile, uploadUrlItem);
       updateFile(pendingFile.id, () => uploadedFile);
@@ -240,7 +230,11 @@ export const useFileUpload = ({
             );
           }
 
-          return uploadPendingFile(pendingFile, uploadUrlItem);
+          return uploadPendingFile(
+            pendingFile,
+            fileArray[index],
+            uploadUrlItem,
+          );
         }),
       );
 
@@ -274,58 +268,6 @@ export const useFileUpload = ({
     ],
   );
 
-  const retryFile = useCallback(
-    async (fileId: string) => {
-      const targetFile = filesReference.current.find(
-        (file) => file.id === fileId || file.fileDtlId === fileId,
-      );
-
-      if (!targetFile?.sourceFile) {
-        return null;
-      }
-
-      setUploadError(null);
-      await ensureFileGroupId();
-
-      updateFile(targetFile.id, (file) => ({
-        ...file,
-        status: "uploading",
-        progress: 0,
-        errorMessage: undefined,
-      }));
-
-      try {
-        const [uploadUrlItem] = await createUploadUrls([
-          toUploadUrlRequestItem(referenceType, targetFile.sourceFile),
-        ]);
-
-        if (!uploadUrlItem) {
-          throw new Error("업로드 URL 응답을 찾을 수 없습니다.");
-        }
-
-        return await uploadPendingFile(targetFile, uploadUrlItem);
-      } catch (error: unknown) {
-        const normalizedError =
-          error instanceof Error
-            ? error
-            : new Error("파일 업로드 재시도에 실패했습니다.");
-
-        setUploadError(normalizedError);
-        markFileAsError(targetFile.id, normalizedError);
-
-        throw normalizedError;
-      }
-    },
-    [
-      createUploadUrls,
-      ensureFileGroupId,
-      markFileAsError,
-      referenceType,
-      updateFile,
-      uploadPendingFile,
-    ],
-  );
-
   const removeFile = useCallback((fileId: string) => {
     setFiles((currentFiles) =>
       currentFiles.filter(
@@ -355,7 +297,7 @@ export const useFileUpload = ({
     () =>
       files.filter(
         (file): file is FileUploadItem & { fileDtlId: string } =>
-          file.status === "success" && !!file.fileDtlId,
+          file.status === "idle" && !!file.fileDtlId,
       ),
     [files],
   );
@@ -393,7 +335,6 @@ export const useFileUpload = ({
     isUploading: files.some((file) => file.status === "uploading"),
     ensureFileGroupId,
     uploadFiles,
-    retryFile,
     removeFile,
     initializeFiles,
     resetFiles,

@@ -1,18 +1,21 @@
 import type { FileDetailItem } from "@/shared/api/file";
 
-export type FileUploadStatus = "idle" | "uploading" | "success" | "error";
+export type FileStatus = "idle" | "uploading" | "downloading" | "error";
 
-export type FileUploadItem = {
+export type FileItem = {
   id: string;
-  fileDtlId?: string;
   name: string;
-  type: string;
-  size: number;
+  size?: number;
+  file?: File;
   downloadUrl?: string;
-  status: FileUploadStatus;
+  type?: string;
+  status?: FileStatus;
+  error?: string;
   progress?: number;
-  errorMessage?: string;
-  sourceFile?: File;
+};
+
+export type FileUploadItem = FileItem & {
+  fileDtlId?: string;
 };
 
 export type FileUploadInitialFile = FileDetailItem & {

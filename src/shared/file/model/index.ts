@@ -1,9 +1,10 @@
 export type {
   FileConfirm,
   FileConfirmGroup,
+  FileItem,
+  FileStatus,
   FileUploadInitialFile,
   FileUploadItem,
-  FileUploadStatus,
 } from "./types";
 export type {
   UseFileUploadOptions,
