@@ -9,6 +9,7 @@ export type FileUploadProps = {
   onDownload?: (file: FileUploadItem) => void;
   disabled?: boolean;
   isUploading?: boolean;
+  maxFileCount?: number;
   multiple?: boolean;
   accept?: string;
   mainText?: string;
@@ -35,6 +36,7 @@ export const FileUpload = ({
   onDownload,
   disabled = false,
   isUploading = false,
+  maxFileCount,
   multiple = true,
   accept,
   mainText,
@@ -47,8 +49,21 @@ export const FileUpload = ({
   className = "flex flex-col gap-2",
   fileListClassName,
 }: FileUploadProps) => {
+  const remainingFileCount =
+    maxFileCount === undefined
+      ? undefined
+      : Math.max(maxFileCount - files.length, 0);
+  const isMaxFileCountReached = remainingFileCount === 0;
+
   const handleFilesSelected = (selectedFiles: File[]) => {
-    Promise.resolve(onFilesSelected(selectedFiles)).catch(() => {});
+    const uploadableFiles =
+      remainingFileCount === undefined
+        ? selectedFiles
+        : selectedFiles.slice(0, remainingFileCount);
+
+    if (uploadableFiles.length === 0) return;
+
+    Promise.resolve(onFilesSelected(uploadableFiles)).catch(() => {});
   };
 
   const handleDownload = (file: FileUploadItem) => {
@@ -107,8 +122,10 @@ export const FileUpload = ({
         <FileSelectorArea
           accept={accept}
           buttonText={buttonText}
-          disabled={disabled || isUploading}
-          disableDragDrop={disableDragDrop || disabled || isUploading}
+          disabled={disabled || isUploading || isMaxFileCountReached}
+          disableDragDrop={
+            disableDragDrop || disabled || isUploading || isMaxFileCountReached
+          }
           mainText={mainText}
           multiple={multiple}
           onFilesSelected={handleFilesSelected}
