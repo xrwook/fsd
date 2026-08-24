@@ -59,7 +59,7 @@ export type DateTimePickerProps =
   | (DateTimePickerBaseProps & {
       /** 날짜+시간 또는 시간 전용 선택 모드 */
       mode?: "dateTime";
-      value: Date | null;
+      value: Date | string | null; // 수정됨
     });
 
 const getPlaceholder = (
