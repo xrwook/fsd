@@ -1,6 +1,7 @@
 import "react-datepicker/dist/react-datepicker.css";
 import "../assets/date-time-picker.css";
 
+import clsx from "clsx";
 import { DateTime } from "luxon";
 import {
   type ComponentProps,
@@ -46,6 +47,10 @@ type DateTimePickerBaseProps = {
   dateFormat?: string; // 수정됨
   /** 년, 월 용 달력 */ // 수정됨
   showMonthYearPicker?: boolean;
+  /** error */ // 수정됨
+  error?: boolean; // 수정됨
+  /** helpText */ // 수정됨
+  helpText?: string; // 수정됨
   /** yyyy-MM-dd HH:mm return. */
   onChange: (value: string) => void;
 };
@@ -114,6 +119,8 @@ export const DateTimePicker = ({
   minuteStep = 5,
   dateFormat = DATE_TIME_FORMAT, // 수정됨
   showMonthYearPicker = false,
+  error = false, // 수정됨
+  helpText, // 수정됨
   minDate,
   maxDate,
   onChange,
@@ -377,33 +384,53 @@ export const DateTimePicker = ({
 
   if (mode === "time") {
     return (
-      <div className="dateTimePicker dateTimePickerTimeOnly" ref={rootRef}>
-        <DateTimeInput
-          ariaLabel="시간"
-          disabled={disabled}
-          iconType="time"
-          isOpen={isOpen}
-          onBlur={handleTimeInputBlur}
-          onClear={() => emitPickerChange(null)}
-          onClick={openTimePicker}
-          onFocus={openTimePicker}
-          onInputCommit={commitInputValue}
-          onInputValueChange={handleInputValueChange}
-          placeholder={inputPlaceholder}
-          value={inputValue}
-        />
+      <div className="dateTimePickerField">
+        <div
+          className={clsx(
+            "dateTimePicker",
+            "dateTimePickerTimeOnly",
+            error && "datePickerError", // 수정됨
+          )}
+          ref={rootRef}
+        >
+          <DateTimeInput
+            ariaLabel="시간"
+            disabled={disabled}
+            iconType="time"
+            isOpen={isOpen}
+            onBlur={handleTimeInputBlur}
+            onClear={() => emitPickerChange(null)}
+            onClick={openTimePicker}
+            onFocus={openTimePicker}
+            onInputCommit={commitInputValue}
+            onInputValueChange={handleInputValueChange}
+            placeholder={inputPlaceholder}
+            value={inputValue}
+          />
 
-        {isOpen ? (
-          <div className="dateTimeTimePopper">
-            <DateTimePanel
-              minDate={minDate} // 수정됨
-              minuteStep={minuteStep}
-              maxDate={maxDate} // 수정됨
-              selectedDate={selectedDate}
-              onHourChange={handleHourChange}
-              onMinuteChange={handleMinuteChange}
-            />
-          </div>
+          {isOpen ? (
+            <div className="dateTimeTimePopper">
+              <DateTimePanel
+                minDate={minDate} // 수정됨
+                minuteStep={minuteStep}
+                maxDate={maxDate} // 수정됨
+                selectedDate={selectedDate}
+                onHourChange={handleHourChange}
+                onMinuteChange={handleMinuteChange}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {helpText ? (
+          <p
+            className={clsx(
+              "dateTimeHelpText",
+              error && "dateTimeHelpTextError", // 수정됨
+            )}
+          >
+            {helpText}
+          </p>
         ) : null}
       </div>
     );
@@ -411,51 +438,69 @@ export const DateTimePicker = ({
 
   // 수정됨: showMonthYearPicker와 dateFormat을 ReactDatePicker에 전달하는 방식으로 단순화한다.
   return (
-    <div className="dateTimePicker" ref={rootRef}>
-      <ReactDatePicker
-        calendarClassName="dateTimeCalendar"
-        calendarContainer={showMonthYearPicker ? undefined : calendarContainer}
-        customInput={
-          <DateTimeInput
-            disabled={disabled}
-            isOpen={isOpen}
-            onClear={() => emitPickerChange(null)}
-            onInputCommit={commitInputValue}
-            onInputValueChange={handleInputValueChange}
-            outsideClickIgnoreClassName={
-              DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
-            }
-            placeholder={inputPlaceholder}
-          />
-        }
-        dateFormat={dateFormat}
-        dateFormatCalendar="yyyy MM"
-        disabled={disabled}
-        maxDate={maxDate}
-        minDate={minDate}
-        onCalendarClose={() => setIsOpen(false)}
-        onCalendarOpen={() => {
-          if (disabled) {
-            closePicker();
-            return;
+    <div className="dateTimePickerField">
+      <div
+        className={clsx("dateTimePicker", error && "datePickerError")} // 수정됨
+        ref={rootRef}
+      >
+        <ReactDatePicker
+          calendarClassName="dateTimeCalendar"
+          calendarContainer={
+            showMonthYearPicker ? undefined : calendarContainer
           }
+          customInput={
+            <DateTimeInput
+              disabled={disabled}
+              isOpen={isOpen}
+              onClear={() => emitPickerChange(null)}
+              onInputCommit={commitInputValue}
+              onInputValueChange={handleInputValueChange}
+              outsideClickIgnoreClassName={
+                DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
+              }
+              placeholder={inputPlaceholder}
+            />
+          }
+          dateFormat={dateFormat}
+          dateFormatCalendar="yyyy MM"
+          disabled={disabled}
+          maxDate={maxDate}
+          minDate={minDate}
+          onCalendarClose={() => setIsOpen(false)}
+          onCalendarOpen={() => {
+            if (disabled) {
+              closePicker();
+              return;
+            }
 
-          setIsOpen(true);
-        }}
-        onChange={handleDateChange}
-        outsideClickIgnoreClass={DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}
-        placeholderText={inputPlaceholder}
-        popperClassName="dateTimePopper"
-        popperPlacement="bottom-start"
-        ref={pickerRef}
-        selected={selectedDate}
-        shouldCloseOnSelect={false}
-        showMonthYearPicker={showMonthYearPicker}
-        showPopperArrow={false}
-        strictParsing
-        value={inputValue}
-        open={disabled ? false : undefined}
-      />
+            setIsOpen(true);
+          }}
+          onChange={handleDateChange}
+          outsideClickIgnoreClass={DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}
+          placeholderText={inputPlaceholder}
+          popperClassName="dateTimePopper"
+          popperPlacement="bottom-start"
+          ref={pickerRef}
+          selected={selectedDate}
+          shouldCloseOnSelect={false}
+          showMonthYearPicker={showMonthYearPicker}
+          showPopperArrow={false}
+          strictParsing
+          value={inputValue}
+          open={disabled ? false : undefined}
+        />
+      </div>
+
+      {helpText ? (
+        <p
+          className={clsx(
+            "dateTimeHelpText",
+            error && "dateTimeHelpTextError", // 수정됨
+          )}
+        >
+          {helpText}
+        </p>
+      ) : null}
     </div>
   );
 };
