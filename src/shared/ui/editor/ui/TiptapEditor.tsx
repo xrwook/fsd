@@ -37,6 +37,7 @@ export type TiptapEditorProps = {
   onSubmit?: () => void;
   onUploadStateChange?: (isUploading: boolean) => void;
   uploadImage?: (file: File) => Promise<ImageUploadResult>;
+  allowImageUpload?: boolean;
 };
 
 const TiptapImage = Image.extend({
@@ -73,6 +74,7 @@ export default function TiptapEditor({
   onSubmit,
   onUploadStateChange,
   uploadImage = uploadEditorImage,
+  allowImageUpload = true,
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
@@ -105,6 +107,7 @@ export default function TiptapEditor({
   const imageUploadExtension = useMemo(
     () =>
       TiptapImageUpload.configure({
+        enabled: allowImageUpload,
         upload: (file) => uploadImageRef.current(file),
         onUploadStart: increaseUploadCount,
         onUploadEnd: decreaseUploadCount,
@@ -112,7 +115,7 @@ export default function TiptapEditor({
           setUploadError(`${file.name} 이미지 업로드에 실패했습니다.`);
         },
       }),
-    [decreaseUploadCount, increaseUploadCount],
+    [allowImageUpload, decreaseUploadCount, increaseUploadCount],
   );
 
   const editor = useEditor(
@@ -212,7 +215,11 @@ export default function TiptapEditor({
       className={`tiptapEditor ${disabled ? "editorDisabled" : ""}`}
       aria-busy={uploadCount > 0}
     >
-      <EditorToolbar disabled={disabled} editor={editor} />
+      <EditorToolbar
+        allowImageUpload={allowImageUpload}
+        disabled={disabled}
+        editor={editor}
+      />
       <EditorContent
         editor={editor}
         className={`tiptapEditorContent ${submitOnEnter ? "singleLine" : ""}`}

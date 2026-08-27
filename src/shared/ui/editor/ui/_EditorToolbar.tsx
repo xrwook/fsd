@@ -8,13 +8,18 @@ import { TableControls } from "./_TableControls";
 import { FontControls, InlineStyleControls } from "./_TextStyleControls";
 
 type EditorToolbarProps = {
+  allowImageUpload: boolean;
   disabled: boolean;
   editor: Editor | null;
 };
 
 const ToolbarDivider = () => <span className="tiptapToolbarDivider" />;
 
-export const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
+export const EditorToolbar = ({
+  allowImageUpload,
+  disabled,
+  editor,
+}: EditorToolbarProps) => {
   if (!editor) {
     return <div className="tiptapToolbar" aria-label="에디터 도구 모음" />;
   }
@@ -34,7 +39,7 @@ export const EditorToolbar = ({ disabled, editor }: EditorToolbarProps) => {
       <ToolbarDivider />
       <AlignmentControls {...controlProps} />
       <ToolbarDivider />
-      <InsertControls {...controlProps} />
+      <InsertControls {...controlProps} allowImageUpload={allowImageUpload} />
 
       {editor.isActive("table") && (
         <>

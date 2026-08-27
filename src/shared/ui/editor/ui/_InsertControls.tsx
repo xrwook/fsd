@@ -5,9 +5,15 @@ import { EditorIcon } from "./_EditorIcon";
 import { LinkPopover } from "./_LinkPopover";
 import { ToolbarButton } from "./_ToolbarButton";
 
-type Props = EditorControlProps;
+type Props = EditorControlProps & {
+  allowImageUpload: boolean;
+};
 
-export const InsertControls = ({ disabled, editor }: Props) => {
+export const InsertControls = ({
+  allowImageUpload,
+  disabled,
+  editor,
+}: Props) => {
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -19,22 +25,26 @@ export const InsertControls = ({ disabled, editor }: Props) => {
   return (
     <div className="tiptapToolbarGroup">
       <LinkPopover disabled={disabled} editor={editor} />
-      <ToolbarButton
-        disabled={disabled}
-        label="이미지 업로드"
-        onClick={() => imageInputRef.current?.click()}
-      >
-        <EditorIcon name="image" />
-      </ToolbarButton>
-      <input
-        ref={imageInputRef}
-        hidden
-        multiple
-        accept="image/*"
-        disabled={disabled}
-        type="file"
-        onChange={handleImageChange}
-      />
+      {allowImageUpload ? (
+        <>
+          <ToolbarButton
+            disabled={disabled}
+            label="이미지 업로드"
+            onClick={() => imageInputRef.current?.click()}
+          >
+            <EditorIcon name="image" />
+          </ToolbarButton>
+          <input
+            ref={imageInputRef}
+            hidden
+            multiple
+            accept="image/*"
+            disabled={disabled}
+            type="file"
+            onChange={handleImageChange}
+          />
+        </>
+      ) : null}
       <ToolbarButton
         active={editor.isActive("table")}
         disabled={disabled}

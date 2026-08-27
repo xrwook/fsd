@@ -9,6 +9,7 @@ export type ImageUploadResult =
     };
 
 type ImageUploadOptions = {
+  enabled: boolean;
   upload: (file: File) => Promise<ImageUploadResult>;
   onUploadStart?: (file: File) => void;
   onUploadEnd?: (file: File) => void;
@@ -25,6 +26,24 @@ declare module "@tiptap/core" {
 
 const getImageFiles = (files?: FileList | File[] | null) =>
   [...(files ?? [])].filter((file) => file.type.startsWith("image/"));
+
+const hasImageHtml = (html?: string | null) => !!html && /<img\b/i.test(html);
+
+const removeImageElements = (html: string) => {
+  if (!hasImageHtml(html)) return html;
+
+  if (typeof document === "undefined") {
+    return html.replaceAll(/<img\b[^>]*>/gi, "");
+  }
+
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  for (const image of template.content.querySelectorAll("img")) {
+    image.remove();
+  }
+
+  return template.innerHTML;
+};
 
 const toImageAttrs = (result: ImageUploadResult, file: File) => {
   if (typeof result === "string") {
@@ -44,6 +63,8 @@ const uploadAndInsertImages = (
   files: File[],
   position: number,
 ) => {
+  if (!options.enabled) return;
+
   const imageFiles = getImageFiles(files);
   if (imageFiles.length === 0) return;
 
@@ -86,6 +107,7 @@ export const TiptapImageUpload = Extension.create<ImageUploadOptions>({
 
   addOptions() {
     return {
+      enabled: true,
       upload: async () => {
         throw new Error("TiptapImageUpload의 upload 옵션이 필요합니다.");
       },
@@ -97,6 +119,8 @@ export const TiptapImageUpload = Extension.create<ImageUploadOptions>({
       uploadImages:
         (files, position) =>
         ({ editor }) => {
+          if (!this.options.enabled) return false;
+
           uploadAndInsertImages(
             editor,
             this.options,
@@ -112,8 +136,19 @@ export const TiptapImageUpload = Extension.create<ImageUploadOptions>({
     return [
       new Plugin({
         props: {
+          transformPastedHTML: (html) =>
+            this.options.enabled ? html : removeImageElements(html),
           handlePaste: (view, event) => {
             const files = getImageFiles(event.clipboardData?.files);
+            if (!this.options.enabled) {
+              if (files.length > 0) {
+                event.preventDefault();
+                return true;
+              }
+
+              return false;
+            }
+
             if (files.length === 0) return false;
 
             event.preventDefault();
@@ -127,6 +162,18 @@ export const TiptapImageUpload = Extension.create<ImageUploadOptions>({
           },
           handleDrop: (view, event) => {
             const files = getImageFiles(event.dataTransfer?.files);
+            if (!this.options.enabled) {
+              if (
+                files.length > 0 ||
+                hasImageHtml(event.dataTransfer?.getData("text/html"))
+              ) {
+                event.preventDefault();
+                return true;
+              }
+
+              return false;
+            }
+
             if (files.length === 0) return false;
 
             event.preventDefault();
