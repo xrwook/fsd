@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import { use } from "react";
 
 import { ScreenRouteContext } from "@/shared/lib/router/screen-route";
+import type { AliasAny } from "@/shared/lib/types";
 
 import { ModalContext, ModalEntryContext } from "./context";
 
@@ -16,7 +17,7 @@ export const useModal = () => {
   }
 
   return {
-    open: <T, P extends object = object>(
+    open: <T, P extends {} = AliasAny>(
       Component: ComponentType<P>,
       props?: P,
     ) => context.open<T, P>(Component, props, { screenRoute }),

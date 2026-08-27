@@ -5,12 +5,13 @@ import { createPortal } from "react-dom";
 import type { ModalEntry, ModalOpenOptions } from "@/shared/lib/modal/context";
 import { ModalContext, ModalEntryContext } from "@/shared/lib/modal/context";
 import { ScreenRouteContext } from "@/shared/lib/router/screen-route";
+import type { AliasAny } from "@/shared/lib/types";
 
 export const ModalProvider = ({ children }: PropsWithChildren) => {
   const [stack, setStack] = useState<ModalEntry[]>([]);
 
   const open = useCallback(
-    <T = undefined, P extends object = object>(
+    <T = undefined, P extends {} = AliasAny>(
       Component: ComponentType<P>,
       props?: P,
       options?: ModalOpenOptions,
