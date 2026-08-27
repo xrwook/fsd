@@ -7,7 +7,6 @@ export const extraPageRoutes: TExtraPageRoute[] = Object.values({
 }).flat();
 
 export type {
-  TExtraPageProps,
   TExtraPageRoute,
   TExtraPageRouteGroups,
 } from "./types";

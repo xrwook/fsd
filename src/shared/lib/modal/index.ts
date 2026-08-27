@@ -1,9 +1,4 @@
-export {
-  ModalContext,
-  type ModalContextValue,
-  type ModalEntry,
-  ModalEntryContext,
-  type ModalEntryContextValue,
-  type ModalOpen,
-} from "./context";
-export { useModal, useModalEntry } from "./useModal";
+export type { ModalContextValue, ModalEntry } from "./context";
+export { ModalProvider } from "./ModalProvider";
+export { useModal } from "./useModal";
+export { useSystemModal } from "./useSystemModal";

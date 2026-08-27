@@ -10,6 +10,7 @@ import {
 import { type TMenuPermissionField, useMainInfo } from "@/entities/user";
 import NotFoundPage from "@/pages/not-found";
 import type { ScreenIdValues } from "@/shared/config";
+import { ScreenRouteProvider } from "@/shared/lib/router";
 import { flattenTree } from "@/shared/lib/utils";
 
 import { extraPageRoutes, type TExtraPageRoute } from "./extra-page-routes";
@@ -74,15 +75,24 @@ export const DynamicMenuRoute = () => {
       return <Navigate to="/403" replace />;
     }
 
+    const resolvedRequestScreenId = requestScreenId ?? screenId;
+
     return (
-      <PageRequestScope
-        recordRecentVisit={recordRecentVisit}
-        screenId={requestScreenId ?? screenId}
+      <ScreenRouteProvider
+        value={{
+          path,
+          screenId,
+        }}
       >
-        <Routes>
-          <Route path={path} element={element} />
-        </Routes>
-      </PageRequestScope>
+        <PageRequestScope
+          recordRecentVisit={recordRecentVisit}
+          screenId={resolvedRequestScreenId}
+        >
+          <Routes>
+            <Route path={path} element={element} />
+          </Routes>
+        </PageRequestScope>
+      </ScreenRouteProvider>
     );
   };
 
@@ -115,15 +125,10 @@ export const DynamicMenuRoute = () => {
       path: route.path,
       recordRecentVisit: false,
       requestScreenId: route.parentScreenId,
-      screenId: route.screenId,
+      screenId: route.parentScreenId,
       permissionScreenId: route.parentScreenId,
       permissionField: route.requirePermission,
-      element: (
-        <ExtraPage
-          parentPath={route.parentPath}
-          parentScreenId={route.parentScreenId}
-        />
-      ),
+      element: <ExtraPage />,
     });
   }
 
@@ -149,6 +154,6 @@ export const DynamicMenuRoute = () => {
     path: currentMenu.url,
     screenId: currentMenu.screenId,
     permissionScreenId: currentMenu.screenId,
-    element: <MenuPage screenId={currentMenu.screenId} />,
+    element: <MenuPage />,
   });
 };

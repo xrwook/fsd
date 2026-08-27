@@ -2,25 +2,22 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { Box, Button, Stack, Typography } from "@mui/material";
 import { useParams } from "react-router-dom";
 
-import { useListNavigation } from "@/shared/lib/router";
+import { useListNavigation, useScreenRoute } from "@/shared/lib/router";
 
-type TMemberInfoDetailProps = {
-  parentPath: string;
-};
-
-const MemberInfoDetail = ({ parentPath }: TMemberInfoDetailProps) => {
+const MemberInfoDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { goBackToList } = useListNavigation();
+  const { goBackToListByScreenId } = useListNavigation();
+  const { screenId } = useScreenRoute();
 
   return (
     <Stack spacing={3}>
       <Box>
         <Button
-          onClick={() => goBackToList(parentPath)}
+          onClick={() => goBackToListByScreenId(screenId)}
           startIcon={<ArrowBackIcon />}
           type="button"
         >
-          목록 {parentPath}
+          목록
         </Button>
       </Box>
       <Box>

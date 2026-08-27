@@ -2,8 +2,7 @@ import { type ComponentType, lazy, type LazyExoticComponent } from "react";
 
 import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 
-type TMenuPageProps = { screenId: ScreenIdValues };
-type TMenuPageComponent = LazyExoticComponent<ComponentType<TMenuPageProps>>;
+type TMenuPageComponent = LazyExoticComponent<ComponentType>;
 type TPageMap = Partial<Record<ScreenIdValues, TMenuPageComponent>>;
 
 // API가 내려주는 url은 라우팅에 사용하고, 화면 컴포넌트 연결은 screenId 기준으로 관리합니다.

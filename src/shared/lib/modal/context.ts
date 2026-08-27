@@ -1,31 +1,34 @@
 import type { ComponentType } from "react";
 import { createContext } from "react";
 
-export type ModalEntry = {
-  id: string;
-  Component: ComponentType<Record<string, unknown>>;
-  props?: Record<string, unknown>;
-  resolve: (value?: unknown) => void;
+import type { ScreenRouteContextValue } from "@/shared/lib/router/screen-route";
+import type { AliasAny } from "@/shared/lib/types";
+
+export type ModalOpenOptions = {
+  screenRoute?: ScreenRouteContextValue | null;
 };
 
-export type ModalOpen = {
-  <Result = undefined>(Component: ComponentType): Promise<Result | undefined>;
-  <Result = undefined, Props extends object = object>(
-    Component: ComponentType<Props>,
-    props: Props,
-  ): Promise<Result | undefined>;
+export type ModalEntry = {
+  Component: ComponentType<AliasAny>;
+  props?: Record<string, unknown>;
+  id: string;
+  resolve: (value: unknown) => void;
+  screenRoute?: ScreenRouteContextValue | null;
 };
 
 export type ModalContextValue = {
-  stack: ModalEntry[];
-  open: ModalOpen;
   close: (id: string, value?: unknown) => void;
   closeAll: () => void;
+  open: <T, P extends {} = AliasAny>(
+    Component: ComponentType<P>,
+    props?: P,
+    options?: ModalOpenOptions,
+  ) => Promise<T | undefined>;
+  stack: ModalEntry[];
 };
 
 export type ModalEntryContextValue = {
-  id: string;
-  close: <Result = undefined>(value?: Result) => void;
+  close: (value?: unknown) => void;
 };
 
 export const ModalContext = createContext<ModalContextValue | null>(null);

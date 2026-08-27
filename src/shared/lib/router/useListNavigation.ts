@@ -1,6 +1,9 @@
 import { useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import type { ScreenIdValues } from "@/shared/config";
+import { replaceToScreen } from "@/shared/lib/navigation";
+
 import { createFilterSearch } from "./filterSearchParams";
 
 type ListNavigationState = {
@@ -71,8 +74,23 @@ export const useListNavigation = () => {
     [location.state, navigate],
   );
 
+  const goBackToListByScreenId = useCallback(
+    (screenId: ScreenIdValues) => {
+      const returnTo = getReturnTo(location.state);
+
+      if (returnTo) {
+        navigate(returnTo, { replace: true });
+        return;
+      }
+
+      replaceToScreen(screenId);
+    },
+    [location.state, navigate],
+  );
+
   return {
     goToDetail,
     goBackToList,
+    goBackToListByScreenId,
   };
 };
