@@ -45,8 +45,16 @@ const resolveExtraPagePath = (parentPath: string, relativePath: string) => {
  */
 export const DynamicMenuRoute = () => {
   const location = useLocation();
-  const { menuPermissions, isMainInfoInitialized, canAccessMenu } =
-    useMainInfo();
+  const {
+    menuPermissions,
+    isMainInfoError,
+    isMainInfoInitialized,
+    canAccessMenu,
+  } = useMainInfo();
+
+  if (isMainInfoError) {
+    return <Navigate to="/approvalPending" replace />;
+  }
 
   // 권한 메뉴를 아직 모르는 시점에는 404/403 판단을 보류합니다.
   if (!isMainInfoInitialized) {

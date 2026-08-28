@@ -132,7 +132,11 @@ const findFirstAccessibleScreenIdByTopScreenIdFromTree = (
  * 로그인 사용자의 기본 정보와 메뉴 접근 권한을 관리하는 훅입니다.
  */
 export const useMainInfo = () => {
-  const { data: mainInfoData = null, isFetched } = useGetMainInfoQuery();
+  const {
+    data: mainInfoData = null,
+    isError,
+    isFetched,
+  } = useGetMainInfoQuery();
   const menuPermissions = useMemo(
     () =>
       mainInfoData
@@ -229,6 +233,7 @@ export const useMainInfo = () => {
     mainMenus,
     menuPermissions,
     isMainInfoInitialized: isFetched,
+    isMainInfoError: isError,
     canAccessMenu,
     canAccessMenuGroup,
     findTopParentMenuByPathname,
