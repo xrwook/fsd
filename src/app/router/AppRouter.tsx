@@ -1,11 +1,19 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import { useMainInfo } from "@/entities/user";
 import ApprovalPendingPage from "@/pages/approvalPending";
 import ForbiddenPage from "@/pages/forbidden";
 
 import { DynamicMenuRoute } from "./DynamicMenuRoute";
 
 export const AppRouter = () => {
+  const location = useLocation();
+  const { isMainInfoError } = useMainInfo();
+
+  if (isMainInfoError && location.pathname !== "/approvalPending") {
+    return <Navigate to="/approvalPending" replace />;
+  }
+
   return (
     <Routes>
       {/* 403은 권한 실패 시 항상 접근 가능한 고정 라우트입니다. */}
