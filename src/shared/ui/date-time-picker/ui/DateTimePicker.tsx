@@ -8,6 +8,7 @@ import {
   type SyntheticEvent,
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -125,9 +126,16 @@ export const DateTimePicker = ({
   maxDate,
   onChange,
 }: DateTimePickerProps) => {
+  const instanceId = useId(); // 수정됨
   const rootRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
+  // 수정됨: 여러 DateTimePicker가 같은 outsideClickIgnoreClass를 공유하지 않도록 인스턴스별 class를 만든다.
+  const outsideClickIgnoreClass = useMemo(
+    () =>
+      `${DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}-${instanceId.replaceAll(/[^a-zA-Z0-9_-]/g, "")}`,
+    [instanceId],
+  );
   const externalSelectedDate = useMemo(
     () => normalizePickerValue(mode, value, dateFormat), // 수정됨
     [dateFormat, mode, value], // 수정됨
@@ -455,9 +463,7 @@ export const DateTimePicker = ({
               onClear={() => emitPickerChange(null)}
               onInputCommit={commitInputValue}
               onInputValueChange={handleInputValueChange}
-              outsideClickIgnoreClassName={
-                DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS
-              }
+              outsideClickIgnoreClassName={outsideClickIgnoreClass} // 수정됨
               placeholder={inputPlaceholder}
             />
           }
@@ -476,7 +482,7 @@ export const DateTimePicker = ({
             setIsOpen(true);
           }}
           onChange={handleDateChange}
-          outsideClickIgnoreClass={DATE_TIME_INPUT_OUTSIDE_CLICK_IGNORE_CLASS}
+          outsideClickIgnoreClass={outsideClickIgnoreClass} // 수정됨
           placeholderText={inputPlaceholder}
           popperClassName="dateTimePopper"
           popperPlacement="bottom-start"

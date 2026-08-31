@@ -247,6 +247,15 @@
   background: #165dff;
 }
 
+/* 수정됨: 월 선택 달력에서 같은 월의 다른 연도까지 선택 표시되는 포커스 배경을 제거한다. */
+.dateTimeCalendar
+  [class~="react-datepicker__month-text--keyboard-selected"]:not(
+    [class~="react-datepicker__month-text--selected"]
+  ) {
+  color: #16181d;
+  background: transparent;
+}
+
 .dateTimeCalendar [aria-disabled="true"],
 .dateTimeCalendar [class~="react-datepicker__day--disabled"] {
   color: #c4c9d1;

@@ -57,9 +57,9 @@ const CorporateJoin = () => {
           value={new Date()}
           // mode="time"
           onChange={(value) => console.log(value)}
-          dateFormat="yyyy-MM-dd HH:mm"
+          dateFormat="yyyy-MM"
           minDate={new Date("2026-08-20 15:00")}
-          // showMonthYearPicker
+          showMonthYearPicker
         />
       </section>
 
