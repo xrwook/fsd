@@ -1,3 +1,4 @@
+import axios from "axios";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -8,6 +9,7 @@ import {
 } from "@/shared/api/file";
 
 import type {
+  FileConfirm,
   FileConfirmGroup,
   FileUploadInitialFile,
   FileUploadItem,
@@ -67,14 +69,14 @@ const toUploadedFileUploadItem = (
 
 const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
   const headers = file.type ? { "Content-Type": file.type } : undefined;
-  const response = await fetch(uploadUrl, {
-    method: "PUT",
-    body: file,
-    headers,
-  });
 
-  if (!response.ok) {
-    throw new Error(`파일 업로드에 실패했습니다. (${response.status})`);
+  try {
+    await axios.put(uploadUrl, file, {
+      headers,
+      withCredentials: false,
+    });
+  } catch {
+    throw new Error("파일 업로드에 실패했습니다.");
   }
 };
 
@@ -317,6 +319,12 @@ export const useFileUpload = ({
       };
     }, [ensureFileGroupId, fileDtlIds, referenceType]);
 
+  const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
+    return {
+      groups: [await getFileConfirmGroup()],
+    };
+  }, [getFileConfirmGroup]);
+
   return {
     fileGroupId,
     files,
@@ -332,6 +340,7 @@ export const useFileUpload = ({
     initializeFiles,
     resetFiles,
     getFileConfirmGroup,
+    getFileConfirm,
   };
 };
 

@@ -1,4 +1,5 @@
 export type {
+  FileConfirm,
   FileConfirmGroup,
   FileItem,
   FileStatus,
