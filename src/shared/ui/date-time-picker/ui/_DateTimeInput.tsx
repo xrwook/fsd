@@ -27,6 +27,7 @@ type DateTimeInputProps = {
   onInputValueChange?: (value: string) => void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
+  showClearButton?: boolean; // 수정됨
   outsideClickIgnoreClassName?: string;
   value?: string;
 };
@@ -49,6 +50,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       onKeyDown,
       outsideClickIgnoreClassName,
       placeholder = "YYYY-MM-DD HH:MM",
+      showClearButton = false, // 수정됨
       value = "",
     },
     ref,
@@ -134,7 +136,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           value={value}
         />
 
-        {value && !disabled ? (
+        {showClearButton && value && !disabled ? (
           <button
             aria-label="날짜 시간 초기화"
             className={clsx("dateTimeClearButton", outsideClickIgnoreClassName)}

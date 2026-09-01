@@ -48,6 +48,8 @@ type DateTimePickerBaseProps = {
   dateFormat?: string; // 수정됨
   /** 년, 월 용 달력 */ // 수정됨
   showMonthYearPicker?: boolean;
+  /** clear 버튼 표시 여부 */ // 수정됨
+  clearable?: boolean; // 수정됨
   /** error */ // 수정됨
   error?: boolean; // 수정됨
   /** helpText */ // 수정됨
@@ -120,6 +122,7 @@ export const DateTimePicker = ({
   minuteStep = 5,
   dateFormat = DATE_TIME_FORMAT, // 수정됨
   showMonthYearPicker = false,
+  clearable = false, // 수정됨
   error = false, // 수정됨
   helpText, // 수정됨
   minDate,
@@ -413,6 +416,7 @@ export const DateTimePicker = ({
             onInputCommit={commitInputValue}
             onInputValueChange={handleInputValueChange}
             placeholder={inputPlaceholder}
+            showClearButton={clearable} // 수정됨
             value={inputValue}
           />
 
@@ -465,6 +469,7 @@ export const DateTimePicker = ({
               onInputValueChange={handleInputValueChange}
               outsideClickIgnoreClassName={outsideClickIgnoreClass} // 수정됨
               placeholder={inputPlaceholder}
+              showClearButton={clearable} // 수정됨
             />
           }
           dateFormat={dateFormat}
