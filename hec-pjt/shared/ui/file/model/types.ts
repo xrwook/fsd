@@ -27,7 +27,3 @@ export type FileConfirmGroup = {
   referenceType: string;
   fileDtlIds: string[];
 };
-
-export type FileConfirm = {
-  groups: FileConfirmGroup[];
-};

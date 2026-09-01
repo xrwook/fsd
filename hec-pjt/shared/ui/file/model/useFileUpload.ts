@@ -8,7 +8,6 @@ import {
 } from "@/shared/api/file";
 
 import type {
-  FileConfirm,
   FileConfirmGroup,
   FileUploadInitialFile,
   FileUploadItem,
@@ -318,12 +317,6 @@ export const useFileUpload = ({
       };
     }, [ensureFileGroupId, fileDtlIds, referenceType]);
 
-  const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
-    return {
-      groups: [await getFileConfirmGroup()],
-    };
-  }, [getFileConfirmGroup]);
-
   return {
     fileGroupId,
     files,
@@ -339,7 +332,6 @@ export const useFileUpload = ({
     initializeFiles,
     resetFiles,
     getFileConfirmGroup,
-    getFileConfirm,
   };
 };
 
