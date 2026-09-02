@@ -1,3 +1,11 @@
+export type { FileUploadInitialState } from "./fileMapper";
+export {
+  findFileGroupByReferenceType,
+  toDetailFileItems,
+  toFileUploadInitialState,
+  toFileUploadItem,
+  toFileUploadItems,
+} from "./fileMapper";
 export type {
   FileConfirm,
   FileConfirmGroup,

@@ -8,6 +8,7 @@ import {
   useUploadUrlsMutation,
 } from "@/shared/api/file";
 
+import { toFileUploadItem } from "./fileMapper";
 import type {
   FileConfirm,
   FileConfirmGroup,
@@ -34,17 +35,6 @@ const toUploadUrlRequestItem = (
   originalName: file.name,
   contentType: file.type,
   fileSize: file.size,
-});
-
-const toInitialFileUploadItem = (
-  file: FileUploadInitialFile,
-): FileUploadItem => ({
-  id: file.id ?? file.fileDtlId,
-  fileDtlId: file.fileDtlId,
-  name: file.originalName,
-  size: file.fileSize,
-  downloadUrl: file.downloadUrl,
-  status: "idle",
 });
 
 const toPendingFileUploadItem = (file: File): FileUploadItem => ({
@@ -88,7 +78,7 @@ export const useFileUpload = ({
 }: UseFileUploadOptions) => {
   const [fileGroupId, setFileGroupId] = useState(initialFileGroupId);
   const [files, setFiles] = useState<FileUploadItem[]>(() =>
-    initialFiles.map((file) => toInitialFileUploadItem(file)),
+    initialFiles.map((file) => toFileUploadItem(file)),
   );
   const [uploadError, setUploadError] = useState<Error | null>(null);
   const fileGroupIdPromiseReference = useRef<Promise<string> | null>(null);
@@ -283,7 +273,7 @@ export const useFileUpload = ({
         setFileGroupId(nextFileGroupId);
       }
 
-      setFiles(nextFiles.map((file) => toInitialFileUploadItem(file)));
+      setFiles(nextFiles.map((file) => toFileUploadItem(file)));
       setUploadError(null);
     },
     [],
