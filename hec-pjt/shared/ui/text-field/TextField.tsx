@@ -1,6 +1,6 @@
 import { TextField as HdsTextField } from "@hae-fe/elements";
 import type { TextFieldProps as MuiTextFieldProps } from "@mui/material/TextField";
-import type { ChangeEvent } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 
 type HdsProps = Record<string, unknown>;
 type TextFieldChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
@@ -9,6 +9,8 @@ export interface TextFieldProps extends Omit<
   MuiTextFieldProps<"outlined">,
   "variant"
 > {
+  after?: ReactNode;
+  before?: ReactNode;
   hdsProps?: HdsProps | boolean;
   numberOnly?: boolean;
   readOnly?: boolean;
@@ -71,6 +73,8 @@ const getHdsProps = (
 };
 
 export const TextField = ({
+  after,
+  before,
   defaultValue,
   hdsProps,
   numberOnly = false,
@@ -96,21 +100,25 @@ export const TextField = ({
   };
 
   return (
-    <HdsTextField
-      {...props}
-      defaultValue={getDisplayValue({
-        value: defaultValue,
-        numberOnly: shouldUseNumberOnly,
-        withComma,
-      })}
-      hdsProps={getHdsProps(hdsProps)}
-      type={withComma ? "text" : type}
-      value={getDisplayValue({
-        value,
-        numberOnly: shouldUseNumberOnly,
-        withComma,
-      })}
-      onChange={handleChange}
-    />
+    <>
+      {before}
+      <HdsTextField
+        {...props}
+        defaultValue={getDisplayValue({
+          value: defaultValue,
+          numberOnly: shouldUseNumberOnly,
+          withComma,
+        })}
+        hdsProps={getHdsProps(hdsProps)}
+        type={withComma ? "text" : type}
+        value={getDisplayValue({
+          value,
+          numberOnly: shouldUseNumberOnly,
+          withComma,
+        })}
+        onChange={handleChange}
+      />
+      {after}
+    </>
   );
 };
