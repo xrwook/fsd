@@ -41,6 +41,7 @@ const toPendingFileUploadItem = (file: File): FileUploadItem => ({
   id: createLocalFileId(),
   name: file.name,
   size: file.size,
+  file,
   status: "uploading",
   progress: 0,
 });
@@ -112,7 +113,7 @@ export const useFileUpload = ({
     [updateFile],
   );
 
-  const ensureFileGroupId = useCallback(async () => {
+  const resolveFileGroupId = useCallback(async () => {
     if (fileGroupId) return fileGroupId;
 
     if (fileGroupIdPromiseReference.current) {
@@ -134,14 +135,14 @@ export const useFileUpload = ({
   useEffect(() => {
     if (!autoCreateGroupId || fileGroupId) return;
 
-    ensureFileGroupId().catch((error: unknown) => {
+    resolveFileGroupId().catch((error: unknown) => {
       setUploadError(
         error instanceof Error
           ? error
           : new Error("파일 그룹 ID 발급에 실패했습니다."),
       );
     });
-  }, [autoCreateGroupId, ensureFileGroupId, fileGroupId]);
+  }, [autoCreateGroupId, resolveFileGroupId, fileGroupId]);
 
   const uploadPendingFile = useCallback(
     async (
@@ -174,7 +175,7 @@ export const useFileUpload = ({
       setFiles((currentFiles) => [...currentFiles, ...pendingFiles]);
 
       try {
-        await ensureFileGroupId();
+        await resolveFileGroupId();
       } catch (error: unknown) {
         const normalizedError =
           error instanceof Error
@@ -252,9 +253,96 @@ export const useFileUpload = ({
     },
     [
       createUploadUrls,
-      ensureFileGroupId,
+      resolveFileGroupId,
       markFileAsError,
       referenceType,
+      uploadPendingFile,
+    ],
+  );
+
+  const retryFile = useCallback(
+    async (fileId: string) => {
+      const retryTargetFile = files.find(
+        (file) => file.id === fileId || file.fileDtlId === fileId,
+      );
+
+      if (!retryTargetFile?.file) {
+        return;
+      }
+
+      setUploadError(null);
+      updateFile(retryTargetFile.id, (file) => ({
+        ...file,
+        fileDtlId: undefined,
+        downloadUrl: undefined,
+        status: "uploading",
+        error: undefined,
+        progress: 0,
+      }));
+
+      try {
+        await resolveFileGroupId();
+      } catch (error: unknown) {
+        const normalizedError =
+          error instanceof Error
+            ? error
+            : new Error("파일 그룹 ID 발급에 실패했습니다.");
+
+        setUploadError(normalizedError);
+        markFileAsError(retryTargetFile.id, normalizedError);
+        throw normalizedError;
+      }
+
+      let uploadUrlItem: FileUploadUrlItem | undefined;
+
+      try {
+        [uploadUrlItem] = await createUploadUrls([
+          toUploadUrlRequestItem(referenceType, retryTargetFile.file),
+        ]);
+      } catch (error: unknown) {
+        const normalizedError =
+          error instanceof Error
+            ? error
+            : new Error("업로드 URL 발급에 실패했습니다.");
+
+        setUploadError(normalizedError);
+        markFileAsError(retryTargetFile.id, normalizedError);
+        throw normalizedError;
+      }
+
+      if (!uploadUrlItem) {
+        const error = new Error(
+          "업로드 URL 응답이 파일 개수와 일치하지 않습니다.",
+        );
+        setUploadError(error);
+        markFileAsError(retryTargetFile.id, error);
+        throw error;
+      }
+
+      try {
+        return await uploadPendingFile(
+          retryTargetFile,
+          retryTargetFile.file,
+          uploadUrlItem,
+        );
+      } catch (error: unknown) {
+        const normalizedError =
+          error instanceof Error
+            ? error
+            : new Error("파일 업로드에 실패했습니다.");
+
+        setUploadError(normalizedError);
+        markFileAsError(retryTargetFile.id, normalizedError);
+        throw normalizedError;
+      }
+    },
+    [
+      createUploadUrls,
+      resolveFileGroupId,
+      files,
+      markFileAsError,
+      referenceType,
+      updateFile,
       uploadPendingFile,
     ],
   );
@@ -300,14 +388,14 @@ export const useFileUpload = ({
 
   const getFileConfirmGroup =
     useCallback(async (): Promise<FileConfirmGroup> => {
-      const confirmedFileGroupId = await ensureFileGroupId();
+      const confirmedFileGroupId = await resolveFileGroupId();
 
       return {
         fileId: confirmedFileGroupId,
         referenceType,
         fileDtlIds,
       };
-    }, [ensureFileGroupId, fileDtlIds, referenceType]);
+    }, [resolveFileGroupId, fileDtlIds, referenceType]);
 
   const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
     return {
@@ -324,8 +412,9 @@ export const useFileUpload = ({
     isCreatingFileGroupId,
     isCreatingUploadUrls,
     isUploading: files.some((file) => file.status === "uploading"),
-    ensureFileGroupId,
+    resolveFileGroupId: resolveFileGroupId,
     uploadFiles,
+    retryFile,
     removeFile,
     initializeFiles,
     resetFiles,

@@ -6,6 +6,7 @@ export type FileUploadProps = {
   files: FileUploadItem[];
   onFilesSelected: (files: File[]) => void | Promise<unknown>;
   onDelete: (fileId: string) => void;
+  onRetry?: (fileId: string) => void | Promise<unknown>;
   onDownload?: (file: FileUploadItem) => void;
   disabled?: boolean;
   isUploading?: boolean;
@@ -33,6 +34,7 @@ export const FileUpload = ({
   files,
   onFilesSelected,
   onDelete,
+  onRetry,
   onDownload,
   disabled = false,
   isUploading = false,
@@ -77,6 +79,12 @@ export const FileUpload = ({
     }
   };
 
+  const handleRetry = (file: FileUploadItem) => {
+    if (!onRetry || disabled) return;
+
+    Promise.resolve(onRetry(getActionFileId(file))).catch(() => {});
+  };
+
   const fileSizeBytes = files.reduce((acc, file) => acc + (file.size ?? 0), 0);
 
   return (
@@ -113,6 +121,13 @@ export const FileUpload = ({
               onDownload={() => {
                 handleDownload(file);
               }}
+              onRetry={
+                onRetry && !disabled && file.status === "error" && file.file
+                  ? () => {
+                      handleRetry(file);
+                    }
+                  : undefined
+              }
               showFileIcon={showFileIcon}
               uploadProgress={file.progress}
             />
