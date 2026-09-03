@@ -1,6 +1,5 @@
 export type { FileUploadInitialState } from "./fileMapper";
 export {
-  findFileGroupByReferenceType,
   toDetailFileItems,
   toFileUploadInitialState,
   toFileUploadItem,

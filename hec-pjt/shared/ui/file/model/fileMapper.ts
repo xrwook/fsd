@@ -26,21 +26,15 @@ export const toFileUploadItems = (
   files: readonly FileUploadInitialFile[] = [],
 ): FileUploadItem[] => files.map((file) => toFileUploadItem(file));
 
-export const findFileGroupByReferenceType = (
-  fileGroups: readonly FileGroupItem[] | null | undefined,
-  referenceType: string,
-): FileGroupItem | undefined =>
-  fileGroups?.find((fileGroup) => fileGroup.referenceType === referenceType);
-
 export const toFileUploadInitialState = (
-  fileGroups: readonly FileGroupItem[] | null | undefined,
-  referenceType: string,
+  attachFiles: FileGroupItem[] | null | undefined,
+  fileGroupId?: string,
 ): FileUploadInitialState => {
-  const fileGroup = findFileGroupByReferenceType(fileGroups, referenceType);
+  const files = attachFiles?.flatMap((fileGroup) => fileGroup.files);
 
   return {
-    initialFileGroupId: fileGroup?.fileId,
-    initialFiles: fileGroup?.files ?? [],
+    initialFileGroupId: fileGroupId ?? attachFiles?.[0]?.fileId,
+    initialFiles: files ?? [],
   };
 };
 

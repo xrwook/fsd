@@ -10,7 +10,6 @@ export type {
   UseFileUploadReturn,
 } from "./model";
 export {
-  findFileGroupByReferenceType,
   toDetailFileItems,
   toFileUploadInitialState,
   toFileUploadItem,
