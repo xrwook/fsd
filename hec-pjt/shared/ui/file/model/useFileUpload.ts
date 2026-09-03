@@ -21,11 +21,26 @@ export type UseFileUploadOptions = {
   initialFileGroupId?: string;
   initialFiles?: FileUploadInitialFile[];
   autoCreateGroupId?: boolean;
+  maxFileCount?: number;
 };
 
 const createLocalFileId = () => crypto.randomUUID();
 
 const toFileArray = (files: File[] | FileList) => [...files];
+
+const getUploadableFiles = (
+  selectedFiles: File[] | FileList,
+  currentFileCount: number,
+  maxFileCount?: number,
+) => {
+  const fileArray = toFileArray(selectedFiles);
+
+  if (maxFileCount === undefined) return fileArray;
+
+  const remainingFileCount = Math.max(maxFileCount - currentFileCount, 0);
+
+  return fileArray.slice(0, remainingFileCount);
+};
 
 const toUploadUrlRequestItem = (
   referenceType: string,
@@ -77,6 +92,7 @@ export const useFileUpload = ({
   initialFileGroupId,
   initialFiles = [],
   autoCreateGroupId = true,
+  maxFileCount,
 }: UseFileUploadOptions) => {
   const [fileGroupId, setFileGroupId] = useState(initialFileGroupId);
   const [files, setFiles] = useState<FileUploadItem[]>(() =>
@@ -163,7 +179,11 @@ export const useFileUpload = ({
 
   const uploadFiles = useCallback(
     async (selectedFiles: File[] | FileList) => {
-      const fileArray = toFileArray(selectedFiles);
+      const fileArray = getUploadableFiles(
+        selectedFiles,
+        files.length,
+        maxFileCount,
+      );
 
       if (fileArray.length === 0) {
         return [];
@@ -256,7 +276,9 @@ export const useFileUpload = ({
     [
       createUploadUrls,
       resolveFileGroupId,
+      files.length,
       markFileAsError,
+      maxFileCount,
       referenceType,
       uploadPendingFile,
     ],
