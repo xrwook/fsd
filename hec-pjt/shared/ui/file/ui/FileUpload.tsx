@@ -11,8 +11,10 @@ export type FileUploadProps = {
   disabled?: boolean;
   isUploading?: boolean;
   maxFileCount?: number;
+  allowedExtensions?: string[];
   multiple?: boolean;
   accept?: string;
+  onValidateError?: (error: Error) => void;
   mainText?: string;
   subText?: string;
   buttonText?: string;
@@ -30,6 +32,48 @@ const openDownloadUrl = (downloadUrl: string) => {
   window.open(downloadUrl, "_blank", "noopener,noreferrer");
 };
 
+const normalizeExtension = (extension: string) =>
+  extension.trim().replace(/^\./, "").toLowerCase();
+
+const getFileExtension = (fileName: string) => {
+  const parts = fileName.split(".");
+
+  if (parts.length < 2) return "";
+
+  return parts.at(-1)?.toLowerCase() ?? "";
+};
+
+const toAccept = (allowedExtensions?: string[]) =>
+  allowedExtensions
+    ?.map((extension) => `.${normalizeExtension(extension)}`)
+    .join(",");
+
+const getInvalidExtensionFile = (
+  files: File[],
+  allowedExtensions?: string[],
+) => {
+  const normalizedExtensions = allowedExtensions
+    ?.map((extension) => normalizeExtension(extension))
+    .filter(Boolean);
+
+  if (!normalizedExtensions?.length) return null;
+
+  return (
+    files.find(
+      (file) => !normalizedExtensions.includes(getFileExtension(file.name)),
+    ) ?? null
+  );
+};
+
+const createExtensionError = (allowedExtensions?: string[]) => {
+  const extensionText = allowedExtensions
+    ?.map((extension) => normalizeExtension(extension))
+    .filter(Boolean)
+    .join(", ");
+
+  return new Error(`${extensionText} 파일만 업로드할 수 있습니다.`);
+};
+
 export const FileUpload = ({
   files,
   onFilesSelected,
@@ -39,8 +83,10 @@ export const FileUpload = ({
   disabled = false,
   isUploading = false,
   maxFileCount,
+  allowedExtensions,
   multiple = true,
   accept,
+  onValidateError,
   mainText,
   subText,
   buttonText,
@@ -64,6 +110,16 @@ export const FileUpload = ({
         : selectedFiles.slice(0, remainingFileCount);
 
     if (uploadableFiles.length === 0) return;
+
+    const invalidFile = getInvalidExtensionFile(
+      uploadableFiles,
+      allowedExtensions,
+    );
+
+    if (invalidFile) {
+      onValidateError?.(createExtensionError(allowedExtensions));
+      return;
+    }
 
     Promise.resolve(onFilesSelected(uploadableFiles)).catch(() => {});
   };
@@ -138,7 +194,7 @@ export const FileUpload = ({
         </div>
 
         <FileSelectorArea
-          accept={accept}
+          accept={accept ?? toAccept(allowedExtensions)}
           buttonText={buttonText}
           disabled={disabled || isUploading || isMaxFileCountReached}
           disableDragDrop={
