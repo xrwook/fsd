@@ -1,4 +1,9 @@
-import { FileListItem, FileSelectorArea, FileTitle } from "@hae-fe/elements";
+import {
+  Button,
+  FileListItem,
+  FileSelectorArea,
+  FileTitle,
+} from "@hae-fe/elements";
 import { useState } from "react";
 
 import type { FileUploadItem } from "../model";
@@ -7,10 +12,12 @@ export type FileUploadProps = {
   files: FileUploadItem[];
   onFilesSelected: (files: File[]) => void | Promise<unknown>;
   onDelete: (fileId: string) => void;
+  onDeleteAll?: () => void | Promise<unknown>;
   onRetry?: (fileId: string) => void | Promise<unknown>;
   onDownload?: (file: FileUploadItem) => void;
   disabled?: boolean;
   isUploading?: boolean;
+  allDeleteDisabled?: boolean;
   maxFileCount?: number;
   maxFileSizeBytes?: number;
   allowedExtensions?: string[];
@@ -110,10 +117,12 @@ export const FileUpload = ({
   files,
   onFilesSelected,
   onDelete,
+  onDeleteAll,
   onRetry,
   onDownload,
   disabled = false,
   isUploading = false,
+  allDeleteDisabled = false,
   maxFileCount,
   maxFileSizeBytes,
   allowedExtensions,
@@ -188,8 +197,28 @@ export const FileUpload = ({
     Promise.resolve(onRetry(getActionFileId(file))).catch(() => {});
   };
 
+  const handleDeleteAll = () => {
+    if (!onDeleteAll || disabled || allDeleteDisabled || isUploading) return;
+
+    setHasInvalidUploadCondition(false);
+    Promise.resolve(onDeleteAll()).catch(() => {});
+  };
+
   const hasFileError = files.some((file) => file.status === "error");
   const fileSizeBytes = files.reduce((acc, file) => acc + (file.size ?? 0), 0);
+  const deleteAllDisabled =
+    disabled || allDeleteDisabled || isUploading || files.length === 0;
+  const deleteAllAction = onDeleteAll && maxFileCount !== 1 && (
+    <Button
+      disabled={deleteAllDisabled}
+      semantic="neutral"
+      size="xsmall"
+      styleOption="outline"
+      onClick={handleDeleteAll}
+    >
+      모두 삭제
+    </Button>
+  );
   const selectorMainText = resolveMainText({
     fallbackMainText: mainText,
     hasFileError,
@@ -201,6 +230,7 @@ export const FileUpload = ({
     <div className={className}>
       {showTitle && (
         <FileTitle
+          actions={deleteAllAction}
           fileCount={files.length}
           fileSizeBytes={fileSizeBytes}
           variant="upload"
