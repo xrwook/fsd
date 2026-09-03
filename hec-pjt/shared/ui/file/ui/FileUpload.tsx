@@ -71,6 +71,17 @@ const getInvalidExtensionFile = (
   );
 };
 
+const getUploadableFiles = (
+  selectedFiles: File[] | FileList,
+  remainingFileCount?: number,
+) => {
+  const fileArray = [...selectedFiles];
+
+  return remainingFileCount === undefined
+    ? fileArray
+    : fileArray.slice(0, remainingFileCount);
+};
+
 const createExtensionError = (allowedExtensions?: string[]) => {
   const extensionText = allowedExtensions
     ?.map((extension) => normalizeExtension(extension))
@@ -129,11 +140,11 @@ export const FileUpload = ({
       : Math.max(maxFileCount - files.length, 0);
   const isMaxFileCountReached = remainingFileCount === 0;
 
-  const handleFilesSelected = (selectedFiles: File[]) => {
-    const uploadableFiles =
-      remainingFileCount === undefined
-        ? selectedFiles
-        : selectedFiles.slice(0, remainingFileCount);
+  const handleFilesSelected = (selectedFiles: File[] | FileList) => {
+    const uploadableFiles = getUploadableFiles(
+      selectedFiles,
+      remainingFileCount,
+    );
 
     if (uploadableFiles.length === 0) return;
 
