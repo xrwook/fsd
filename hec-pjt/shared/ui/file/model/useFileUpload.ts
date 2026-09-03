@@ -41,7 +41,7 @@ const toPendingFileUploadItem = (file: File): FileUploadItem => ({
   id: createLocalFileId(),
   name: file.name,
   size: file.size,
-  file,
+  sourceFile: file,
   status: "uploading",
   progress: 0,
 });
@@ -53,6 +53,7 @@ const toUploadedFileUploadItem = (
   ...pendingFile,
   fileDtlId: uploadUrlItem.fileDtlId,
   downloadUrl: uploadUrlItem.downloadUrl,
+  sourceFile: undefined,
   status: "idle",
   error: undefined,
   progress: undefined,
@@ -172,6 +173,7 @@ export const useFileUpload = ({
       const pendingFiles = fileArray.map((file) =>
         toPendingFileUploadItem(file),
       );
+
       setFiles((currentFiles) => [...currentFiles, ...pendingFiles]);
 
       try {
@@ -266,7 +268,7 @@ export const useFileUpload = ({
         (file) => file.id === fileId || file.fileDtlId === fileId,
       );
 
-      if (!retryTargetFile?.file) {
+      if (!retryTargetFile?.sourceFile) {
         return;
       }
 
@@ -297,7 +299,7 @@ export const useFileUpload = ({
 
       try {
         [uploadUrlItem] = await createUploadUrls([
-          toUploadUrlRequestItem(referenceType, retryTargetFile.file),
+          toUploadUrlRequestItem(referenceType, retryTargetFile.sourceFile),
         ]);
       } catch (error: unknown) {
         const normalizedError =
@@ -322,7 +324,7 @@ export const useFileUpload = ({
       try {
         return await uploadPendingFile(
           retryTargetFile,
-          retryTargetFile.file,
+          retryTargetFile.sourceFile,
           uploadUrlItem,
         );
       } catch (error: unknown) {

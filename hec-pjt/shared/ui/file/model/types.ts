@@ -16,6 +16,7 @@ export type FileItem = {
 
 export type FileUploadItem = FileItem & {
   fileDtlId?: string;
+  sourceFile?: File;
 };
 
 export type FileUploadInitialFile = FileDetailItem & {

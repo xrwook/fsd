@@ -122,7 +122,10 @@ export const FileUpload = ({
                 handleDownload(file);
               }}
               onRetry={
-                onRetry && !disabled && file.status === "error" && file.file
+                onRetry &&
+                !disabled &&
+                file.status === "error" &&
+                file.sourceFile
                   ? () => {
                       handleRetry(file);
                     }
