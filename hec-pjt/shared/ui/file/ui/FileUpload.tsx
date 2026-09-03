@@ -1,4 +1,5 @@
 import { FileListItem, FileSelectorArea, FileTitle } from "@hae-fe/elements";
+import { useState } from "react";
 
 import type { FileUploadItem } from "../model";
 
@@ -31,6 +32,11 @@ const getActionFileId = (file: FileUploadItem) => file.fileDtlId ?? file.id;
 const openDownloadUrl = (downloadUrl: string) => {
   window.open(downloadUrl, "_blank", "noopener,noreferrer");
 };
+
+const DEFAULT_MAIN_TEXT = "여기로 파일을 드래그하세요";
+const INVALID_UPLOAD_CONDITION_TEXT = "아래의 형식을 확인해 주세요";
+const UPLOAD_ERROR_TEXT = "잠시 후 다시 시도해 주세요";
+const MAX_FILE_COUNT_REACHED_TEXT = "기존 파일 삭제 후 업로드해 주세요";
 
 const normalizeExtension = (extension: string) =>
   extension.trim().replace(/^\./, "").toLowerCase();
@@ -74,6 +80,24 @@ const createExtensionError = (allowedExtensions?: string[]) => {
   return new Error(`${extensionText} 파일만 업로드할 수 있습니다.`);
 };
 
+const resolveMainText = ({
+  fallbackMainText,
+  hasFileError,
+  hasInvalidUploadCondition,
+  isMaxFileCountReached,
+}: {
+  fallbackMainText?: string;
+  hasFileError: boolean;
+  hasInvalidUploadCondition: boolean;
+  isMaxFileCountReached: boolean;
+}) => {
+  if (isMaxFileCountReached) return MAX_FILE_COUNT_REACHED_TEXT;
+  if (hasInvalidUploadCondition) return INVALID_UPLOAD_CONDITION_TEXT;
+  if (hasFileError) return UPLOAD_ERROR_TEXT;
+
+  return fallbackMainText ?? DEFAULT_MAIN_TEXT;
+};
+
 export const FileUpload = ({
   files,
   onFilesSelected,
@@ -97,6 +121,8 @@ export const FileUpload = ({
   className = "flex flex-col gap-2",
   fileListClassName,
 }: FileUploadProps) => {
+  const [hasInvalidUploadCondition, setHasInvalidUploadCondition] =
+    useState(false);
   const remainingFileCount =
     maxFileCount === undefined
       ? undefined
@@ -111,12 +137,15 @@ export const FileUpload = ({
 
     if (uploadableFiles.length === 0) return;
 
+    setHasInvalidUploadCondition(false);
+
     const invalidFile = getInvalidExtensionFile(
       uploadableFiles,
       allowedExtensions,
     );
 
     if (invalidFile) {
+      setHasInvalidUploadCondition(true);
       onValidateError?.(createExtensionError(allowedExtensions));
       return;
     }
@@ -138,10 +167,18 @@ export const FileUpload = ({
   const handleRetry = (file: FileUploadItem) => {
     if (!onRetry || disabled) return;
 
+    setHasInvalidUploadCondition(false);
     Promise.resolve(onRetry(getActionFileId(file))).catch(() => {});
   };
 
+  const hasFileError = files.some((file) => file.status === "error");
   const fileSizeBytes = files.reduce((acc, file) => acc + (file.size ?? 0), 0);
+  const selectorMainText = resolveMainText({
+    fallbackMainText: mainText,
+    hasFileError,
+    hasInvalidUploadCondition,
+    isMaxFileCountReached,
+  });
 
   return (
     <div className={className}>
@@ -200,7 +237,7 @@ export const FileUpload = ({
           disableDragDrop={
             disableDragDrop || disabled || isUploading || isMaxFileCountReached
           }
-          mainText={mainText}
+          mainText={selectorMainText}
           multiple={multiple}
           onFilesSelected={handleFilesSelected}
           subText={subText}
