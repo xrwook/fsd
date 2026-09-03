@@ -12,10 +12,10 @@ export type FileUploadProps = {
   disabled?: boolean;
   isUploading?: boolean;
   maxFileCount?: number;
+  maxFileSizeBytes?: number;
   allowedExtensions?: string[];
   multiple?: boolean;
   accept?: string;
-  onValidateError?: (error: Error) => void;
   mainText?: string;
   subText?: string;
   buttonText?: string;
@@ -82,13 +82,10 @@ const getUploadableFiles = (
     : fileArray.slice(0, remainingFileCount);
 };
 
-const createExtensionError = (allowedExtensions?: string[]) => {
-  const extensionText = allowedExtensions
-    ?.map((extension) => normalizeExtension(extension))
-    .filter(Boolean)
-    .join(", ");
+const getInvalidFileSizeFile = (files: File[], maxFileSizeBytes?: number) => {
+  if (maxFileSizeBytes === undefined) return null;
 
-  return new Error(`${extensionText} 파일만 업로드할 수 있습니다.`);
+  return files.find((file) => file.size > maxFileSizeBytes) ?? null;
 };
 
 const resolveMainText = ({
@@ -118,10 +115,10 @@ export const FileUpload = ({
   disabled = false,
   isUploading = false,
   maxFileCount,
+  maxFileSizeBytes,
   allowedExtensions,
   multiple = true,
   accept,
-  onValidateError,
   mainText,
   subText,
   buttonText,
@@ -157,7 +154,16 @@ export const FileUpload = ({
 
     if (invalidFile) {
       setHasInvalidUploadCondition(true);
-      onValidateError?.(createExtensionError(allowedExtensions));
+      return;
+    }
+
+    const invalidFileSizeFile = getInvalidFileSizeFile(
+      uploadableFiles,
+      maxFileSizeBytes,
+    );
+
+    if (invalidFileSizeFile) {
+      setHasInvalidUploadCondition(true);
       return;
     }
 
