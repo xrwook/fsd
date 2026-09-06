@@ -81,8 +81,11 @@ const getInvalidExtensionFile = (
 const getUploadableFiles = (
   selectedFiles: File[] | FileList,
   remainingFileCount?: number,
+  maxFileCount?: number,
 ) => {
   const fileArray = [...selectedFiles];
+
+  if (maxFileCount === 1) return fileArray.slice(0, 1);
 
   return remainingFileCount === undefined
     ? fileArray
@@ -144,12 +147,13 @@ export const FileUpload = ({
     maxFileCount === undefined
       ? undefined
       : Math.max(maxFileCount - files.length, 0);
-  const isMaxFileCountReached = remainingFileCount === 0;
+  const isMaxFileCountReached = maxFileCount !== 1 && remainingFileCount === 0;
 
   const handleFilesSelected = (selectedFiles: File[] | FileList) => {
     const uploadableFiles = getUploadableFiles(
       selectedFiles,
       remainingFileCount,
+      maxFileCount,
     );
 
     if (uploadableFiles.length === 0) return;
@@ -285,7 +289,7 @@ export const FileUpload = ({
             disableDragDrop || disabled || isUploading || isMaxFileCountReached
           }
           mainText={selectorMainText}
-          multiple={multiple}
+          multiple={maxFileCount === 1 ? false : multiple}
           onFilesSelected={handleFilesSelected}
           subText={subText}
         />

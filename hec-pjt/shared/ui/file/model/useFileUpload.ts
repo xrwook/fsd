@@ -35,6 +35,8 @@ const getUploadableFiles = (
 ) => {
   const fileArray = toFileArray(selectedFiles);
 
+  if (maxFileCount === 1) return fileArray.slice(0, 1);
+
   if (maxFileCount === undefined) return fileArray;
 
   const remainingFileCount = Math.max(maxFileCount - currentFileCount, 0);
@@ -194,7 +196,9 @@ export const useFileUpload = ({
         toPendingFileUploadItem(file),
       );
 
-      setFiles((currentFiles) => [...currentFiles, ...pendingFiles]);
+      setFiles((currentFiles) =>
+        maxFileCount === 1 ? pendingFiles : [...currentFiles, ...pendingFiles],
+      );
 
       try {
         await resolveFileGroupId();
