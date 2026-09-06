@@ -4,6 +4,8 @@ import { Plugin } from "@tiptap/pm/state";
 export type ImageUploadResult =
   | string
   | {
+      fileDetailId?: string;
+      fileDtlId?: string;
       imgId?: string;
       src: string;
     };
@@ -53,7 +55,7 @@ const toImageAttrs = (result: ImageUploadResult, file: File) => {
   return {
     src: result.src,
     alt: file.name,
-    imgId: result.imgId,
+    fileDetailId: result.fileDetailId ?? result.fileDtlId ?? result.imgId,
   };
 };
 

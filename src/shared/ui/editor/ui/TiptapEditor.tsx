@@ -32,11 +32,15 @@ export type TiptapEditorProps = {
   placeholder?: string;
   disabled?: boolean;
   submitOnEnter?: boolean;
+  referenceType: string;
   onChange?: (value: string) => void;
   onEmptyChange?: (isEmpty: boolean) => void;
   onSubmit?: () => void;
   onUploadStateChange?: (isUploading: boolean) => void;
-  uploadImage?: (file: File) => Promise<ImageUploadResult>;
+  uploadImage?: (
+    file: File,
+    referenceType: string,
+  ) => Promise<ImageUploadResult>;
   allowImageUpload?: boolean;
 };
 
@@ -44,19 +48,22 @@ const TiptapImage = Image.extend({
   addAttributes() {
     return {
       ...this.parent?.(),
-      imgId: {
+      fileDetailId: {
         default: null,
-        parseHTML: (element) => element.dataset.imgid,
+        parseHTML: (element) =>
+          element.dataset.fileDetailId ?? element.dataset.imgid,
         renderHTML: (attributes) => {
-          const imgId =
-            typeof attributes.imgId === "string" ? attributes.imgId : "";
+          const fileDetailId =
+            typeof attributes.fileDetailId === "string"
+              ? attributes.fileDetailId
+              : "";
 
-          if (!imgId) {
+          if (!fileDetailId) {
             return {};
           }
 
           return {
-            "data-imgid": imgId,
+            "data-file-detail-id": fileDetailId,
           };
         },
       },
@@ -69,6 +76,7 @@ export default function TiptapEditor({
   placeholder = "내용을 입력하세요.",
   disabled = false,
   submitOnEnter = false,
+  referenceType,
   onChange,
   onEmptyChange,
   onSubmit,
@@ -82,14 +90,16 @@ export default function TiptapEditor({
   const onChangeRef = useRef(onChange);
   const onEmptyChangeRef = useRef(onEmptyChange);
   const onSubmitRef = useRef(onSubmit);
+  const referenceTypeRef = useRef(referenceType);
   const uploadImageRef = useRef(uploadImage);
 
   useEffect(() => {
     onChangeRef.current = onChange;
     onEmptyChangeRef.current = onEmptyChange;
     onSubmitRef.current = onSubmit;
+    referenceTypeRef.current = referenceType;
     uploadImageRef.current = uploadImage;
-  }, [onChange, onEmptyChange, onSubmit, uploadImage]);
+  }, [onChange, onEmptyChange, onSubmit, referenceType, uploadImage]);
 
   useEffect(() => {
     onUploadStateChange?.(uploadCount > 0);
@@ -108,7 +118,16 @@ export default function TiptapEditor({
     () =>
       TiptapImageUpload.configure({
         enabled: allowImageUpload,
-        upload: (file) => uploadImageRef.current(file),
+        upload: (file) => {
+          const uploadReferenceType = referenceTypeRef.current.trim();
+          if (!uploadReferenceType) {
+            throw new Error(
+              "TiptapEditor 이미지 업로드 referenceType이 필요합니다.",
+            );
+          }
+
+          return uploadImageRef.current(file, uploadReferenceType);
+        },
         onUploadStart: increaseUploadCount,
         onUploadEnd: decreaseUploadCount,
         onUploadError: (_error, file) => {

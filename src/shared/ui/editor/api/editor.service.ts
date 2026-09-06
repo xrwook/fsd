@@ -1,109 +1,52 @@
-import { apiRequest, type Response } from "@/shared/lib/api";
+import axios from "axios";
+
+import { createImageUploadUrl } from "@/shared/api/file";
 
 import type { ImageUploadResult } from "../lib/tiptapImageUpload";
 
-const EDITOR_IMAGE_UPLOAD_URL =
-  "http://localhost:3000/api/backend/test/file/testcase_001";
+const getContentType = (file: File) => file.type || "application/octet-stream";
 
-type EditorImageUploadResponse =
-  | string
-  | {
-      url?: string;
-      imageUrl?: string;
-      fileUrl?: string;
-      downloadUrl?: string;
-      id?: string;
-      location?: string;
-      src?: string;
-      path?: string;
-      filePath?: string;
-      data?: EditorImageUploadResponse;
-      result?: EditorImageUploadResponse;
-      file?: EditorImageUploadResponse;
-      files?: EditorImageUploadResponse[];
-    }
-  | EditorImageUploadResponse[];
-
-type EditorImageUploadRequest = {
-  requestBody: FormData;
-};
-
-const pickString = (value: unknown): string | null => {
-  return typeof value === "string" && value.trim().length > 0
-    ? value.trim()
-    : null;
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null;
-
-const extractImageUploadResult = (response: unknown): ImageUploadResult | null => {
-  if (!response) return null;
-
-  if (typeof response === "string") {
-    const src = pickString(response);
-    return src ? { src } : null;
+const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
+  try {
+    await axios.put(uploadUrl, file, {
+      headers: {
+        "Content-Type": getContentType(file),
+      },
+      withCredentials: false,
+    });
+  } catch {
+    throw new Error("이미지 파일 업로드에 실패했습니다.");
   }
-
-  if (Array.isArray(response)) {
-    for (const item of response) {
-      const result = extractImageUploadResult(item);
-      if (result) return result;
-    }
-    return null;
-  }
-
-  if (!isRecord(response)) return null;
-
-  const src =
-    pickString(response["url"]) ??
-    pickString(response["imageUrl"]) ??
-    pickString(response["fileUrl"]) ??
-    pickString(response["downloadUrl"]) ??
-    pickString(response["location"]) ??
-    pickString(response["src"]) ??
-    pickString(response["path"]) ??
-    pickString(response["filePath"]);
-
-  if (src) {
-    return {
-      src,
-      imgId: pickString(response["id"]) ?? undefined,
-    };
-  }
-
-  const nestedValues = [
-    response["data"],
-    response["result"],
-    response["file"],
-    response["files"],
-  ];
-
-  for (const nestedValue of nestedValues) {
-    const nestedResult = extractImageUploadResult(nestedValue);
-    if (nestedResult) return nestedResult;
-  }
-
-  return null;
 };
 
 export const uploadEditorImage = async (
   file: File,
+  referenceType: string,
 ): Promise<ImageUploadResult> => {
-  const formData = new FormData();
-  formData.append("files", file);
-
-  const response = await apiRequest<
-    Response<EditorImageUploadResponse>,
-    EditorImageUploadRequest
-  >("post", EDITOR_IMAGE_UPLOAD_URL, {
-    requestBody: formData,
-  });
-  const imageUploadResult = extractImageUploadResult(response.data);
-
-  if (!imageUploadResult) {
-    throw new Error("이미지 업로드 응답에서 URL을 찾을 수 없습니다.");
+  const normalizedReferenceType = referenceType.trim();
+  if (!normalizedReferenceType) {
+    throw new Error("이미지 업로드 referenceType이 필요합니다.");
   }
 
-  return imageUploadResult;
+  const uploadUrlItem = await createImageUploadUrl({
+    contentType: getContentType(file),
+    fileSize: file.size,
+    originalName: file.name,
+    referenceType: normalizedReferenceType,
+  });
+
+  if (
+    !uploadUrlItem.uploadUrl ||
+    !uploadUrlItem.downloadUrl ||
+    !uploadUrlItem.fileDtlId
+  ) {
+    throw new Error("이미지 업로드 URL 발급 응답이 올바르지 않습니다.");
+  }
+
+  await uploadToSignedUrl(file, uploadUrlItem.uploadUrl);
+
+  return {
+    fileDtlId: uploadUrlItem.fileDtlId,
+    src: uploadUrlItem.downloadUrl,
+  };
 };

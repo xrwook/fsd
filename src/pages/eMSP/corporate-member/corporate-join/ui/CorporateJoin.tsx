@@ -1,11 +1,12 @@
 import { useState } from "react";
 
+import { SCREEN_ID } from "@/shared/config";
 import {
   DateRangePicker,
   type DateRangeQuickRange,
 } from "@/shared/ui/date-range-picker";
-import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
 import { DateTimePicker } from "@/shared/ui/date-time-picker";
+import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
 
 const USE_PERIOD_QUICK_RANGES: DateRangeQuickRange[] = [
   {
@@ -53,7 +54,7 @@ const CorporateJoin = () => {
       </div>
 
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-        <DateTimePicker 
+        <DateTimePicker
           value={new Date()}
           // mode="time"
           onChange={(value) => console.log(value)}
@@ -74,6 +75,7 @@ const CorporateJoin = () => {
         <TiptapEditor
           value={content}
           placeholder="기업 소개 내용을 입력하세요."
+          referenceType={SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT}
           onChange={setContent}
           onUploadStateChange={setIsUploading}
         />
