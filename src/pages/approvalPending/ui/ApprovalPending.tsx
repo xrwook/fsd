@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 // 접근 권한이 없을 때 안내 메시지와 복귀 액션을 제공합니다.
 const ApprovalPending = () => {
   return (
-    <main className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
+    <section className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-amber-600">
         ApprovalPending
       </p>
@@ -19,7 +19,7 @@ const ApprovalPending = () => {
           홈으로 이동
         </Link>
       </div>
-    </main>
+    </section>
   );
 };
 
