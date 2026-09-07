@@ -7,6 +7,7 @@ import type {
 
 import type { AliasAny, ExtractPathParams } from "@/shared/lib/types";
 
+import { classifyApiError, showApiErrorPage } from "../api-error";
 import axiosInstance from "./axiosInstance";
 import { PATH_PARAM_REGEX } from "./constants";
 import type {
@@ -136,7 +137,13 @@ export const apiRequest = <
   method: Method,
   url: ValidatePathParams<Url, Request>,
   payload?: Payload<Request>,
-  extraConfig?: Pick<AxiosRequestConfig, "screenId" | "skipScreenId">,
+  extraConfig?: Pick<
+    AxiosRequestConfig,
+    | "accessErrorPageType"
+    | "screenId"
+    | "skipGlobalErrorPage"
+    | "skipScreenId"
+  >,
 ): Promise<AxiosResponse<ApiResponseType>> => {
   const { path, query, paging, requestBody, headers, signal } = payload ?? {};
   const requestQuery = getRequestQueryParams(query, paging);
@@ -154,7 +161,16 @@ export const apiRequest = <
     ...extraConfig,
   };
 
-  return axiosInstance<ApiResponseType>(config);
+  return axiosInstance<ApiResponseType>(config).catch((error: unknown) => {
+    if (!config.skipGlobalErrorPage) {
+      showApiErrorPage(
+        classifyApiError(error, config.accessErrorPageType),
+        error,
+      );
+    }
+
+    throw error;
+  });
 };
 
 export const replaceUrlPathParams = (

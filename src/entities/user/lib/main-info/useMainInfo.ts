@@ -134,6 +134,7 @@ const findFirstAccessibleScreenIdByTopScreenIdFromTree = (
 export const useMainInfo = () => {
   const {
     data: mainInfoData = null,
+    error,
     isError,
     isFetched,
   } = useGetMainInfoQuery();
@@ -232,6 +233,7 @@ export const useMainInfo = () => {
     partnerInfo,
     mainMenus,
     menuPermissions,
+    mainInfoError: error,
     isMainInfoInitialized: isFetched,
     isMainInfoError: isError,
     canAccessMenu,

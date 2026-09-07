@@ -1,6 +1,12 @@
 import { Link } from "react-router-dom";
 
+import { useApiErrorPageStore } from "@/shared/lib/api-error";
+
 const AccessDeniedPage = () => {
+  const clearApiErrorPage = useApiErrorPageStore(
+    (state) => state.clearApiErrorPage,
+  );
+
   return (
     <section className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-600">
@@ -15,6 +21,7 @@ const AccessDeniedPage = () => {
       <div className="mt-6">
         <Link
           className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white"
+          onClick={clearApiErrorPage}
           to="/"
         >
           홈으로 이동

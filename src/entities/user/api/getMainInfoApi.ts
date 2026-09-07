@@ -13,7 +13,7 @@ const requestMainInfo = async () => {
     "get",
     "/permissions",
     undefined,
-    { skipScreenId: true },
+    { skipGlobalErrorPage: true, skipScreenId: true },
   );
 
   return response.data.data;
