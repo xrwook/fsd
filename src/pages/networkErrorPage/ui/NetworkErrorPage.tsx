@@ -1,6 +1,6 @@
 const NetworkErrorPage = () => {
   return (
-    <section className="mx-auto flex min-h-[60vh] w-full max-w-xl flex-col items-center justify-center px-6 text-center">
+    <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 text-center">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-red-600">
         Network Error
       </p>
@@ -19,7 +19,7 @@ const NetworkErrorPage = () => {
           새로고침
         </button>
       </div>
-    </section>
+    </main>
   );
 };
 
