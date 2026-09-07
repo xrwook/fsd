@@ -7,6 +7,7 @@ import {
 import { useState } from "react";
 
 import type { FileUploadItem } from "../model";
+import { getUploadableFiles } from "../model";
 
 export type FileUploadProps = {
   files: FileUploadItem[];
@@ -78,20 +79,6 @@ const getInvalidExtensionFile = (
   );
 };
 
-const getUploadableFiles = (
-  selectedFiles: File[] | FileList,
-  remainingFileCount?: number,
-  maxFileCount?: number,
-) => {
-  const fileArray = [...selectedFiles];
-
-  if (maxFileCount === 1) return fileArray.slice(0, 1);
-
-  return remainingFileCount === undefined
-    ? fileArray
-    : fileArray.slice(0, remainingFileCount);
-};
-
 const getInvalidFileSizeFile = (files: File[], maxFileSizeBytes?: number) => {
   if (maxFileSizeBytes === undefined) return null;
 
@@ -150,11 +137,11 @@ export const FileUpload = ({
   const isMaxFileCountReached = maxFileCount !== 1 && remainingFileCount === 0;
 
   const handleFilesSelected = (selectedFiles: File[] | FileList) => {
-    const uploadableFiles = getUploadableFiles(
-      selectedFiles,
-      remainingFileCount,
+    const uploadableFiles = getUploadableFiles({
+      currentFileCount: files.length,
       maxFileCount,
-    );
+      selectedFiles,
+    });
 
     if (uploadableFiles.length === 0) return;
 

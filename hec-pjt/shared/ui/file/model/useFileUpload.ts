@@ -8,6 +8,7 @@ import {
   useUploadUrlsMutation,
 } from "@/shared/api/file";
 
+import { getUploadableFiles } from "./fileLimit";
 import { toFileUploadItem } from "./fileMapper";
 import type {
   FileConfirm,
@@ -25,24 +26,6 @@ export type UseFileUploadOptions = {
 };
 
 const createLocalFileId = () => crypto.randomUUID();
-
-const toFileArray = (files: File[] | FileList) => [...files];
-
-const getUploadableFiles = (
-  selectedFiles: File[] | FileList,
-  currentFileCount: number,
-  maxFileCount?: number,
-) => {
-  const fileArray = toFileArray(selectedFiles);
-
-  if (maxFileCount === 1) return fileArray.slice(0, 1);
-
-  if (maxFileCount === undefined) return fileArray;
-
-  const remainingFileCount = Math.max(maxFileCount - currentFileCount, 0);
-
-  return fileArray.slice(0, remainingFileCount);
-};
 
 const toUploadUrlRequestItem = (
   referenceType: string,
@@ -181,11 +164,11 @@ export const useFileUpload = ({
 
   const uploadFiles = useCallback(
     async (selectedFiles: File[] | FileList) => {
-      const fileArray = getUploadableFiles(
-        selectedFiles,
-        files.length,
+      const fileArray = getUploadableFiles({
+        currentFileCount: files.length,
         maxFileCount,
-      );
+        selectedFiles,
+      });
 
       if (fileArray.length === 0) {
         return [];
