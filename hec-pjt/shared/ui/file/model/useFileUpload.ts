@@ -116,7 +116,19 @@ export const useFileUpload = ({
   );
 
   const resolveFileGroupId = useCallback(async () => {
+    if (initialFileGroupId) {
+      if (fileGroupId !== initialFileGroupId) {
+        setFileGroupId(initialFileGroupId);
+      }
+
+      return initialFileGroupId;
+    }
+
     if (fileGroupId) return fileGroupId;
+
+    if (!autoCreateGroupId) {
+      throw new Error("파일 그룹 ID가 없습니다.");
+    }
 
     if (fileGroupIdPromiseReference.current) {
       return fileGroupIdPromiseReference.current;
@@ -132,10 +144,16 @@ export const useFileUpload = ({
     } finally {
       fileGroupIdPromiseReference.current = null;
     }
-  }, [createFileGroupId, fileGroupId]);
+  }, [autoCreateGroupId, createFileGroupId, fileGroupId, initialFileGroupId]);
 
   useEffect(() => {
-    if (!autoCreateGroupId || fileGroupId) return;
+    if (!initialFileGroupId || fileGroupId === initialFileGroupId) return;
+
+    setFileGroupId(initialFileGroupId);
+  }, [fileGroupId, initialFileGroupId]);
+
+  useEffect(() => {
+    if (!autoCreateGroupId || initialFileGroupId || fileGroupId) return;
 
     resolveFileGroupId().catch((error: unknown) => {
       setUploadError(
@@ -144,7 +162,7 @@ export const useFileUpload = ({
           : new Error("파일 그룹 ID 발급에 실패했습니다."),
       );
     });
-  }, [autoCreateGroupId, resolveFileGroupId, fileGroupId]);
+  }, [autoCreateGroupId, resolveFileGroupId, fileGroupId, initialFileGroupId]);
 
   const uploadPendingFile = useCallback(
     async (

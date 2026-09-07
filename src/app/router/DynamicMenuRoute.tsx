@@ -1,13 +1,13 @@
 import type { ReactNode } from "react";
 import {
   matchRoutes,
-  Navigate,
   Route,
   Routes,
   useLocation,
 } from "react-router-dom";
 
 import { type TMenuPermissionField, useMainInfo } from "@/entities/user";
+import AccessDeniedPage from "@/pages/accessDeniedPage";
 import NotFoundPage from "@/pages/not-found";
 import type { ScreenIdValues } from "@/shared/config";
 import { ScreenRouteProvider } from "@/shared/lib/router";
@@ -75,7 +75,7 @@ export const DynamicMenuRoute = () => {
     }
 
     if (!canAccessMenu(permissionScreenId, permissionField)) {
-      return <Navigate to="/403" replace />;
+      return <AccessDeniedPage />;
     }
 
     const resolvedRequestScreenId = requestScreenId ?? screenId;
