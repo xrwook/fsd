@@ -77,15 +77,16 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
         endDate={filter.endDate}
         filterLabel="기간"
         inputVariant="filter"
-        onChange={(startDate, endDate) =>
+        onChange={(startDate, endDate) => {
           setFilter((previous) => ({
             ...previous,
             endDate,
             startDate,
-          }))
-        }
+          })); // 수정됨
+        }}
         quickRanges={MEMBER_DATE_QUICK_RANGES}
         quickRangeDirection="future"
+        requireCompleteRange={false} // 수정됨
         startDate={filter.startDate}
         disabledRanges={[
           {

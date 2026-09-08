@@ -1,7 +1,7 @@
 import "react-datepicker/dist/react-datepicker.css";
 import "../assets/date-range-picker.css";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactDatePicker from "react-datepicker";
 
 import {
@@ -37,6 +37,8 @@ export type Props = {
   inputVariant?: "filter" | "range";
   /** 선택할 수 없는 날짜 구간. react-datepicker의 excludeDateIntervals로 변환된다. */
   disabledRanges?: DisabledRange[];
+  /** 시작일과 종료일이 모두 선택된 경우에만 외부 값에 반영한다. */ // 수정됨
+  requireCompleteRange?: boolean; // 수정됨
   /** 날짜가 변경될 때 yyyy-MM-dd 문자열로 반환한다. */
   onChange: (startDate: string, endDate: string) => void;
 };
@@ -87,20 +89,36 @@ export const DateRangePicker = ({
   filterLabel,
   inputVariant = "range",
   disabledRanges = [],
+  requireCompleteRange = false, // 수정됨
   onChange,
 }: Props) => {
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [quickRangeSelection, setQuickRangeSelection] =
     useState<null | QuickRangeSelection>(null);
-  const selectedStartDate = parseDate(startDate);
-  const selectedEndDate = parseDate(endDate);
+  const [draftRange, setDraftRange] = useState({ startDate, endDate }); // 수정됨
+
+  useEffect(() => {
+    setDraftRange({ startDate, endDate });
+  }, [endDate, startDate]);
+
+  const pickerStartDate = requireCompleteRange
+    ? draftRange.startDate
+    : startDate; // 수정됨
+  const pickerEndDate = requireCompleteRange ? draftRange.endDate : endDate; // 수정됨
+  const displayStartDate = requireCompleteRange ? startDate : pickerStartDate; // 수정됨
+  const displayEndDate = requireCompleteRange ? endDate : pickerEndDate; // 수정됨
+  const selectedStartDate = parseDate(pickerStartDate);
+  const selectedEndDate = parseDate(pickerEndDate);
   const quickRangeDisplayValue = getQuickRangeDisplayValue(
     quickRangeSelection,
-    startDate,
-    endDate,
+    displayStartDate,
+    displayEndDate,
   );
-  const dateRangeDisplayValue = getDateRangeDisplayValue(startDate, endDate);
+  const dateRangeDisplayValue = getDateRangeDisplayValue(
+    displayStartDate,
+    displayEndDate,
+  );
   const inputDisplayValue = quickRangeDisplayValue || dateRangeDisplayValue;
   const disabledIntervals = useMemo(
     () => getDisabledInterval(disabledRanges),
@@ -121,6 +139,9 @@ export const DateRangePicker = ({
   /** 빠른 기간 버튼 클릭 시 기준일과 방향에 맞춰 시작일/종료일을 계산한다. */
   const handleQuickRange = (quickRange: QuickRange) => {
     if (isAllQuickRange(quickRange)) {
+      if (requireCompleteRange) {
+        setDraftRange({ endDate: "", startDate: "" }); // 수정됨
+      }
       setQuickRangeSelection({
         endDate: "",
         label: quickRange.label,
@@ -144,6 +165,12 @@ export const DateRangePicker = ({
       label: quickRange.label,
       startDate: nextStartDateValue,
     });
+    if (requireCompleteRange) {
+      setDraftRange({
+        endDate: nextEndDateValue,
+        startDate: nextStartDateValue,
+      });
+    }
     onChange(nextStartDateValue, nextEndDateValue);
     pickerRef.current?.setOpen(false);
   };
@@ -155,15 +182,18 @@ export const DateRangePicker = ({
         customInput={
           <DateRangeInput
             displayValue={inputDisplayValue}
-            endValue={endDate}
+            endValue={displayEndDate} // 수정됨
             filterLabel={filterLabel}
             inputVariant={inputVariant}
             isOpen={isOpen}
             onClear={() => {
+              if (requireCompleteRange) {
+                setDraftRange({ endDate: "", startDate: "" });
+              }
               setQuickRangeSelection(null);
               onChange("", "");
             }}
-            startValue={startDate}
+            startValue={displayStartDate} // 수정됨
           />
         }
         dateFormat="yyyy-MM-dd"
@@ -171,11 +201,37 @@ export const DateRangePicker = ({
         endDate={selectedEndDate}
         excludeDateIntervals={disabledIntervals}
         monthsShown={2}
-        onCalendarClose={() => setIsOpen(false)}
+        onCalendarClose={() => {
+          setIsOpen(false);
+          if (
+            requireCompleteRange &&
+            Boolean(draftRange.startDate) !== Boolean(draftRange.endDate)
+          ) {
+            setDraftRange({ endDate, startDate });
+          }
+        }} // 수정됨
         onCalendarOpen={() => setIsOpen(true)}
         onChange={([nextStartDate, nextEndDate]) => {
+          const nextStartDateValue = formatDate(nextStartDate);
+          const nextEndDateValue = formatDate(nextEndDate);
+
+          if (requireCompleteRange) {
+            setDraftRange({
+              endDate: nextEndDateValue,
+              startDate: nextStartDateValue,
+            });
+          }
           setQuickRangeSelection(null);
-          onChange(formatDate(nextStartDate), formatDate(nextEndDate));
+
+          if (
+            requireCompleteRange &&
+            (nextStartDateValue || nextEndDateValue) &&
+            (!nextStartDateValue || !nextEndDateValue)
+          ) {
+            return; // 수정됨
+          }
+
+          onChange(nextStartDateValue, nextEndDateValue);
         }}
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
