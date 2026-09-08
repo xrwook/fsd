@@ -12,6 +12,7 @@ export interface TextFieldProps extends Omit<
   after?: ReactNode;
   before?: ReactNode;
   hdsProps?: HdsProps | boolean;
+  maxLength?: number;
   numberOnly?: boolean;
   readOnly?: boolean;
   onClear?: () => void;
@@ -77,6 +78,7 @@ export const TextField = ({
   before,
   defaultValue,
   hdsProps,
+  maxLength,
   numberOnly = false,
   onChange,
   type,
@@ -87,15 +89,19 @@ export const TextField = ({
   const shouldUseNumberOnly = numberOnly || withComma;
 
   const handleChange = (event: TextFieldChangeEvent) => {
-    if (!shouldUseNumberOnly) {
+    if (!shouldUseNumberOnly && maxLength === undefined) {
       onChange?.(event);
       return;
     }
 
-    const nextValue = removeNonNumeric(event.target.value);
+    const nextValue = shouldUseNumberOnly
+      ? removeNonNumeric(event.target.value)
+      : event.target.value;
+    const limitedValue =
+      maxLength === undefined ? nextValue : nextValue.slice(0, maxLength);
 
-    event.target.value = nextValue;
-    event.currentTarget.value = nextValue;
+    event.target.value = limitedValue;
+    event.currentTarget.value = limitedValue;
     onChange?.(event);
   };
 

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { useMainInfo } from "@/entities/user";
+import { ACCESS_PAGE_PATHS } from "@/shared/lib/access-page";
 import {
   API_ERROR_PAGE_PATHS,
   classifyApiError,
@@ -11,7 +12,12 @@ import { DynamicMenuRoute } from "./DynamicMenuRoute";
 
 export const AppRouter = () => {
   const location = useLocation();
-  const { mainInfoError } = useMainInfo();
+  const {
+    hasReconsentRequiredTerms,
+    isMainInfoInitialized,
+    mainInfoError,
+    userInfo,
+  } = useMainInfo();
   const apiErrorPageType = useApiErrorPageStore((state) => state.pageType);
   const mainInfoErrorPageType = mainInfoError
     ? classifyApiError(mainInfoError, "approvalPending")
@@ -23,6 +29,23 @@ export const AppRouter = () => {
 
   if (apiErrorPath && location.pathname !== apiErrorPath) {
     return <Navigate replace to={apiErrorPath} />;
+  }
+
+  if (
+    isMainInfoInitialized &&
+    hasReconsentRequiredTerms &&
+    import.meta.env.MODE !== "bo" &&
+    location.pathname !== ACCESS_PAGE_PATHS.termsReconsent
+  ) {
+    return <Navigate replace to={ACCESS_PAGE_PATHS.termsReconsent} />;
+  }
+
+  if (
+    isMainInfoInitialized &&
+    userInfo?.userStatus === "E" &&
+    location.pathname !== ACCESS_PAGE_PATHS.approvalExtension
+  ) {
+    return <Navigate replace to={ACCESS_PAGE_PATHS.approvalExtension} />;
   }
 
   return (

@@ -11,10 +11,13 @@ import { MuiProvider } from "@/app/providers/mui-provider";
 import MultiProvider from "@/app/providers/MultiProvider";
 import { QueryProvider } from "@/app/providers/query-provider";
 import { RouteErrorBoundary } from "@/app/router/RouteErrorBoundary";
+import ApprovalExtensionPage from "@/pages/access/approval-extension";
+import TermsReconsentPage from "@/pages/access/terms-reconsent";
 import AccessDeniedPage from "@/pages/accessDeniedPage";
 import ApprovalPendingPage from "@/pages/approvalPending";
 import NetworkErrorPage from "@/pages/networkErrorPage";
 import TemporaryErrorPage from "@/pages/temporaryErrorPage";
+import { ACCESS_PAGE_PATHS } from "@/shared/lib/access-page";
 import { API_ERROR_PAGE_PATHS } from "@/shared/lib/api-error";
 import { enableMocking } from "@/shared/mocks";
 
@@ -27,6 +30,14 @@ if (!rootElement) {
 await enableMocking();
 
 const router = createBrowserRouter([
+  {
+    element: <ApprovalExtensionPage />,
+    path: ACCESS_PAGE_PATHS.approvalExtension,
+  },
+  {
+    element: <TermsReconsentPage />,
+    path: ACCESS_PAGE_PATHS.termsReconsent,
+  },
   {
     element: <AccessDeniedPage />,
     path: API_ERROR_PAGE_PATHS.accessDenied,
