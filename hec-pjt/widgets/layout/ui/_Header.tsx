@@ -7,7 +7,7 @@ import {
 } from '@hae-fe/pattern';
 import { Duration } from 'luxon';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { useMainInfo } from '@/entities/user';
 import Logo from '@/shared/assets/images/common/Logo.svg';
@@ -44,6 +44,7 @@ export const Header = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isQuickOpen, setIsQuickOpen] = useState(false);
 
+  const location = useLocation();
   const navigate = useNavigate();
 
   const handleSelectGnbMenu = (menuItem: MenuItem) => {
@@ -56,11 +57,20 @@ export const Header = ({
   };
 
   useEffect(() => {
-    if (!isMainInfoInitialized || navigation) return;
+    if (!isMainInfoInitialized) return;
+
     const topParent = findParentUrl(location.pathname);
-    const screenId = topParent?.screenId as ScreenIdValues;
-    setNavigation(screenId);
-  }, [location.pathname, isMainInfoInitialized, findParentUrl]);
+
+    if (topParent?.screenId && navigation !== topParent.screenId) {
+      setNavigation(topParent.screenId as ScreenIdValues);
+    }
+  }, [
+    findParentUrl,
+    isMainInfoInitialized,
+    location.pathname,
+    navigation,
+    setNavigation,
+  ]);
 
   useEffect(() => {
     const updateSec = () => setRemain(getKeycloakTokenExpireSeconds());

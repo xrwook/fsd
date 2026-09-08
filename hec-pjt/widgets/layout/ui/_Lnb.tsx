@@ -4,6 +4,7 @@ import {
   NavigationSidebar,
   useNavigationBreakpoint,
 } from '@hae-fe/pattern';
+import { useLocation } from 'react-router-dom';
 
 import type { MenuPermission } from '@/entities/user';
 import { useMainInfo } from '@/entities/user';
@@ -19,6 +20,38 @@ interface Props {
   showPersistentLnb?: boolean;
 }
 
+const normalizePath = (url: string | null | undefined) => {
+  if (!url || url === '#') {
+    return null;
+  }
+
+  const pathname = url.split(/[?#]/)[0]?.replace(/\/+$/, '');
+
+  return pathname || '/';
+};
+
+const matchesPath = (item: MenuPermission, pathname: string): boolean => {
+  const itemPath = normalizePath(item.url);
+
+  if (
+    itemPath &&
+    (itemPath === '/'
+      ? pathname === '/'
+      : pathname === itemPath || pathname.startsWith(`${itemPath}/`))
+  ) {
+    return true;
+  }
+
+  return (item.children ?? []).some((child) =>
+    matchesPath(child, pathname),
+  );
+};
+
+const findTopMenuByPath = (
+  menus: MenuPermission[],
+  pathname: string,
+) => menus.find((menu) => matchesPath(menu, pathname));
+
 export const Lnb = ({
   manualCollapsed,
   setManualCollapsed,
@@ -29,7 +62,13 @@ export const Lnb = ({
 }: Props) => {
   // const { headerMenus } = useMainInfo();
   const { sidebarHidden, sidebarCollapsed } = useNavigationBreakpoint();
-  const { menuPermissions, canAccessMenu, canAccessMenuGroup } = useMainInfo();
+  const {
+    menuPermissions,
+    canAccessMenu,
+    canAccessMenuGroup,
+    findParentUrl,
+  } = useMainInfo();
+  const location = useLocation();
 
   const collapsed = sidebarHidden
     ? false
@@ -74,9 +113,13 @@ export const Lnb = ({
   };
 
   // 메뉴
-  const currentMenuPermission = menuPermissions.find(
-    (x) => x.screenId === navigation,
-  );
+  const parentFromUrl = findParentUrl(location.pathname);
+  const currentMenuPermission =
+    (parentFromUrl?.screenId
+      ? menuPermissions.find((x) => x.screenId === parentFromUrl.screenId)
+      : undefined) ??
+    findTopMenuByPath(menuPermissions, location.pathname) ??
+    menuPermissions.find((x) => x.screenId === navigation);
   const currentChild = currentMenuPermission?.children ?? [];
 
   return (
