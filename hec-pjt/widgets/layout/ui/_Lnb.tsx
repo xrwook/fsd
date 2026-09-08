@@ -10,6 +10,11 @@ import type { MenuPermission } from '@/entities/user';
 import { useMainInfo } from '@/entities/user';
 import { navigateToScreen } from '@/shared/lib/navigation/navigation';
 
+import {
+  findTopMenuByPath,
+  isPathMatched,
+} from '../lib/menuPath';
+
 interface Props {
   manualCollapsed: boolean;
   setManualCollapsed: (value: boolean) => void;
@@ -19,55 +24,6 @@ interface Props {
   setDrawerOpen: (value: boolean) => void;
   showPersistentLnb?: boolean;
 }
-
-const normalizePath = (url: string | null | undefined) => {
-  if (!url || url === '#') {
-    return null;
-  }
-
-  const pathname = url.split(/[?#]/)[0]?.replace(/\/+$/, '');
-
-  return pathname || '/';
-};
-
-const isMenuPathSelected = (
-  url: string | null | undefined,
-  pathname: string,
-) => {
-  const menuPath = normalizePath(url);
-
-  if (!menuPath) {
-    return false;
-  }
-
-  if (menuPath === '/') {
-    return pathname === '/';
-  }
-
-  return pathname === menuPath || pathname.startsWith(`${menuPath}/`);
-};
-
-const matchesPath = (item: MenuPermission, pathname: string): boolean => {
-  const itemPath = normalizePath(item.url);
-
-  if (
-    itemPath &&
-    (itemPath === '/'
-      ? pathname === '/'
-      : pathname === itemPath || pathname.startsWith(`${itemPath}/`))
-  ) {
-    return true;
-  }
-
-  return (item.children ?? []).some((child) =>
-    matchesPath(child, pathname),
-  );
-};
-
-const findTopMenuByPath = (
-  menus: MenuPermission[],
-  pathname: string,
-) => menus.find((menu) => matchesPath(menu, pathname));
 
 export const Lnb = ({
   manualCollapsed,
@@ -112,7 +68,7 @@ export const Lnb = ({
         label={item.name}
         expressive
         defaultExpanded
-        selected={isMenuPathSelected(item.url, location.pathname)}
+        selected={isPathMatched(item.url, location.pathname)}
         fontWeight={hasChildren ? 'bold' : undefined}
         onClick={() => {
           if (item.type === 'menu' && item.url && item.screenId) {

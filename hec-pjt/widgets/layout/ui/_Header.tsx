@@ -15,6 +15,10 @@ import type { MenuItem, ScreenIdValues } from '@/shared/config/menu';
 import { getKeycloakTokenExpireSeconds } from '@/shared/lib/keycloak';
 import { navigateToScreen } from '@/shared/lib/navigation/navigation';
 
+import {
+  findTopMenuByPath,
+  isPathMatched,
+} from '../lib/menuPath';
 import { Profile } from './_Profile';
 import { QuickAccess } from './_QuickAccess';
 
@@ -33,6 +37,7 @@ export const Header = ({
 }: Props) => {
   const {
     headerMenusData,
+    menuPermissions,
     findParentUrl,
     isMainInfoInitialized,
     findLastMenu,
@@ -46,6 +51,14 @@ export const Header = ({
 
   const location = useLocation();
   const navigate = useNavigate();
+  const currentTopMenu =
+    findParentUrl(location.pathname) ??
+    findTopMenuByPath(menuPermissions, location.pathname);
+  const currentHeaderMenu = headerMenusData.find((item) =>
+    isPathMatched(item.path, location.pathname),
+  );
+  const selectedNavigation =
+    currentTopMenu?.screenId ?? currentHeaderMenu?.screenId ?? navigation;
 
   const handleSelectGnbMenu = (menuItem: MenuItem) => {
     setNavigation(menuItem.screenId);
@@ -59,15 +72,22 @@ export const Header = ({
   useEffect(() => {
     if (!isMainInfoInitialized) return;
 
-    const topParent = findParentUrl(location.pathname);
+    const topParent =
+      findParentUrl(location.pathname) ??
+      findTopMenuByPath(menuPermissions, location.pathname) ??
+      headerMenusData.find((item) =>
+        isPathMatched(item.path, location.pathname),
+      );
 
     if (topParent?.screenId && navigation !== topParent.screenId) {
       setNavigation(topParent.screenId as ScreenIdValues);
     }
   }, [
     findParentUrl,
+    headerMenusData,
     isMainInfoInitialized,
     location.pathname,
+    menuPermissions,
     navigation,
     setNavigation,
   ]);
@@ -121,7 +141,7 @@ export const Header = ({
                 <NavigationGnbMenu
                   key={item.label}
                   label={item.label}
-                  selected={navigation === item.screenId}
+                  selected={selectedNavigation === item.screenId}
                   onClick={() => handleSelectGnbMenu(item)}
                 />
               );
