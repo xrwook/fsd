@@ -9,7 +9,15 @@ const RouteErrorFallback = () => {
   const location = useLocation();
 
   if (location.pathname !== API_ERROR_PAGE_PATHS.temporary) {
-    return <Navigate replace to={API_ERROR_PAGE_PATHS.temporary} />;
+    return (
+      <Navigate
+        replace
+        to={API_ERROR_PAGE_PATHS.temporary}
+        state={{
+          from: `${location.pathname}${location.search}${location.hash}`,
+        }}
+      />
+    );
   }
 
   return <TemporaryErrorPage />;

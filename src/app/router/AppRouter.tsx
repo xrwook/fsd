@@ -28,7 +28,15 @@ export const AppRouter = () => {
     : null;
 
   if (apiErrorPath && location.pathname !== apiErrorPath) {
-    return <Navigate replace to={apiErrorPath} />;
+    return (
+      <Navigate
+        replace
+        to={apiErrorPath}
+        state={{
+          from: `${location.pathname}${location.search}${location.hash}`,
+        }}
+      />
+    );
   }
 
   if (
