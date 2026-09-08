@@ -163,10 +163,11 @@ export const apiRequest = <
 
   return axiosInstance<ApiResponseType>(config).catch((error: unknown) => {
     if (!config.skipGlobalErrorPage) {
-      showApiErrorPage(
-        classifyApiError(error, config.accessErrorPageType),
-        error,
-      );
+      const pageType = classifyApiError(error, config.accessErrorPageType);
+
+      if (pageType) {
+        showApiErrorPage(pageType, error);
+      }
     }
 
     throw error;

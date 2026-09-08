@@ -20,12 +20,18 @@ const queryClient = new QueryClient({
         isMainInfoQueryKey(query.queryKey) ? "approvalPending" : "accessDenied",
       );
 
-      showApiErrorPage(pageType, error);
+      if (pageType) {
+        showApiErrorPage(pageType, error);
+      }
     },
   }),
   mutationCache: new MutationCache({
     onError: (error) => {
-      showApiErrorPage(classifyApiError(error), error);
+      const pageType = classifyApiError(error);
+
+      if (pageType) {
+        showApiErrorPage(pageType, error);
+      }
     },
   }),
   defaultOptions: {

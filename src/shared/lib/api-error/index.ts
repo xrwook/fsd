@@ -31,7 +31,7 @@ const TEMPORARY_ERROR_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 export const classifyApiError = (
   error: unknown,
   accessType: ApiErrorAccessType = "accessDenied",
-): ApiErrorPageType => {
+): ApiErrorPageType | null => {
   if (!isAxiosError(error)) {
     return "temporary";
   }
@@ -50,7 +50,7 @@ export const classifyApiError = (
     return "temporary";
   }
 
-  return "temporary";
+  return null;
 };
 
 export const useApiErrorPageStore = create<ApiErrorState>((set) => ({
