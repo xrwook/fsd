@@ -1,5 +1,6 @@
 import type { ScreenIdValues } from '@/shared/config';
-import { createStore } from '@/shared/lib/zustand';
+import { createStore } from 'hec-pjt/lib/zustand';
+// import { createStore } from '@/shared/lib/zustand';
 
 type NavigationState = {
   navigation: ScreenIdValues | null;
