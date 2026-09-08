@@ -9,6 +9,7 @@ import { TextStyleKit } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import clsx from "clsx"; // 수정됨
 import {
   type KeyboardEvent,
   useCallback,
@@ -42,6 +43,8 @@ export type TiptapEditorProps = {
     referenceType: string,
   ) => Promise<ImageUploadResult>;
   allowImageUpload?: boolean;
+  /** 에디터 입력 영역 크기 조절 */ // 수정됨
+  resizable?: boolean; // 수정됨
 };
 
 const TiptapImage = Image.extend({
@@ -83,6 +86,7 @@ export default function TiptapEditor({
   onUploadStateChange,
   uploadImage = uploadEditorImage,
   allowImageUpload = true,
+  resizable = false, // 수정됨
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
@@ -241,7 +245,11 @@ export default function TiptapEditor({
       />
       <EditorContent
         editor={editor}
-        className={`tiptapEditorContent ${submitOnEnter ? "singleLine" : ""}`}
+        className={clsx(
+          "tiptapEditorContent",
+          submitOnEnter && "singleLine",
+          resizable && "editorResizableContent",
+        )} // 수정됨
         onKeyDown={handleKeyDown}
       />
       <EditorUploadStatus error={uploadError} uploadCount={uploadCount} />

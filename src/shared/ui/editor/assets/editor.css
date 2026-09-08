@@ -64,6 +64,14 @@
     sans-serif;
 }
 
+/* 수정됨 */
+.tiptapEditorContent.editorResizableContent {
+  height: 316px;
+  min-height: 160px;
+  resize: vertical;
+  overflow: auto;
+}
+
 .tiptapEditor.editorDisabled {
   background: #f9fafb;
 }
@@ -385,6 +393,12 @@
   font-size: 16px;
   line-height: 1.65;
   overflow-wrap: anywhere;
+}
+
+/* 수정됨 */
+.tiptapEditorContent.editorResizableContent .tiptap {
+  box-sizing: border-box;
+  min-height: 100%;
 }
 
 .tiptapEditorContent.singleLine .tiptap {
