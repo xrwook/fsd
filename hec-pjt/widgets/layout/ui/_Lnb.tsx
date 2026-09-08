@@ -30,6 +30,23 @@ const normalizePath = (url: string | null | undefined) => {
   return pathname || '/';
 };
 
+const isMenuPathSelected = (
+  url: string | null | undefined,
+  pathname: string,
+) => {
+  const menuPath = normalizePath(url);
+
+  if (!menuPath) {
+    return false;
+  }
+
+  if (menuPath === '/') {
+    return pathname === '/';
+  }
+
+  return pathname === menuPath || pathname.startsWith(`${menuPath}/`);
+};
+
 const matchesPath = (item: MenuPermission, pathname: string): boolean => {
   const itemPath = normalizePath(item.url);
 
@@ -95,7 +112,7 @@ export const Lnb = ({
         label={item.name}
         expressive
         defaultExpanded
-        selected={!!item.url && location.pathname === item.url}
+        selected={isMenuPathSelected(item.url, location.pathname)}
         fontWeight={hasChildren ? 'bold' : undefined}
         onClick={() => {
           if (item.type === 'menu' && item.url && item.screenId) {
