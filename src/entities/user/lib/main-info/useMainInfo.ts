@@ -152,6 +152,14 @@ export const useMainInfo = () => {
   );
   const userInfo = mainInfoData?.userInfo ?? null;
   const partnerInfo = mainInfoData?.partnerInfo ?? null;
+  const hasReconsentRequiredTerms = useMemo(() => {
+    const termAgreements = mainInfoData?.termAgreements;
+
+    return (
+      Array.isArray(termAgreements) &&
+      termAgreements.some((term) => term.isReconsent)
+    );
+  }, [mainInfoData?.termAgreements]);
 
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
@@ -231,6 +239,7 @@ export const useMainInfo = () => {
     mainInfoData,
     userInfo,
     partnerInfo,
+    hasReconsentRequiredTerms,
     mainMenus,
     menuPermissions,
     mainInfoError: error,
