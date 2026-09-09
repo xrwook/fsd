@@ -8,6 +8,7 @@ import {
   getKeycloakInstance,
   initializeKeycloak,
   loginKeycloak,
+  markKeycloakRedirecting,
   refreshKeycloakToken,
 } from "@/shared/lib/keycloak";
 
@@ -87,7 +88,9 @@ export const KeycloakProvider = ({ children }: Props) => {
         setAuthenticatedState();
       };
       keycloak.onAuthLogout = () => {
-        loginKeycloak().catch(setErrorState);
+        // keycloak-js의 clearToken()이 login-required 모드에서 자체적으로
+        // login redirect를 시작하므로 여기서 login()을 다시 호출하지 않습니다.
+        markKeycloakRedirecting();
       };
       keycloak.onAuthRefreshSuccess = () => {
         setState((currentState) => ({

@@ -10,6 +10,14 @@ let keycloakInstance: Keycloak | null = null;
 let initKeycloak: Promise<boolean> | null = null;
 // 토큰 갱신 실패 등으로 여러 요청이 동시에 로그인 복구를 시도해도 redirect는 한 번만 시작합니다.
 let loginKeycloakRequest: Promise<void> | null = null;
+// 인증 redirect 중에는 작성 중인 화면의 beforeunload 경고가 redirect를 막지 않도록 합니다.
+let keycloakRedirecting = false;
+
+export const isKeycloakRedirecting = () => keycloakRedirecting;
+
+export const markKeycloakRedirecting = () => {
+  keycloakRedirecting = true;
+};
 
 /**
  * env에 정의된 Keycloak 서버 접속 정보를 keycloak-js 설정 객체로 변환합니다.
@@ -35,7 +43,7 @@ const getKeycloakConfig = (): KeycloakConfig => {
  */
 const getInitOptions = (): KeycloakInitOptions => {
   const options: KeycloakInitOptions = {
-    onLoad: "login-required",
+    onLoad: env.keycloak.onLoad,
     // SPA public client 기준으로 authorization code + PKCE 흐름을 사용합니다.
     pkceMethod: "S256",
     // iframe 세션 체크는 브라우저 3rd-party cookie 정책에 취약해 토큰 refresh 중심으로 관리합니다.
@@ -100,8 +108,16 @@ export const loginKeycloak = async () => {
     return;
   }
 
-  loginKeycloakRequest ??= keycloak.login().finally(() => {
+  if (keycloakRedirecting) {
+    return;
+  }
+
+  keycloakRedirecting = true;
+  loginKeycloakRequest ??= keycloak.login().catch((error) => {
+    // 실제 redirect가 시작되지 않은 경우에만 다시 시도할 수 있도록 상태를 되돌립니다.
+    keycloakRedirecting = false;
     loginKeycloakRequest = null;
+    throw error;
   });
 
   await loginKeycloakRequest;
@@ -111,7 +127,14 @@ export const loginKeycloak = async () => {
  * Keycloak 세션을 로그아웃 처리합니다.
  */
 export const logoutKeycloak = async () => {
-  await getKeycloakInstance()?.logout();
+  const keycloak = getKeycloakInstance();
+
+  if (!keycloak) {
+    return;
+  }
+
+  keycloakRedirecting = true;
+  await keycloak.logout();
 };
 
 /**
@@ -174,12 +197,8 @@ export const getKeycloakAccessToken = async () => {
     return null;
   }
 
-  try {
-    return await refreshKeycloakToken();
-  } catch (error) {
-    // refresh 실패는 세션 만료로 보고 로컬 토큰을 비운 뒤 Keycloak 로그인으로 되돌립니다.
-    keycloak.clearToken();
-    await loginKeycloak();
-    throw error;
-  }
+  // updateToken 내부에서 refresh 실패를 처리하고, login-required 모드에서는
+  // Keycloak adapter가 이미 로그인 redirect를 시작합니다. 여기서 다시
+  // clearToken/login을 호출하면 redirect가 중복되어 이탈 경고와 충돌합니다.
+  return refreshKeycloakToken();
 };

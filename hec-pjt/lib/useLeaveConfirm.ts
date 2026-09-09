@@ -2,6 +2,7 @@ import type { RefObject } from 'react';
 import { useEffect, useRef } from 'react';
 import { useBlocker } from 'react-router-dom';
 
+import { isKeycloakRedirecting } from '@/shared/lib/keycloak';
 import { useSystemModal } from '@/shared/lib/modal';
 
 type UseLeaveConfirmOptions = {
@@ -52,6 +53,8 @@ export const useLeaveConfirm = ({
     if (!isDirty || skip) return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isKeycloakRedirecting()) return;
+
       event.preventDefault();
     };
 
