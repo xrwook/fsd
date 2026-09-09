@@ -5,6 +5,7 @@ import { extraPageRoutes } from "@/app/router/extra-page-routes";
 import type { TMenuPermission } from "@/entities/user";
 import { useMainInfo } from "@/entities/user";
 import type { ScreenIdValues } from "@/shared/config";
+import { API_ERROR_PAGE_PATHS } from "@/shared/lib/api-error";
 import {
   clearNavigation,
   clearScreenRouteResolver,
@@ -99,13 +100,14 @@ export const NavigationInitializer = () => {
         console.error(
           `[navigation] Route path for screen "${screenId}" was not found in API menu or extra page routes.`,
         );
+        navigate(API_ERROR_PAGE_PATHS.accessDenied, { replace: true });
 
         return null;
       }
 
       return applyPathParams(path, pathParams);
     },
-    [isMainInfoInitialized, screenPathMap],
+    [isMainInfoInitialized, navigate, screenPathMap],
   );
 
   useEffect(() => {
