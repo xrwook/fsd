@@ -464,11 +464,6 @@ export const useFileUpload = ({
 
   const uploadedFiles = useMemo(() => getUploadedFiles(files), [files]);
 
-  const fileDtlIds = useMemo(
-    () => uploadedFiles.map((file) => file.fileDtlId),
-    [uploadedFiles],
-  );
-
   const getFileConfirmGroup =
     useCallback(async (): Promise<FileConfirmGroup> => {
       const confirmedFileGroupId = await resolveFileGroupId();
@@ -490,7 +485,7 @@ export const useFileUpload = ({
     fileGroupId,
     files,
     uploadedFiles,
-    fileDtlIds,
+    fileDtlIds: fileDtlIdsReference.current,
     uploadError,
     isCreatingFileGroupId,
     isCreatingUploadUrls,
