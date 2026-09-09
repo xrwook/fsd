@@ -59,6 +59,23 @@ const toUploadedFileUploadItem = (
   progress: undefined,
 });
 
+type UploadedFileUploadItem = FileUploadItem & { fileDtlId: string };
+
+const isUploadedFile = (file: FileUploadItem): file is UploadedFileUploadItem =>
+  file.status === "idle" && !!file.fileDtlId;
+
+const getUploadedFiles = (files: FileUploadItem[]): UploadedFileUploadItem[] =>
+  files.filter((file) => isUploadedFile(file));
+
+const mergeUploadedFiles = (
+  currentFiles: FileUploadItem[],
+  uploadedFiles: FileUploadItem[],
+  maxFileCount?: number,
+): FileUploadItem[] =>
+  maxFileCount === 1
+    ? uploadedFiles
+    : [...getUploadedFiles(currentFiles), ...uploadedFiles];
+
 const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
   const headers = file.type ? { "Content-Type": file.type } : undefined;
 
@@ -79,14 +96,10 @@ export const useFileUpload = ({
   autoCreateGroupId = true,
   maxFileCount,
 }: UseFileUploadOptions) => {
-  const filesReference = useRef<FileUploadItem[]>([]);
   const [fileGroupId, setFileGroupId] = useState(initialFileGroupId);
-  const [files, setFiles] = useState<FileUploadItem[]>(() => {
-    const initialFileItems = initialFiles.map((file) => toFileUploadItem(file));
-
-    filesReference.current = initialFileItems;
-    return initialFileItems;
-  });
+  const [files, setFiles] = useState<FileUploadItem[]>(() =>
+    initialFiles.map((file) => toFileUploadItem(file)),
+  );
   const [uploadError, setUploadError] = useState<Error | null>(null);
   const fileGroupIdPromiseReference = useRef<Promise<string> | null>(null);
 
@@ -95,23 +108,13 @@ export const useFileUpload = ({
   const { isPending: isCreatingUploadUrls, mutateAsync: createUploadUrls } =
     useUploadUrlsMutation();
 
-  const setFilesState = useCallback(
-    (updater: (currentFiles: FileUploadItem[]) => FileUploadItem[]) => {
-      const nextFiles = updater(filesReference.current);
-
-      filesReference.current = nextFiles;
-      setFiles(nextFiles);
-    },
-    [],
-  );
-
   const updateFile = useCallback(
     (fileId: string, updater: (file: FileUploadItem) => FileUploadItem) => {
-      setFilesState((currentFiles) =>
+      setFiles((currentFiles) =>
         currentFiles.map((file) => (file.id === fileId ? updater(file) : file)),
       );
     },
-    [setFilesState],
+    [],
   );
 
   const markFileAsError = useCallback(
@@ -197,7 +200,7 @@ export const useFileUpload = ({
   const uploadFiles = useCallback(
     async (selectedFiles: File[] | FileList) => {
       const fileArray = getUploadableFiles({
-        currentFileCount: filesReference.current.length,
+        currentFileCount: files.length,
         maxFileCount,
         selectedFiles,
       });
@@ -211,7 +214,7 @@ export const useFileUpload = ({
         toPendingFileUploadItem(file),
       );
 
-      setFilesState((currentFiles) =>
+      setFiles((currentFiles) =>
         maxFileCount === 1 ? pendingFiles : [...currentFiles, ...pendingFiles],
       );
 
@@ -290,22 +293,22 @@ export const useFileUpload = ({
         throw error;
       }
 
-      return uploadedFiles;
+      return mergeUploadedFiles(files, uploadedFiles, maxFileCount);
     },
     [
       createUploadUrls,
       resolveFileGroupId,
+      files,
       markFileAsError,
       maxFileCount,
       referenceType,
-      setFilesState,
       uploadPendingFile,
     ],
   );
 
   const retryFile = useCallback(
     async (fileId: string) => {
-      const retryTargetFile = filesReference.current.find(
+      const retryTargetFile = files.find(
         (file) => file.id === fileId || file.fileDtlId === fileId,
       );
 
@@ -382,6 +385,7 @@ export const useFileUpload = ({
     [
       createUploadUrls,
       resolveFileGroupId,
+      files,
       markFileAsError,
       referenceType,
       updateFile,
@@ -389,16 +393,13 @@ export const useFileUpload = ({
     ],
   );
 
-  const removeFile = useCallback(
-    (fileId: string) => {
-      setFilesState((currentFiles) =>
-        currentFiles.filter(
-          (file) => file.id !== fileId && file.fileDtlId !== fileId,
-        ),
-      );
-    },
-    [setFilesState],
-  );
+  const removeFile = useCallback((fileId: string) => {
+    setFiles((currentFiles) =>
+      currentFiles.filter(
+        (file) => file.id !== fileId && file.fileDtlId !== fileId,
+      ),
+    );
+  }, []);
 
   const initializeFiles = useCallback(
     (nextFiles: FileUploadInitialFile[], nextFileGroupId?: string) => {
@@ -406,47 +407,36 @@ export const useFileUpload = ({
         setFileGroupId(nextFileGroupId);
       }
 
-      setFilesState(() => nextFiles.map((file) => toFileUploadItem(file)));
+      setFiles(nextFiles.map((file) => toFileUploadItem(file)));
       setUploadError(null);
     },
-    [setFilesState],
+    [],
   );
 
   const resetFiles = useCallback(() => {
-    setFilesState(() => []);
+    setFiles([]);
     setUploadError(null);
-  }, [setFilesState]);
+  }, []);
 
-  const uploadedFiles = useMemo(
-    () =>
-      files.filter(
-        (file): file is FileUploadItem & { fileDtlId: string } =>
-          file.status === "idle" && !!file.fileDtlId,
-      ),
-    [files],
-  );
+  const uploadedFiles = useMemo(() => getUploadedFiles(files), [files]);
 
   const fileDtlIds = useMemo(
     () => uploadedFiles.map((file) => file.fileDtlId),
     [uploadedFiles],
   );
 
-  const getFileConfirmGroup =
-    useCallback(async (): Promise<FileConfirmGroup> => {
+  const getFileConfirmGroup = useCallback(
+    async (nextFileDtlIds?: string[]): Promise<FileConfirmGroup> => {
       const confirmedFileGroupId = await resolveFileGroupId();
-      const currentFileDtlIds = filesReference.current
-        .filter(
-          (file): file is FileUploadItem & { fileDtlId: string } =>
-            file.status === "idle" && !!file.fileDtlId,
-        )
-        .map((file) => file.fileDtlId);
 
       return {
         fileId: confirmedFileGroupId,
         referenceType,
-        fileDtlIds: currentFileDtlIds,
+        fileDtlIds: nextFileDtlIds ?? fileDtlIds,
       };
-    }, [resolveFileGroupId, referenceType]);
+    },
+    [fileDtlIds, referenceType, resolveFileGroupId],
+  );
 
   const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
     return {
