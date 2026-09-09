@@ -59,22 +59,13 @@ const toUploadedFileUploadItem = (
   progress: undefined,
 });
 
-type UploadedFileUploadItem = FileUploadItem & { fileDtlId: string };
-
-const isUploadedFile = (file: FileUploadItem): file is UploadedFileUploadItem =>
-  file.status === "idle" && !!file.fileDtlId;
-
-const getUploadedFiles = (files: FileUploadItem[]): UploadedFileUploadItem[] =>
-  files.filter((file) => isUploadedFile(file));
-
-const mergeUploadedFiles = (
-  currentFiles: FileUploadItem[],
-  uploadedFiles: FileUploadItem[],
-  maxFileCount?: number,
-): FileUploadItem[] =>
-  maxFileCount === 1
-    ? uploadedFiles
-    : [...getUploadedFiles(currentFiles), ...uploadedFiles];
+const getUploadedFiles = (
+  files: FileUploadItem[],
+): (FileUploadItem & { fileDtlId: string })[] =>
+  files.filter(
+    (file): file is FileUploadItem & { fileDtlId: string } =>
+      file.status === "idle" && !!file.fileDtlId,
+  );
 
 const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
   const headers = file.type ? { "Content-Type": file.type } : undefined;
@@ -89,6 +80,20 @@ const uploadToSignedUrl = async (file: File, uploadUrl: string) => {
   }
 };
 
+const mergeFileDtlIds = (
+  currentFileDtlIds: string[],
+  uploadedFileDtlIds: string[],
+  maxFileCount?: number,
+) => {
+  if (maxFileCount === 1) return uploadedFileDtlIds;
+  if (uploadedFileDtlIds.length === 0) return currentFileDtlIds;
+
+  return [...currentFileDtlIds, ...uploadedFileDtlIds];
+};
+
+const appendFileDtlId = (fileDtlIds: string[], fileDtlId?: string) =>
+  fileDtlId ? [...fileDtlIds, fileDtlId] : fileDtlIds;
+
 export const useFileUpload = ({
   referenceType,
   initialFileGroupId,
@@ -99,6 +104,9 @@ export const useFileUpload = ({
   const [fileGroupId, setFileGroupId] = useState(initialFileGroupId);
   const [files, setFiles] = useState<FileUploadItem[]>(() =>
     initialFiles.map((file) => toFileUploadItem(file)),
+  );
+  const fileDtlIdsReference = useRef<string[]>(
+    initialFiles.flatMap((file) => (file.fileDtlId ? [file.fileDtlId] : [])),
   );
   const [uploadError, setUploadError] = useState<Error | null>(null);
   const fileGroupIdPromiseReference = useRef<Promise<string> | null>(null);
@@ -287,13 +295,23 @@ export const useFileUpload = ({
         }
       }
 
+      const uploadedFileDtlIds = uploadedFiles.flatMap((file) =>
+        file.fileDtlId ? [file.fileDtlId] : [],
+      );
+
+      fileDtlIdsReference.current = mergeFileDtlIds(
+        fileDtlIdsReference.current,
+        uploadedFileDtlIds,
+        maxFileCount,
+      );
+
       if (failedResults.length > 0) {
         const error = new Error("일부 파일 업로드에 실패했습니다.");
         setUploadError(error);
         throw error;
       }
 
-      return mergeUploadedFiles(files, uploadedFiles, maxFileCount);
+      return uploadedFiles;
     },
     [
       createUploadUrls,
@@ -366,11 +384,18 @@ export const useFileUpload = ({
       }
 
       try {
-        return await uploadPendingFile(
+        const uploadedFile = await uploadPendingFile(
           retryTargetFile,
           retryTargetFile.sourceFile,
           uploadUrlItem,
         );
+
+        fileDtlIdsReference.current = appendFileDtlId(
+          fileDtlIdsReference.current,
+          uploadedFile.fileDtlId,
+        );
+
+        return uploadedFile;
       } catch (error: unknown) {
         const normalizedError =
           error instanceof Error
@@ -393,13 +418,24 @@ export const useFileUpload = ({
     ],
   );
 
-  const removeFile = useCallback((fileId: string) => {
-    setFiles((currentFiles) =>
-      currentFiles.filter(
-        (file) => file.id !== fileId && file.fileDtlId !== fileId,
-      ),
-    );
-  }, []);
+  const removeFile = useCallback(
+    (fileId: string) => {
+      const removedFile = files.find(
+        (file) => file.id === fileId || file.fileDtlId === fileId,
+      );
+
+      fileDtlIdsReference.current = fileDtlIdsReference.current.filter(
+        (currentFileDtlId) => currentFileDtlId !== removedFile?.fileDtlId,
+      );
+
+      setFiles((currentFiles) =>
+        currentFiles.filter(
+          (file) => file.id !== fileId && file.fileDtlId !== fileId,
+        ),
+      );
+    },
+    [files],
+  );
 
   const initializeFiles = useCallback(
     (nextFiles: FileUploadInitialFile[], nextFileGroupId?: string) => {
@@ -408,6 +444,9 @@ export const useFileUpload = ({
       }
 
       setFiles(nextFiles.map((file) => toFileUploadItem(file)));
+      fileDtlIdsReference.current = nextFiles.flatMap((file) =>
+        file.fileDtlId ? [file.fileDtlId] : [],
+      );
       setUploadError(null);
     },
     [],
@@ -415,6 +454,7 @@ export const useFileUpload = ({
 
   const resetFiles = useCallback(() => {
     setFiles([]);
+    fileDtlIdsReference.current = [];
     setUploadError(null);
   }, []);
 
@@ -425,18 +465,16 @@ export const useFileUpload = ({
     [uploadedFiles],
   );
 
-  const getFileConfirmGroup = useCallback(
-    async (nextFileDtlIds?: string[]): Promise<FileConfirmGroup> => {
+  const getFileConfirmGroup =
+    useCallback(async (): Promise<FileConfirmGroup> => {
       const confirmedFileGroupId = await resolveFileGroupId();
 
       return {
         fileId: confirmedFileGroupId,
         referenceType,
-        fileDtlIds: nextFileDtlIds ?? fileDtlIds,
+        fileDtlIds: fileDtlIdsReference.current,
       };
-    },
-    [fileDtlIds, referenceType, resolveFileGroupId],
-  );
+    }, [referenceType, resolveFileGroupId]);
 
   const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
     return {
