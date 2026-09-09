@@ -316,7 +316,7 @@ export const useFileUpload = ({
     [
       createUploadUrls,
       resolveFileGroupId,
-      files,
+      files.length,
       markFileAsError,
       maxFileCount,
       referenceType,
@@ -424,9 +424,13 @@ export const useFileUpload = ({
         (file) => file.id === fileId || file.fileDtlId === fileId,
       );
 
-      fileDtlIdsReference.current = fileDtlIdsReference.current.filter(
-        (currentFileDtlId) => currentFileDtlId !== removedFile?.fileDtlId,
-      );
+      if (!removedFile) return;
+
+      if (removedFile.fileDtlId) {
+        fileDtlIdsReference.current = fileDtlIdsReference.current.filter(
+          (currentFileDtlId) => currentFileDtlId !== removedFile.fileDtlId,
+        );
+      }
 
       setFiles((currentFiles) =>
         currentFiles.filter(
