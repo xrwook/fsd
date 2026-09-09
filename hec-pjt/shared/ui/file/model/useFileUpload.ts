@@ -79,10 +79,14 @@ export const useFileUpload = ({
   autoCreateGroupId = true,
   maxFileCount,
 }: UseFileUploadOptions) => {
+  const filesReference = useRef<FileUploadItem[]>([]);
   const [fileGroupId, setFileGroupId] = useState(initialFileGroupId);
-  const [files, setFiles] = useState<FileUploadItem[]>(() =>
-    initialFiles.map((file) => toFileUploadItem(file)),
-  );
+  const [files, setFiles] = useState<FileUploadItem[]>(() => {
+    const initialFileItems = initialFiles.map((file) => toFileUploadItem(file));
+
+    filesReference.current = initialFileItems;
+    return initialFileItems;
+  });
   const [uploadError, setUploadError] = useState<Error | null>(null);
   const fileGroupIdPromiseReference = useRef<Promise<string> | null>(null);
 
@@ -91,13 +95,23 @@ export const useFileUpload = ({
   const { isPending: isCreatingUploadUrls, mutateAsync: createUploadUrls } =
     useUploadUrlsMutation();
 
+  const setFilesState = useCallback(
+    (updater: (currentFiles: FileUploadItem[]) => FileUploadItem[]) => {
+      const nextFiles = updater(filesReference.current);
+
+      filesReference.current = nextFiles;
+      setFiles(nextFiles);
+    },
+    [],
+  );
+
   const updateFile = useCallback(
     (fileId: string, updater: (file: FileUploadItem) => FileUploadItem) => {
-      setFiles((currentFiles) =>
+      setFilesState((currentFiles) =>
         currentFiles.map((file) => (file.id === fileId ? updater(file) : file)),
       );
     },
-    [],
+    [setFilesState],
   );
 
   const markFileAsError = useCallback(
@@ -183,7 +197,7 @@ export const useFileUpload = ({
   const uploadFiles = useCallback(
     async (selectedFiles: File[] | FileList) => {
       const fileArray = getUploadableFiles({
-        currentFileCount: files.length,
+        currentFileCount: filesReference.current.length,
         maxFileCount,
         selectedFiles,
       });
@@ -197,7 +211,7 @@ export const useFileUpload = ({
         toPendingFileUploadItem(file),
       );
 
-      setFiles((currentFiles) =>
+      setFilesState((currentFiles) =>
         maxFileCount === 1 ? pendingFiles : [...currentFiles, ...pendingFiles],
       );
 
@@ -281,17 +295,17 @@ export const useFileUpload = ({
     [
       createUploadUrls,
       resolveFileGroupId,
-      files.length,
       markFileAsError,
       maxFileCount,
       referenceType,
+      setFilesState,
       uploadPendingFile,
     ],
   );
 
   const retryFile = useCallback(
     async (fileId: string) => {
-      const retryTargetFile = files.find(
+      const retryTargetFile = filesReference.current.find(
         (file) => file.id === fileId || file.fileDtlId === fileId,
       );
 
@@ -368,7 +382,6 @@ export const useFileUpload = ({
     [
       createUploadUrls,
       resolveFileGroupId,
-      files,
       markFileAsError,
       referenceType,
       updateFile,
@@ -376,13 +389,16 @@ export const useFileUpload = ({
     ],
   );
 
-  const removeFile = useCallback((fileId: string) => {
-    setFiles((currentFiles) =>
-      currentFiles.filter(
-        (file) => file.id !== fileId && file.fileDtlId !== fileId,
-      ),
-    );
-  }, []);
+  const removeFile = useCallback(
+    (fileId: string) => {
+      setFilesState((currentFiles) =>
+        currentFiles.filter(
+          (file) => file.id !== fileId && file.fileDtlId !== fileId,
+        ),
+      );
+    },
+    [setFilesState],
+  );
 
   const initializeFiles = useCallback(
     (nextFiles: FileUploadInitialFile[], nextFileGroupId?: string) => {
@@ -390,16 +406,16 @@ export const useFileUpload = ({
         setFileGroupId(nextFileGroupId);
       }
 
-      setFiles(nextFiles.map((file) => toFileUploadItem(file)));
+      setFilesState(() => nextFiles.map((file) => toFileUploadItem(file)));
       setUploadError(null);
     },
-    [],
+    [setFilesState],
   );
 
   const resetFiles = useCallback(() => {
-    setFiles([]);
+    setFilesState(() => []);
     setUploadError(null);
-  }, []);
+  }, [setFilesState]);
 
   const uploadedFiles = useMemo(
     () =>
@@ -418,13 +434,19 @@ export const useFileUpload = ({
   const getFileConfirmGroup =
     useCallback(async (): Promise<FileConfirmGroup> => {
       const confirmedFileGroupId = await resolveFileGroupId();
+      const currentFileDtlIds = filesReference.current
+        .filter(
+          (file): file is FileUploadItem & { fileDtlId: string } =>
+            file.status === "idle" && !!file.fileDtlId,
+        )
+        .map((file) => file.fileDtlId);
 
       return {
         fileId: confirmedFileGroupId,
         referenceType,
-        fileDtlIds,
+        fileDtlIds: currentFileDtlIds,
       };
-    }, [resolveFileGroupId, fileDtlIds, referenceType]);
+    }, [resolveFileGroupId, referenceType]);
 
   const getFileConfirm = useCallback(async (): Promise<FileConfirm> => {
     return {
