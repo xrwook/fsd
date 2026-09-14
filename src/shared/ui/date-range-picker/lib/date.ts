@@ -15,6 +15,8 @@ export type DateRange = {
 
 export type RangeDirection = "future" | "past";
 
+export type DateRangeValue = string | Date; // 수정됨
+
 export type DisabledRange = {
   endDate: string;
   startDate: string;
@@ -30,6 +32,30 @@ export const parseDate = (value: string): Date | null => {
   const date = DateTime.fromFormat(value, DATE_FORMAT);
 
   return date.isValid ? date.toJSDate() : null;
+};
+
+/** 문자열 또는 Date 값을 날짜 단위의 Date로 정규화한다. */ // 수정됨
+export const normalizeDate = (
+  value: DateRangeValue | null | undefined,
+): Date | null => {
+  // 수정됨
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime())
+      ? null
+      : DateTime.fromJSDate(value).startOf("day").toJSDate();
+  }
+
+  if (!value) {
+    return null;
+  }
+
+  const formattedDate = parseDate(value);
+  if (formattedDate) {
+    return formattedDate;
+  }
+
+  const parsedDate = DateTime.fromISO(value);
+  return parsedDate.isValid ? parsedDate.startOf("day").toJSDate() : null;
 };
 
 /** Date 값을 API/URL에서 쓰기 쉬운 yyyy-MM-dd 문자열로 변환한다. */
@@ -75,6 +101,21 @@ export const toOrderedDateRange = (
       };
 };
 
+/** 날짜 구간이 minDate/maxDate 범위 안에 포함되는지 확인한다. */ // 수정됨
+export const isDateRangeWithinBounds = (
+  startDate: Date,
+  endDate: Date,
+  minDate: Date | null,
+  maxDate: Date | null,
+): boolean => {
+  const orderedDateRange = toOrderedDateRange(startDate, endDate);
+
+  return (
+    (!minDate || orderedDateRange.startDate >= minDate) &&
+    (!maxDate || orderedDateRange.endDate <= maxDate)
+  );
+};
+
 /** 두 날짜 구간이 하루라도 겹치는지 확인한다. */
 export const isDateRangeOverlapping = (
   dateRange: DateRange,
@@ -114,6 +155,8 @@ export const getQuickRanges = (
   direction: RangeDirection,
   baseDate: Date,
   disabledInterval: DisabledInterval[],
+  minDate: Date | null = null, // 수정됨
+  maxDate: Date | null = null, // 수정됨
 ): Array<QuickRange & { disabled: boolean }> =>
   quickRanges.map((quickRange) => {
     if (isAllQuickRange(quickRange)) {
@@ -129,16 +172,23 @@ export const getQuickRanges = (
       baseDate,
     );
     const quickDateRange = toOrderedDateRange(nextStartDate, nextEndDate);
-    const disabled = disabledInterval.some((disabledDateInterval) =>
-      isDateRangeOverlapping(quickDateRange, {
-        endDate: disabledDateInterval.end,
-        startDate: disabledDateInterval.start,
-      }),
+    const isOutsideDateBounds = isDateRangeWithinBounds(
+      quickDateRange.startDate,
+      quickDateRange.endDate,
+      minDate,
+      maxDate,
+    );
+    const isOverlappingDisabledInterval = disabledInterval.some(
+      (disabledDateInterval) =>
+        isDateRangeOverlapping(quickDateRange, {
+          endDate: disabledDateInterval.end,
+          startDate: disabledDateInterval.start,
+        }),
     );
 
     return {
       ...quickRange,
-      disabled,
+      disabled: !isOutsideDateBounds || isOverlappingDisabledInterval,
     };
   });
 

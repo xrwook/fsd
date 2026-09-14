@@ -16,6 +16,8 @@ import {
   getQuickRangeBaseDate,
   getQuickRangeDates,
   getQuickRanges,
+  isDateRangeWithinBounds, // 수정됨
+  normalizeDate, // 수정됨
   parseDate,
   type RangeDirection,
 } from "../lib/date";
@@ -37,6 +39,10 @@ export type Props = {
   inputVariant?: "filter" | "range";
   /** 선택할 수 없는 날짜 구간. react-datepicker의 excludeDateIntervals로 변환된다. */
   disabledRanges?: DisabledRange[];
+  /** 선택 가능한 최소 날짜. 해당 날짜 이전은 선택할 수 없다. */ // 수정됨
+  minDate?: string | Date; // 수정됨
+  /** 선택 가능한 최대 날짜. 해당 날짜 이후는 선택할 수 없다. */ // 수정됨
+  maxDate?: string | Date; // 수정됨
   /** 시작일과 종료일이 모두 선택된 경우에만 외부 값에 반영한다. */ // 수정됨
   requireCompleteRange?: boolean; // 수정됨
   /** 날짜가 변경될 때 yyyy-MM-dd 문자열로 반환한다. */
@@ -89,6 +95,8 @@ export const DateRangePicker = ({
   filterLabel,
   inputVariant = "range",
   disabledRanges = [],
+  minDate, // 수정됨
+  maxDate, // 수정됨
   requireCompleteRange = false, // 수정됨
   onChange,
 }: Props) => {
@@ -110,6 +118,8 @@ export const DateRangePicker = ({
   const displayEndDate = requireCompleteRange ? endDate : pickerEndDate; // 수정됨
   const selectedStartDate = parseDate(pickerStartDate);
   const selectedEndDate = parseDate(pickerEndDate);
+  const normalizedMinDate = useMemo(() => normalizeDate(minDate), [minDate]); // 수정됨
+  const normalizedMaxDate = useMemo(() => normalizeDate(maxDate), [maxDate]); // 수정됨
   const quickRangeDisplayValue = getQuickRangeDisplayValue(
     quickRangeSelection,
     displayStartDate,
@@ -134,6 +144,8 @@ export const DateRangePicker = ({
     quickRangeDirection,
     quickRangeBaseDate,
     disabledIntervals,
+    normalizedMinDate, // 수정됨
+    normalizedMaxDate, // 수정됨
   );
 
   /** 빠른 기간 버튼 클릭 시 기준일과 방향에 맞춰 시작일/종료일을 계산한다. */
@@ -159,6 +171,18 @@ export const DateRangePicker = ({
     );
     const nextStartDateValue = formatDate(nextStartDate);
     const nextEndDateValue = formatDate(nextEndDate);
+
+    if (
+      !isDateRangeWithinBounds(
+        nextStartDate,
+        nextEndDate,
+        normalizedMinDate,
+        normalizedMaxDate,
+      )
+    ) {
+      // 수정됨
+      return; // 수정됨
+    }
 
     setQuickRangeSelection({
       endDate: nextEndDateValue,
@@ -200,6 +224,8 @@ export const DateRangePicker = ({
         dateFormatCalendar="yyyy MMM"
         endDate={selectedEndDate}
         excludeDateIntervals={disabledIntervals}
+        maxDate={normalizedMaxDate ?? undefined} // 수정됨
+        minDate={normalizedMinDate ?? undefined} // 수정됨
         monthsShown={2}
         onCalendarClose={() => {
           setIsOpen(false);
@@ -214,6 +240,19 @@ export const DateRangePicker = ({
         onChange={([nextStartDate, nextEndDate]) => {
           const nextStartDateValue = formatDate(nextStartDate);
           const nextEndDateValue = formatDate(nextEndDate);
+
+          if (
+            nextStartDate &&
+            !isDateRangeWithinBounds(
+              nextStartDate,
+              nextEndDate ?? nextStartDate,
+              normalizedMinDate,
+              normalizedMaxDate,
+            )
+          ) {
+            // 수정됨
+            return; // 수정됨
+          }
 
           if (requireCompleteRange) {
             setDraftRange({
