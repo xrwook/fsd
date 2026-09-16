@@ -10,6 +10,7 @@ import { DataGridLoading } from '@/shared/ui/common-data-grid/_DataGridLoading';
 import DataGridPagination, { type Props as PaginationProps } from '@/shared/ui/common-data-grid/_DataGridPagination';
 
 import { DataGridEmpty, DataGridEmptyError, DataGridEmptyFilter } from './_DataGridEmpty';
+import { useEmptyPageFallback } from './useEmptyPageFallback';
 
 type Props<TData extends object> = {
   className?: string;
@@ -27,6 +28,8 @@ type Props<TData extends object> = {
   > & {
     isError?: boolean;
     isFiltering?: boolean;
+    /** 재조회 중 빈 데이터로 인한 자동 페이지 이동을 방지합니다. */
+    isFetching?: boolean;
     rowData?: TData[];
     columnDefs: NonNullable<GridOptions<TData>['columnDefs']>;
     defaultColDef?: GridOptions<TData>['defaultColDef'];
@@ -49,7 +52,8 @@ const DataGrid = <TData extends object>({
   gridProps: {
     isError,
     isFiltering,
-    rowData = [],
+    isFetching,
+    rowData,
     columnDefs,
     noRowsOverlayComponent,
     domLayout = 'autoHeight',
@@ -64,6 +68,15 @@ const DataGrid = <TData extends object>({
   vertical = false,
   pagination,
 }: Props<TData>) => {
+  useEmptyPageFallback({
+    rowData,
+    loading: restGridProps.loading,
+    isFetching,
+    isError,
+    page: pagination?.page,
+    onChangePage: pagination?.onChangePage,
+  });
+
   const [customColumnDefs, setCustomColumnDefs] = useState<GridOptions<TData>['columnDefs']>([]);
   const isScroll = useMemo(
     () => domLayout === 'autoHeight' && (rowData?.length ?? 0) > maxVisibleRows,
@@ -161,7 +174,7 @@ const DataGrid = <TData extends object>({
         className={cn('h-full w-full', useGridTableClass && 'gridTable', gridClassName)}
         vertical={vertical}
         gridProps={{
-          rowData,
+          rowData: rowData ?? [],
           domLayout: computedDomLayout,
           noRowsOverlayComponent: NoRowsOverlayComponent,
           loadingOverlayComponent: DataGridLoading,

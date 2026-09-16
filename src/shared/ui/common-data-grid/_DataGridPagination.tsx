@@ -2,6 +2,7 @@ import { Pagination } from '@hae-fe/elements';
 
 export type Props = {
   onChangePage: (page: number) => void;
+  /** 0부터 시작하는 페이지 인덱스 */
   page: number;
   count: number;
   className?: string;
