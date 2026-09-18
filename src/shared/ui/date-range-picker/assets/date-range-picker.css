@@ -14,6 +14,30 @@
   outline: none;
 }
 
+.dateRangeInput.dateRangeInputDisabled {
+  color: #a6abb5;
+  background: #eff0f1;
+  border-color: #dedef3;
+  cursor: not-allowed;
+}
+
+.dateRangeInputDisabled .dateRangeInputSegment {
+  color: #a6abb5;
+  background: #eff0f1;
+  border-color: #dedef3;
+  cursor: not-allowed;
+}
+
+.dateRangeInputDisabled .dateRangeFilterLabel,
+.dateRangeInputDisabled .dateRangeFilterValue,
+.dateRangeInputDisabled .dateRangeInputValue,
+.dateRangeInputDisabled .dateRangeSeparator,
+.dateRangeInputDisabled .dateRangeCalendarIcon,
+.dateRangeInputDisabled .dateRangeChevronIcon,
+.dateRangeInputDisabled .dateRangeClearButton {
+  color: #a6abb5;
+}
+
 .dateRangeInputSegment {
   display: flex;
   align-items: center;

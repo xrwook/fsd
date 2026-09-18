@@ -61,6 +61,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
             "dateRangeInput dateRangeFilterInput",
             {
               dateRangeFilterInputActive: isOpen,
+              dateRangeInputDisabled: disabled, // 수정됨
             },
             className,
           )}
@@ -93,7 +94,11 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
     return (
       <div
         aria-label="조회 기간"
-        className={clsx("dateRangeInput", className)}
+        className={clsx(
+          "dateRangeInput",
+          { dateRangeInputDisabled: disabled }, // 수정됨
+          className,
+        )}
         onBlur={onBlur}
         onClick={disabled ? undefined : onClick}
         onFocus={onFocus}
@@ -119,6 +124,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
             <button
               aria-label="조회 기간 초기화"
               className="dateRangeClearButton"
+              disabled={disabled} // 수정됨
               onClick={(event) => {
                 event.stopPropagation();
                 onClear();
