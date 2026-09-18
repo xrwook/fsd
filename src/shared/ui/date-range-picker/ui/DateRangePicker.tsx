@@ -114,10 +114,6 @@ export const DateRangePicker = ({
   }, [endDate, startDate]);
 
   useEffect(() => {
-    if (!disabled) {
-      return;
-    }
-
     setIsOpen(false);
     pickerRef.current?.setOpen(false);
   }, [disabled]); // 수정됨
@@ -304,6 +300,7 @@ export const DateRangePicker = ({
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
         ref={pickerRef}
+        open={disabled ? false : undefined} // 수정됨
         selectsRange
         selected={selectedStartDate}
         showPopperArrow={false}
