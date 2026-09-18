@@ -4,6 +4,7 @@ export type Props = {
   onChangePage: (page: number) => void;
   /** 0부터 시작하는 페이지 인덱스 */
   page: number;
+  /** 전체 데이터 건수가 아닌 전체 페이지 수 */
   count: number;
   className?: string;
 };

@@ -7,6 +7,43 @@ import { useEmptyPageFallback } from './useEmptyPageFallback';
 afterEach(cleanup);
 
 describe('useEmptyPageFallback', () => {
+  it.each([
+    { page: 4, count: 3, targetPage: 2 },
+    { page: 4, count: 1, targetPage: 0 },
+    { page: 4, count: 0, targetPage: 0 },
+    { page: 2, count: 2, targetPage: 1 },
+  ])('일괄 삭제 후 마지막 유효 페이지로 바로 이동한다: %j', ({ page, count, targetPage }) => {
+    const onChangePage = vi.fn();
+    renderHook(() => useEmptyPageFallback({ rowData: [], page, count, onChangePage }));
+    expect(onChangePage).toHaveBeenCalledExactlyOnceWith(targetPage);
+  });
+
+  it('재조회 중 임시 count를 사용하지 않고 완료된 페이지 수로 이동한다', () => {
+    const onChangePage = vi.fn();
+    const { rerender } = renderHook(
+      (props) => useEmptyPageFallback({ ...props, rowData: [], page: 4, onChangePage }),
+      { initialProps: { isFetching: true, count: 0 } },
+    );
+
+    expect(onChangePage).not.toHaveBeenCalled();
+    rerender({ isFetching: false, count: 3 });
+    expect(onChangePage).toHaveBeenCalledExactlyOnceWith(2);
+  });
+
+  it('페이지 수가 추가로 줄면 동일한 현재 페이지에서도 새로운 목적지로 이동을 요청한다', () => {
+    const onChangePage = vi.fn();
+    const { rerender } = renderHook(
+      ({ count }) => useEmptyPageFallback({ rowData: [], page: 4, count, onChangePage }),
+      { initialProps: { count: 3 }, wrapper: StrictMode },
+    );
+
+    expect(onChangePage).toHaveBeenCalledExactlyOnceWith(2);
+    rerender({ count: 2 });
+    expect(onChangePage).toHaveBeenNthCalledWith(2, 1);
+    rerender({ count: 2 });
+    expect(onChangePage).toHaveBeenCalledTimes(2);
+  });
+
   it('삭제 후 빈 배열이 되면 이전 페이지를 요청한다', () => {
     const onChangePage = vi.fn();
     const { rerender } = renderHook(

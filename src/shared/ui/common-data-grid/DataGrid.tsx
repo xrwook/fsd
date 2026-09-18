@@ -74,6 +74,7 @@ const DataGrid = <TData extends object>({
     isFetching,
     isError,
     page: pagination?.page,
+    count: pagination?.count,
     onChangePage: pagination?.onChangePage,
   });
 
