@@ -231,7 +231,12 @@
 .dateTimeCalendar
   [class~="react-datepicker__day--keyboard-selected"]:not(
     [class~="react-datepicker__day--selected"]
-  ),
+  ) {
+  color: #16181d;
+  background: transparent;
+  box-shadow: none;
+}
+
 .dateTimeCalendar
   [class~="react-datepicker__day--today"]:not(
     [class~="react-datepicker__day--selected"]
