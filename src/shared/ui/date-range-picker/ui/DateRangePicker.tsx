@@ -37,6 +37,8 @@ export type Props = {
   filterLabel?: string;
   /** 입력 표시 방식. range는 기존 두 칸 입력, filter는 필터바용 단일 입력이다. */
   inputVariant?: "filter" | "range";
+  /** 입력 높이. medium은 36px, small은 32px이다. */ // 수정됨
+  size?: "medium" | "small"; // 수정됨
   /** 날짜 범위 선택을 비활성화한다. */ // 수정됨
   disabled?: boolean; // 수정됨
   /** 선택할 수 없는 날짜 구간. react-datepicker의 excludeDateIntervals로 변환된다. */
@@ -96,6 +98,7 @@ export const DateRangePicker = ({
   quickRanges: quickRangeOptions = QUICK_RANGES,
   filterLabel,
   inputVariant = "range",
+  size = "medium", // 수정됨
   disabled = false, // 수정됨
   disabledRanges = [],
   minDate, // 수정됨
@@ -236,6 +239,7 @@ export const DateRangePicker = ({
               setQuickRangeSelection(null);
               onChange("", "");
             }}
+            size={size} // 수정됨
             startValue={displayStartDate} // 수정됨
           />
         }

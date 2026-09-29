@@ -23,6 +23,7 @@ type DateRangeInputProps = {
   onClick?: MouseEventHandler<HTMLDivElement>;
   onFocus?: FocusEventHandler<HTMLDivElement>;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+  size: "medium" | "small"; // 수정됨
   startValue: string;
 };
 
@@ -42,6 +43,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       onClick,
       onFocus,
       onKeyDown,
+      size, // 수정됨
       startValue,
     },
     ref,
@@ -62,6 +64,8 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
             {
               dateRangeFilterInputActive: isOpen,
               dateRangeInputDisabled: disabled, // 수정됨
+              dateRangeInputMedium: size === "medium", // 수정됨
+              dateRangeInputSmall: size === "small", // 수정됨
             },
             className,
           )}
@@ -96,7 +100,11 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
         aria-label="조회 기간"
         className={clsx(
           "dateRangeInput",
-          { dateRangeInputDisabled: disabled }, // 수정됨
+          {
+            dateRangeInputDisabled: disabled, // 수정됨
+            dateRangeInputMedium: size === "medium", // 수정됨
+            dateRangeInputSmall: size === "small", // 수정됨
+          },
           className,
         )}
         onBlur={onBlur}
