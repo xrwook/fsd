@@ -65,6 +65,17 @@
   cursor: pointer;
 }
 
+/* 수정됨: DateRangePicker size 옵션에 따라 입력 높이를 조정한다. */
+.dateRangeInputMedium .dateRangeInputSegment,
+.dateRangeInputMedium.dateRangeFilterInput {
+  height: 36px;
+}
+
+.dateRangeInputSmall .dateRangeInputSegment,
+.dateRangeInputSmall.dateRangeFilterInput {
+  height: 32px;
+}
+
 .dateRangeInputPlaceholder {
   color: #131416 !important;
 }
