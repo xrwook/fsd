@@ -41,11 +41,16 @@ const menuIconMap: Partial<Record<string, SvgIconComponent>> = {
   [SCREEN_ID.CPOS.CPOS]: BoltOutlined,
   [SCREEN_ID.CPOS.STATION_ROOT]: AccountTreeOutlined,
   [SCREEN_ID.CPOS.CHARGER_ROOT]: SettingsOutlined,
-  [SCREEN_ID.EMSP.EMSP]: GroupsOutlined,
-  [SCREEN_ID.EMSP.MEMBER_MANAGEMENT]: GroupsOutlined,
-  [SCREEN_ID.EMSP.CORPORATE_MEMBER]: BusinessOutlined,
   [SCREEN_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
 };
+
+if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+  Object.assign(menuIconMap, {
+    [SCREEN_ID.EMSP.EMSP]: GroupsOutlined,
+    [SCREEN_ID.EMSP.MEMBER_MANAGEMENT]: GroupsOutlined,
+    [SCREEN_ID.EMSP.CORPORATE_MEMBER]: BusinessOutlined,
+  });
+}
 
 const collectExpandedMenuIds = (menus: TMenuPermission[]) => {
   const expandedIds = new Set<string>();

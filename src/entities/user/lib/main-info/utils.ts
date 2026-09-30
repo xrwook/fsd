@@ -1,12 +1,31 @@
 import { SCREEN_ID, type ScreenIdValues } from "@/shared/config";
 import { flattenTree } from "@/shared/lib/utils";
 
-import mainInfoMenus from "./main-info.json";
 import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MainInfoData, MenuData } from "./types";
 
 const normalizeMenuUrl = (url: string) => {
   return !url || url === "#" ? null : url;
+};
+
+const isEmspMenu = (menu: MenuData) => {
+  const screenId = String(menu.screenId).toLowerCase();
+  const url = menu.url?.toLowerCase() ?? "";
+
+  return screenId.includes("emsp") || url.includes("/emsp");
+};
+
+export const filterMenusForBuild = (menus: MenuData[]): MenuData[] => {
+  if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+    return menus;
+  }
+
+  return menus
+    .filter((menu) => !isEmspMenu(menu))
+    .map((menu) => ({
+      ...menu,
+      children: filterMenusForBuild(menu.children ?? []),
+    }));
 };
 
 export const createMenuPermissions = (
@@ -224,114 +243,118 @@ const fallbackMenuTreeMock: MenuData[] = [
     canDownload: false,
     children: [],
   },
-  {
-    menuId: 13,
-    screenId: SCREEN_ID.EMSP.EMSP,
-    parentId: null,
-    name: "eMSP",
-    url: "",
-    sortOrder: 4,
-    isLink: false,
-    canRead: false,
-    canCreate: false,
-    canUpdate: false,
-    canDelete: false,
-    canDownload: false,
-    children: [
-      {
-        menuId: 14,
-        screenId: SCREEN_ID.EMSP.MEMBER_MANAGEMENT,
-        parentId: 13,
-        name: "회원관리",
-        url: "",
-        sortOrder: 1,
-        isLink: false,
-        canRead: false,
-        canCreate: false,
-        canUpdate: false,
-        canDelete: false,
-        canDownload: false,
-        children: [
-          {
-            menuId: 15,
-            screenId: SCREEN_ID.EMSP.MEMBER_INFO,
-            parentId: 14,
-            name: "회원정보",
-            url: "/emsp/member-management/members",
-            sortOrder: 1,
-            isLink: true,
-            canRead: true,
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canDownload: false,
-            children: [],
-          },
-          {
-            menuId: 16,
-            screenId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
-            parentId: 14,
-            name: "결제",
-            url: "/emsp/member-management/member-payment",
-            sortOrder: 2,
-            isLink: true,
-            canRead: false,
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canDownload: false,
-            children: [],
-          },
-        ],
-      },
-      {
-        menuId: 17,
-        screenId: SCREEN_ID.EMSP.CORPORATE_MEMBER,
-        parentId: 13,
-        name: "법인회원",
-        url: "",
-        sortOrder: 2,
-        isLink: false,
-        canRead: true,
-        canCreate: false,
-        canUpdate: false,
-        canDelete: false,
-        canDownload: false,
-        children: [
-          {
-            menuId: 18,
-            screenId: SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT,
-            parentId: 17,
-            name: "가입관리",
-            url: "/emsp/corporate-member/corporate-join",
-            sortOrder: 1,
-            isLink: true,
-            canRead: true,
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canDownload: false,
-            children: [],
-          },
-          {
-            menuId: 19,
-            screenId: SCREEN_ID.EMSP.CORPORATE_PAYMENT_SETTLEMENT,
-            parentId: 17,
-            name: "법인 결제/정산",
-            url: "/emsp/corporate-member/payment-settlement",
-            sortOrder: 2,
-            isLink: true,
-            canRead: true,
-            canCreate: false,
-            canUpdate: false,
-            canDelete: false,
-            canDownload: false,
-            children: [],
-          },
-        ],
-      },
-    ],
-  },
+  ...(import.meta.env.VITE_BUILD_TARGET === "internal"
+    ? [
+        {
+          menuId: 13,
+          screenId: SCREEN_ID.EMSP.EMSP,
+          parentId: null,
+          name: "eMSP",
+          url: "",
+          sortOrder: 4,
+          isLink: false,
+          canRead: false,
+          canCreate: false,
+          canUpdate: false,
+          canDelete: false,
+          canDownload: false,
+          children: [
+            {
+              menuId: 14,
+              screenId: SCREEN_ID.EMSP.MEMBER_MANAGEMENT,
+              parentId: 13,
+              name: "회원관리",
+              url: "",
+              sortOrder: 1,
+              isLink: false,
+              canRead: false,
+              canCreate: false,
+              canUpdate: false,
+              canDelete: false,
+              canDownload: false,
+              children: [
+                {
+                  menuId: 15,
+                  screenId: SCREEN_ID.EMSP.MEMBER_INFO,
+                  parentId: 14,
+                  name: "회원정보",
+                  url: "/emsp/member-management/members",
+                  sortOrder: 1,
+                  isLink: true,
+                  canRead: true,
+                  canCreate: false,
+                  canUpdate: false,
+                  canDelete: false,
+                  canDownload: false,
+                  children: [],
+                },
+                {
+                  menuId: 16,
+                  screenId: SCREEN_ID.EMSP.MEMBER_PAYMENT,
+                  parentId: 14,
+                  name: "결제",
+                  url: "/emsp/member-management/member-payment",
+                  sortOrder: 2,
+                  isLink: true,
+                  canRead: false,
+                  canCreate: false,
+                  canUpdate: false,
+                  canDelete: false,
+                  canDownload: false,
+                  children: [],
+                },
+              ],
+            },
+            {
+              menuId: 17,
+              screenId: SCREEN_ID.EMSP.CORPORATE_MEMBER,
+              parentId: 13,
+              name: "법인회원",
+              url: "",
+              sortOrder: 2,
+              isLink: false,
+              canRead: true,
+              canCreate: false,
+              canUpdate: false,
+              canDelete: false,
+              canDownload: false,
+              children: [
+                {
+                  menuId: 18,
+                  screenId: SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT,
+                  parentId: 17,
+                  name: "가입관리",
+                  url: "/emsp/corporate-member/corporate-join",
+                  sortOrder: 1,
+                  isLink: true,
+                  canRead: true,
+                  canCreate: false,
+                  canUpdate: false,
+                  canDelete: false,
+                  canDownload: false,
+                  children: [],
+                },
+                {
+                  menuId: 19,
+                  screenId: SCREEN_ID.EMSP.CORPORATE_PAYMENT_SETTLEMENT,
+                  parentId: 17,
+                  name: "법인 결제/정산",
+                  url: "/emsp/corporate-member/payment-settlement",
+                  sortOrder: 2,
+                  isLink: true,
+                  canRead: true,
+                  canCreate: false,
+                  canUpdate: false,
+                  canDelete: false,
+                  canDownload: false,
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ]
+    : []),
   {
     menuId: 20,
     screenId: SCREEN_ID.PLATFORM_MANAGEMENT,
@@ -350,9 +373,6 @@ const fallbackMenuTreeMock: MenuData[] = [
 ];
 
 const menuTreeMock = fallbackMenuTreeMock;
-  // (mainInfoMenus as MenuData[]).length > 0
-    // ? (mainInfoMenus as MenuData[])
-    // : fallbackMenuTreeMock;
 
 // 실제 API 응답의 data shape를 맞춘 main info mock 데이터입니다.
 export const mainInfoMock: MainInfoData = {

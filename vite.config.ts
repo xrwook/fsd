@@ -1,3 +1,5 @@
+import { resolve } from "node:path";
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -7,9 +9,24 @@ import { comlink } from "vite-plugin-comlink";
 import svgr from "vite-plugin-svgr";
 import tsconfigPaths from "vite-tsconfig-paths";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   // Load specific .env file
   const env = loadEnv(mode, process.cwd(), ["VITE_"]);
+  const requestedBuildTarget =
+    process.env.VITE_BUILD_TARGET ?? env.VITE_BUILD_TARGET ?? "internal";
+  const buildTarget =
+    command === "serve" || mode === "dev" ? "internal" : requestedBuildTarget;
+
+  if (buildTarget !== "internal" && buildTarget !== "external") {
+    throw new Error(
+      `VITE_BUILD_TARGET must be "internal" or "external", received "${buildTarget}".`,
+    );
+  }
+
+  const resolvedEnv = {
+    ...env,
+    VITE_BUILD_TARGET: buildTarget,
+  };
 
   return {
     plugins: [
@@ -18,6 +35,7 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths(),
       checker({
         typescript: true,
+        enableBuild: command !== "build",
       }),
       comlink(),
       visualizer({
@@ -28,8 +46,19 @@ export default defineConfig(({ mode }) => {
       }),
       tailwindcss(),
     ],
+    resolve: {
+      alias: {
+        "@extra-page-routes/emsp": resolve(
+          process.cwd(),
+          buildTarget === "internal"
+            ? "src/app/router/extra-page-routes/emsp.ts"
+            : "src/app/router/extra-page-routes/emsp.external.ts",
+        ),
+      },
+    },
     define: {
-      "process.env": JSON.stringify({ ...env, MODE: mode }),
+      "import.meta.env.VITE_BUILD_TARGET": JSON.stringify(buildTarget),
+      "process.env": JSON.stringify({ ...resolvedEnv, MODE: mode }),
     },
     server: {
       port: 3002,

@@ -3,7 +3,6 @@ import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, type Response } from "@/shared/lib/api";
 
 import type { MainInfoData } from "../lib/main-info";
-import { getMainInfoMockApi } from "./mocks/getMainInfoMockApi";
 
 type MainInfoResponse = Response<MainInfoData>;
 type RecentVisitResponse = Response<string>;
@@ -24,6 +23,8 @@ export const getMainInfoApi = async (): Promise<MainInfoData> => {
   const shouldUseMockApi = import.meta.env.VITE_USE_MOCK_API !== "false";
 
   if (shouldUseMockApi) {
+    const { getMainInfoMockApi } = await import("./mocks/getMainInfoMockApi");
+
     if (typeof window === "undefined") {
       return getMainInfoMockApi();
     }

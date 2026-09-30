@@ -2,6 +2,7 @@
 /// <reference types="vite-plugin-svgr/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_BUILD_TARGET?: "internal" | "external";
   readonly VITE_KEYCLOAK_ENABLED?: string;
   readonly VITE_KEYCLOAK_URL?: string;
   readonly VITE_KEYCLOAK_REALM?: string;

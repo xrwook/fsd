@@ -7,6 +7,7 @@ import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MenuData } from "./types";
 import {
   createMenuPermissions,
+  filterMenusForBuild,
   hasChildrenMenuPermission,
   hasMenuPermission,
 } from "./utils";
@@ -84,8 +85,7 @@ const findTopParentMenuByPathnameFromTree = (
     return (
       Boolean(
         menuPathname && isSameOrChildPath(currentPathname, menuPathname),
-      ) ||
-      menu.children.some((child) => hasMatchedMenuUrl(child))
+      ) || menu.children.some((child) => hasMatchedMenuUrl(child))
     );
   };
 
@@ -138,17 +138,23 @@ export const useMainInfo = () => {
     isError,
     isFetched,
   } = useGetMainInfoQuery();
+  const visibleMenus = useMemo(
+    () => (mainInfoData ? filterMenusForBuild(mainInfoData.menus) : []),
+    [mainInfoData],
+  );
   const menuPermissions = useMemo(
     () =>
-      mainInfoData
-        ? createMenuPermissions(mainInfoData.menus)
+      visibleMenus.length > 0
+        ? createMenuPermissions(visibleMenus)
         : EMPTY_MENU_PERMISSIONS,
-    [mainInfoData],
+    [visibleMenus],
   );
   const mainMenus = useMemo(
     () =>
-      mainInfoData ? createMainMenus(mainInfoData.menus) : EMPTY_MAIN_MENUS,
-    [mainInfoData],
+      visibleMenus.length > 0
+        ? createMainMenus(visibleMenus)
+        : EMPTY_MAIN_MENUS,
+    [visibleMenus],
   );
   const userInfo = mainInfoData?.userInfo ?? null;
   const partnerInfo = mainInfoData?.partnerInfo ?? null;

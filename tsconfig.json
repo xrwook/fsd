@@ -9,7 +9,10 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@extra-page-routes/emsp": [
+        "./src/app/router/extra-page-routes/emsp.ts"
+      ]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
