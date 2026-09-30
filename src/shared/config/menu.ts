@@ -12,8 +12,10 @@ export const SCREEN_ID = {
     M2M_MODEM_MANAGEMENT: "m2m-modem-management",
     CHARGER_STATUS: "MNU_203",
     CHARGER_CONTROL: "charger-control",
+    CHARGER_CONTROL_DETAIL: "charger-control-detail",
     CHARGER_ERROR_MANAGEMENT: "charger-error-management",
     CLEARING_HOUSE: "clearing-house",
+    CLEARING_HOUSE_DETAIL: "clearing-house-detail",
   },
   EMSP: {
     EMSP: "emsp",

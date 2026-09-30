@@ -20,4 +20,10 @@ export const pageMap: TPageMap = {
   [SCREEN_ID.EMSP.CORPORATE_PAYMENT_SETTLEMENT]: lazy(
     () => import("@/pages/eMSP/corporate-member/payment-settlement"),
   ),
+  [SCREEN_ID.CPOS.CLEARING_HOUSE]: lazy(
+    () => import("@/pages/CPOS/clearing-house"),
+  ),
+  [SCREEN_ID.CPOS.CHARGER_CONTROL]: lazy(
+    () => import("@/pages/CPOS/charger-control"),
+  ),
 };
