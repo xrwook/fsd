@@ -3,8 +3,8 @@ import { EditorIcon } from "./_EditorIcon";
 import { ToolbarButton } from "./_ToolbarButton";
 
 type Props = EditorControlProps & {
-  htmlSourceMode: "editor" | "preview" | "source"; // 수정됨
-  onToggleHtmlSource: () => void; // 수정됨
+  htmlSourceMode: "editor" | "preview" | "source"; //
+  onToggleHtmlSource: () => void; //
 };
 
 export const BlockControls = ({
@@ -39,10 +39,10 @@ export const BlockControls = ({
       <EditorIcon name="formatQuote" />
     </ToolbarButton>
     <ToolbarButton
-      active={htmlSourceMode === "source"} // 수정됨
+      active={htmlSourceMode === "source"} //
       disabled={disabled}
       label="HTML 소스"
-      onClick={onToggleHtmlSource} // 수정됨
+      onClick={onToggleHtmlSource} //
     >
       <EditorIcon name="code" />
     </ToolbarButton>

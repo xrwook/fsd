@@ -15,7 +15,7 @@ export type DateRange = {
 
 export type RangeDirection = "future" | "past";
 
-export type DateRangeValue = string | Date; // 수정됨
+export type DateRangeValue = string | Date; //
 
 export type DisabledRange = {
   endDate: string;
@@ -34,11 +34,11 @@ export const parseDate = (value: string): Date | null => {
   return date.isValid ? date.toJSDate() : null;
 };
 
-/** 문자열 또는 Date 값을 날짜 단위의 Date로 정규화한다. */ // 수정됨
+/** 문자열 또는 Date 값을 날짜 단위의 Date로 정규화한다. */ //
 export const normalizeDate = (
   value: DateRangeValue | null | undefined,
 ): Date | null => {
-  // 수정됨
+  //
   if (value instanceof Date) {
     return Number.isNaN(value.getTime())
       ? null
@@ -101,7 +101,7 @@ export const toOrderedDateRange = (
       };
 };
 
-/** 날짜 구간이 minDate/maxDate 범위 안에 포함되는지 확인한다. */ // 수정됨
+/** 날짜 구간이 minDate/maxDate 범위 안에 포함되는지 확인한다. */ //
 export const isDateRangeWithinBounds = (
   startDate: Date,
   endDate: Date,
@@ -155,8 +155,8 @@ export const getQuickRanges = (
   direction: RangeDirection,
   baseDate: Date,
   disabledInterval: DisabledInterval[],
-  minDate: Date | null = null, // 수정됨
-  maxDate: Date | null = null, // 수정됨
+  minDate: Date | null = null, //
+  maxDate: Date | null = null, //
 ): Array<QuickRange & { disabled: boolean }> =>
   quickRanges.map((quickRange) => {
     if (isAllQuickRange(quickRange)) {

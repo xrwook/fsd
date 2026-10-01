@@ -82,11 +82,11 @@ export const MemberInfoFilter = ({ onReset, onSearch }: Props) => {
             ...previous,
             endDate,
             startDate,
-          })); // 수정됨
+          })); //
         }}
         quickRanges={MEMBER_DATE_QUICK_RANGES}
         quickRangeDirection="future"
-        requireCompleteRange={false} // 수정됨
+        requireCompleteRange={false} //
         startDate={filter.startDate}
         disabledRanges={[
           {

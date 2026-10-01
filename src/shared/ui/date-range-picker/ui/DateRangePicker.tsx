@@ -16,8 +16,8 @@ import {
   getQuickRangeBaseDate,
   getQuickRangeDates,
   getQuickRanges,
-  isDateRangeWithinBounds, // 수정됨
-  normalizeDate, // 수정됨
+  isDateRangeWithinBounds, //
+  normalizeDate, //
   parseDate,
   type RangeDirection,
 } from "../lib/date";
@@ -37,18 +37,18 @@ export type Props = {
   filterLabel?: string;
   /** 입력 표시 방식. range는 기존 두 칸 입력, filter는 필터바용 단일 입력이다. */
   inputVariant?: "filter" | "range";
-  /** 입력 높이. medium은 36px, small은 32px이다. */ // 수정됨
-  size?: "medium" | "small"; // 수정됨
-  /** 날짜 범위 선택을 비활성화한다. */ // 수정됨
-  disabled?: boolean; // 수정됨
+  /** 입력 높이. medium은 36px, small은 32px이다. */ //
+  size?: "medium" | "small"; //
+  /** 날짜 범위 선택을 비활성화한다. */ //
+  disabled?: boolean; //
   /** 선택할 수 없는 날짜 구간. react-datepicker의 excludeDateIntervals로 변환된다. */
   disabledRanges?: DisabledRange[];
-  /** 선택 가능한 최소 날짜. 해당 날짜 이전은 선택할 수 없다. */ // 수정됨
-  minDate?: string | Date; // 수정됨
-  /** 선택 가능한 최대 날짜. 해당 날짜 이후는 선택할 수 없다. */ // 수정됨
-  maxDate?: string | Date; // 수정됨
-  /** 시작일과 종료일이 모두 선택된 경우에만 외부 값에 반영한다. */ // 수정됨
-  requireCompleteRange?: boolean; // 수정됨
+  /** 선택 가능한 최소 날짜. 해당 날짜 이전은 선택할 수 없다. */ //
+  minDate?: string | Date; //
+  /** 선택 가능한 최대 날짜. 해당 날짜 이후는 선택할 수 없다. */ //
+  maxDate?: string | Date; //
+  /** 시작일과 종료일이 모두 선택된 경우에만 외부 값에 반영한다. */ //
+  requireCompleteRange?: boolean; //
   /** 날짜가 변경될 때 yyyy-MM-dd 문자열로 반환한다. */
   onChange: (startDate: string, endDate: string) => void;
 };
@@ -98,19 +98,19 @@ export const DateRangePicker = ({
   quickRanges: quickRangeOptions = QUICK_RANGES,
   filterLabel,
   inputVariant = "range",
-  size = "medium", // 수정됨
-  disabled = false, // 수정됨
+  size = "medium", //
+  disabled = false, //
   disabledRanges = [],
-  minDate, // 수정됨
-  maxDate, // 수정됨
-  requireCompleteRange = false, // 수정됨
+  minDate, //
+  maxDate, //
+  requireCompleteRange = false, //
   onChange,
 }: Props) => {
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [quickRangeSelection, setQuickRangeSelection] =
     useState<null | QuickRangeSelection>(null);
-  const [draftRange, setDraftRange] = useState({ startDate, endDate }); // 수정됨
+  const [draftRange, setDraftRange] = useState({ startDate, endDate }); //
 
   useEffect(() => {
     setDraftRange({ startDate, endDate });
@@ -119,18 +119,18 @@ export const DateRangePicker = ({
   useEffect(() => {
     setIsOpen(false);
     pickerRef.current?.setOpen(false);
-  }, [disabled]); // 수정됨
+  }, [disabled]); //
 
   const pickerStartDate = requireCompleteRange
     ? draftRange.startDate
-    : startDate; // 수정됨
-  const pickerEndDate = requireCompleteRange ? draftRange.endDate : endDate; // 수정됨
-  const displayStartDate = requireCompleteRange ? startDate : pickerStartDate; // 수정됨
-  const displayEndDate = requireCompleteRange ? endDate : pickerEndDate; // 수정됨
+    : startDate; //
+  const pickerEndDate = requireCompleteRange ? draftRange.endDate : endDate; //
+  const displayStartDate = requireCompleteRange ? startDate : pickerStartDate; //
+  const displayEndDate = requireCompleteRange ? endDate : pickerEndDate; //
   const selectedStartDate = parseDate(pickerStartDate);
   const selectedEndDate = parseDate(pickerEndDate);
-  const normalizedMinDate = useMemo(() => normalizeDate(minDate), [minDate]); // 수정됨
-  const normalizedMaxDate = useMemo(() => normalizeDate(maxDate), [maxDate]); // 수정됨
+  const normalizedMinDate = useMemo(() => normalizeDate(minDate), [minDate]); //
+  const normalizedMaxDate = useMemo(() => normalizeDate(maxDate), [maxDate]); //
   const quickRangeDisplayValue = getQuickRangeDisplayValue(
     quickRangeSelection,
     displayStartDate,
@@ -155,20 +155,20 @@ export const DateRangePicker = ({
     quickRangeDirection,
     quickRangeBaseDate,
     disabledIntervals,
-    normalizedMinDate, // 수정됨
-    normalizedMaxDate, // 수정됨
+    normalizedMinDate, //
+    normalizedMaxDate, //
   );
 
   /** 빠른 기간 버튼 클릭 시 기준일과 방향에 맞춰 시작일/종료일을 계산한다. */
   const handleQuickRange = (quickRange: QuickRange) => {
     if (disabled) {
-      // 수정됨
-      return; // 수정됨
+      //
+      return; //
     }
 
     if (isAllQuickRange(quickRange)) {
       if (requireCompleteRange) {
-        setDraftRange({ endDate: "", startDate: "" }); // 수정됨
+        setDraftRange({ endDate: "", startDate: "" }); //
       }
       setQuickRangeSelection({
         endDate: "",
@@ -196,8 +196,8 @@ export const DateRangePicker = ({
         normalizedMaxDate,
       )
     ) {
-      // 수정됨
-      return; // 수정됨
+      //
+      return; //
     }
 
     setQuickRangeSelection({
@@ -221,16 +221,16 @@ export const DateRangePicker = ({
         calendarClassName="dateRangeCalendar"
         customInput={
           <DateRangeInput
-            disabled={disabled} // 수정됨
+            disabled={disabled} //
             displayValue={inputDisplayValue}
-            endValue={displayEndDate} // 수정됨
+            endValue={displayEndDate} //
             filterLabel={filterLabel}
             inputVariant={inputVariant}
             isOpen={isOpen}
             onClear={() => {
               if (disabled) {
-                // 수정됨
-                return; // 수정됨
+                //
+                return; //
               }
 
               if (requireCompleteRange) {
@@ -239,17 +239,17 @@ export const DateRangePicker = ({
               setQuickRangeSelection(null);
               onChange("", "");
             }}
-            size={size} // 수정됨
-            startValue={displayStartDate} // 수정됨
+            size={size} //
+            startValue={displayStartDate} //
           />
         }
         dateFormat="yyyy-MM-dd"
         dateFormatCalendar="yyyy MMM"
-        disabled={disabled} // 수정됨
+        disabled={disabled} //
         endDate={selectedEndDate}
         excludeDateIntervals={disabledIntervals}
-        maxDate={normalizedMaxDate ?? undefined} // 수정됨
-        minDate={normalizedMinDate ?? undefined} // 수정됨
+        maxDate={normalizedMaxDate ?? undefined} //
+        minDate={normalizedMinDate ?? undefined} //
         monthsShown={2}
         onCalendarClose={() => {
           setIsOpen(false);
@@ -259,12 +259,12 @@ export const DateRangePicker = ({
           ) {
             setDraftRange({ endDate, startDate });
           }
-        }} // 수정됨
-        onCalendarOpen={() => setIsOpen(!disabled)} // 수정됨
+        }} //
+        onCalendarOpen={() => setIsOpen(!disabled)} //
         onChange={([nextStartDate, nextEndDate]) => {
           if (disabled) {
-            // 수정됨
-            return; // 수정됨
+            //
+            return; //
           }
 
           const nextStartDateValue = formatDate(nextStartDate);
@@ -279,8 +279,8 @@ export const DateRangePicker = ({
               normalizedMaxDate,
             )
           ) {
-            // 수정됨
-            return; // 수정됨
+            //
+            return; //
           }
 
           if (requireCompleteRange) {
@@ -296,7 +296,7 @@ export const DateRangePicker = ({
             (nextStartDateValue || nextEndDateValue) &&
             (!nextStartDateValue || !nextEndDateValue)
           ) {
-            return; // 수정됨
+            return; //
           }
 
           onChange(nextStartDateValue, nextEndDateValue);
@@ -304,7 +304,7 @@ export const DateRangePicker = ({
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
         ref={pickerRef}
-        open={disabled ? false : undefined} // 수정됨
+        open={disabled ? false : undefined} //
         selectsRange
         selected={selectedStartDate}
         showPopperArrow={false}

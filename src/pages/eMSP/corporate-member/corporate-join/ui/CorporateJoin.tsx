@@ -93,7 +93,7 @@ const CorporateJoin = () => {
           value={content}
           placeholder="기업 소개 내용을 입력하세요."
           referenceType={SCREEN_ID.EMSP.CORPORATE_JOIN_MANAGEMENT}
-          resizable // 수정됨
+          resizable //
           onChange={setContent}
           onUploadStateChange={setIsUploading}
         />

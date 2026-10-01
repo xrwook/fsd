@@ -6,7 +6,7 @@ export const TIME_FORMAT = "HH:mm";
 export const isValidDate = (value: unknown): value is Date =>
   value instanceof Date && !Number.isNaN(value.getTime());
 
-// 수정됨: 전달받은 dateFormat으로 날짜를 문자열로 변환한다.
+//: 전달받은 dateFormat으로 날짜를 문자열로 변환한다.
 export const formatDateTime = (
   date: Date | null,
   dateFormat = DATE_TIME_FORMAT,
@@ -16,7 +16,7 @@ export const formatDateTime = (
   return DateTime.fromJSDate(date).toFormat(dateFormat);
 };
 
-// 수정됨: 전달받은 dateFormat으로 직접 입력한 날짜 문자열을 파싱한다.
+//: 전달받은 dateFormat으로 직접 입력한 날짜 문자열을 파싱한다.
 export const parseDateTime = (
   value: string,
   dateFormat = DATE_TIME_FORMAT,
@@ -43,7 +43,7 @@ export const parseTime = (value: string): Date | null => {
     .toJSDate();
 };
 
-// 수정됨: 문자열 value도 전달받은 dateFormat 기준으로 정규화한다.
+//: 문자열 value도 전달받은 dateFormat 기준으로 정규화한다.
 export const normalizeDateTimeValue = (
   value: unknown,
   dateFormat = DATE_TIME_FORMAT,

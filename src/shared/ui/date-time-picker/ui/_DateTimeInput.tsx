@@ -27,7 +27,7 @@ type DateTimeInputProps = {
   onInputValueChange?: (value: string) => void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
-  showClearButton?: boolean; // 수정됨
+  showClearButton?: boolean; //
   outsideClickIgnoreClassName?: string;
   value?: string;
 };
@@ -50,7 +50,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       onKeyDown,
       outsideClickIgnoreClassName,
       placeholder = "YYYY-MM-DD HH:MM",
-      showClearButton = false, // 수정됨
+      showClearButton = false, //
       value = "",
     },
     ref,

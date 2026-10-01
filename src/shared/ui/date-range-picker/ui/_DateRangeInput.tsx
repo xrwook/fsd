@@ -23,7 +23,7 @@ type DateRangeInputProps = {
   onClick?: MouseEventHandler<HTMLDivElement>;
   onFocus?: FocusEventHandler<HTMLDivElement>;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
-  size: "medium" | "small"; // 수정됨
+  size: "medium" | "small"; //
   startValue: string;
 };
 
@@ -43,7 +43,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
       onClick,
       onFocus,
       onKeyDown,
-      size, // 수정됨
+      size, //
       startValue,
     },
     ref,
@@ -63,9 +63,9 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
             "dateRangeInput dateRangeFilterInput",
             {
               dateRangeFilterInputActive: isOpen,
-              dateRangeInputDisabled: disabled, // 수정됨
-              dateRangeInputMedium: size === "medium", // 수정됨
-              dateRangeInputSmall: size === "small", // 수정됨
+              dateRangeInputDisabled: disabled, //
+              dateRangeInputMedium: size === "medium", //
+              dateRangeInputSmall: size === "small", //
             },
             className,
           )}
@@ -101,9 +101,9 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
         className={clsx(
           "dateRangeInput",
           {
-            dateRangeInputDisabled: disabled, // 수정됨
-            dateRangeInputMedium: size === "medium", // 수정됨
-            dateRangeInputSmall: size === "small", // 수정됨
+            dateRangeInputDisabled: disabled, //
+            dateRangeInputMedium: size === "medium", //
+            dateRangeInputSmall: size === "small", //
           },
           className,
         )}
@@ -132,7 +132,7 @@ export const DateRangeInput = forwardRef<HTMLDivElement, DateRangeInputProps>(
             <button
               aria-label="조회 기간 초기화"
               className="dateRangeClearButton"
-              disabled={disabled} // 수정됨
+              disabled={disabled} //
               onClick={(event) => {
                 event.stopPropagation();
                 onClear();

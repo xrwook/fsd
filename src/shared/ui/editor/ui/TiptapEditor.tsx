@@ -9,7 +9,7 @@ import { TextStyleKit } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import clsx from "clsx"; // 수정됨
+import clsx from "clsx"; //
 import {
   type ClipboardEvent,
   type KeyboardEvent,
@@ -44,11 +44,11 @@ export type TiptapEditorProps = {
     referenceType: string,
   ) => Promise<ImageUploadResult>;
   allowImageUpload?: boolean;
-  /** 에디터 입력 영역 크기 조절 */ // 수정됨
-  resizable?: boolean; // 수정됨
+  /** 에디터 입력 영역 크기 조절 */ //
+  resizable?: boolean; //
 };
 
-type HtmlSourceMode = "editor" | "preview" | "source"; // 수정됨
+type HtmlSourceMode = "editor" | "preview" | "source"; //
 
 const TiptapImage = Image.extend({
   addAttributes() {
@@ -89,13 +89,13 @@ export default function TiptapEditor({
   onUploadStateChange,
   uploadImage = uploadEditorImage,
   allowImageUpload = true,
-  resizable = false, // 수정됨
+  resizable = false, //
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
-  const [htmlSource, setHtmlSource] = useState(value); // 수정됨
+  const [htmlSource, setHtmlSource] = useState(value); //
   const [htmlSourceMode, setHtmlSourceMode] =
-    useState<HtmlSourceMode>("editor"); // 수정됨
+    useState<HtmlSourceMode>("editor"); //
   const emittedValueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const onEmptyChangeRef = useRef(onEmptyChange);
@@ -221,24 +221,24 @@ export default function TiptapEditor({
     if (!editor || value === emittedValueRef.current) return;
 
     emittedValueRef.current = value;
-    setHtmlSource(value); // 수정됨
+    setHtmlSource(value); //
     editor.commands.setContent(value, { emitUpdate: false });
     onEmptyChangeRef.current?.(editor.isEmpty);
   }, [editor, value]);
 
   const handleHtmlSourceChange = (nextSource: string) => {
-    // 수정됨
+    //
     setHtmlSource(nextSource);
     emittedValueRef.current = nextSource;
     onChangeRef.current?.(nextSource);
     onEmptyChangeRef.current?.(!nextSource.trim());
   };
 
-  // 소스 모드에서는 HTML 서식 변환 없이 클립보드의 문자열만 삽입한다. // 수정됨
+  // 소스 모드에서는 HTML 서식 변환 없이 클립보드의 문자열만 삽입한다. //
   const handleHtmlSourcePaste = (
     event: ClipboardEvent<HTMLTextAreaElement>,
   ) => {
-    // 수정됨
+    //
     event.preventDefault();
 
     const pastedText =
@@ -258,7 +258,7 @@ export default function TiptapEditor({
   };
 
   const handleToggleHtmlSource = () => {
-    // 수정됨
+    //
     if (disabled) return;
 
     if (htmlSourceMode === "editor") {
@@ -285,7 +285,7 @@ export default function TiptapEditor({
   };
 
   const editorContent = (() => {
-    // 수정됨
+    //
     if (htmlSourceMode === "source") {
       return (
         <div className="tiptapEditorHtmlSource tiptapEditorContent">

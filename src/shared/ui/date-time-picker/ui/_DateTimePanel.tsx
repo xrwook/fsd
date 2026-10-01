@@ -9,11 +9,11 @@ import {
 import { getMinuteOptions, isValidDate, padTimeUnit } from "../lib/dateTime";
 
 type DateTimePanelProps = {
-  /** 선택 가능한 최소 날짜 */ // 수정됨
-  minDate?: Date; // 수정됨
+  /** 선택 가능한 최소 날짜 */ //
+  minDate?: Date; //
   minuteStep: number;
-  /** 선택 가능한 최대 날짜 */ // 수정됨
-  maxDate?: Date; // 수정됨
+  /** 선택 가능한 최대 날짜 */ //
+  maxDate?: Date; //
   onHourChange: (hour: number) => void;
   onMinuteChange: (minute: number) => void;
   selectedDate: Date | null;
@@ -43,7 +43,7 @@ const handleOptionMouseDown: MouseEventHandler<HTMLButtonElement> = (event) => {
   event.stopPropagation();
 };
 
-// 수정됨: 선택된 날짜와 제한 날짜가 같은 날인지 비교한다.
+//: 선택된 날짜와 제한 날짜가 같은 날인지 비교한다.
 const isSameCalendarDate = (date: Date | null, compareDate?: Date) => {
   if (!isValidDate(date) || !isValidDate(compareDate)) return false;
 
@@ -51,9 +51,9 @@ const isSameCalendarDate = (date: Date | null, compareDate?: Date) => {
 };
 
 export const DateTimePanel = ({
-  minDate, // 수정됨
+  minDate, //
   minuteStep,
-  maxDate, // 수정됨
+  maxDate, //
   onHourChange,
   onMinuteChange,
   selectedDate,
@@ -64,8 +64,8 @@ export const DateTimePanel = ({
   const selectedMinuteRef = useRef<HTMLButtonElement>(null);
   const selectedHour = selectedDate?.getHours() ?? 0;
   const selectedMinute = selectedDate?.getMinutes() ?? 0;
-  const isMinDateSelected = isSameCalendarDate(selectedDate, minDate); // 수정됨
-  const isMaxDateSelected = isSameCalendarDate(selectedDate, maxDate); // 수정됨
+  const isMinDateSelected = isSameCalendarDate(selectedDate, minDate); //
+  const isMaxDateSelected = isSameCalendarDate(selectedDate, maxDate); //
   const minutes = useMemo(() => {
     const minuteOptions = getMinuteOptions(minuteStep);
 
@@ -92,7 +92,7 @@ export const DateTimePanel = ({
     ];
   }, [minuteStep, selectedMinute]);
 
-  // 수정됨: minDate/maxDate와 같은 날짜에서는 범위 밖 시각을 선택하지 못하게 한다.
+  //: minDate/maxDate와 같은 날짜에서는 범위 밖 시각을 선택하지 못하게 한다.
   const isHourDisabled = (hour: number) => {
     if (isMinDateSelected && minDate && hour < minDate.getHours()) {
       return true;
@@ -105,7 +105,7 @@ export const DateTimePanel = ({
     return false;
   };
 
-  // 수정됨: 같은 시(hour) 안에서는 minDate/maxDate의 분 단위 제한까지 적용한다.
+  //: 같은 시(hour) 안에서는 minDate/maxDate의 분 단위 제한까지 적용한다.
   const isMinuteDisabled = (minute: number) => {
     if (!selectedDate) return false;
 
@@ -139,14 +139,14 @@ export const DateTimePanel = ({
       >
         {HOURS.map((hour) => {
           const selected = hour === selectedHour;
-          const disabled = isHourDisabled(hour); // 수정됨
+          const disabled = isHourDisabled(hour); //
 
           return (
             <button
-              aria-disabled={disabled} // 수정됨
+              aria-disabled={disabled} //
               aria-selected={selected}
               className="dateTimeOption"
-              disabled={disabled} // 수정됨
+              disabled={disabled} //
               key={hour}
               onClick={(event) => {
                 event.stopPropagation();
@@ -171,14 +171,14 @@ export const DateTimePanel = ({
       >
         {minutes.map((minute) => {
           const selected = minute === selectedMinute;
-          const disabled = isMinuteDisabled(minute); // 수정됨
+          const disabled = isMinuteDisabled(minute); //
 
           return (
             <button
-              aria-disabled={disabled} // 수정됨
+              aria-disabled={disabled} //
               aria-selected={selected}
               className="dateTimeOption"
-              disabled={disabled} // 수정됨
+              disabled={disabled} //
               key={minute}
               onClick={(event) => {
                 event.stopPropagation();
