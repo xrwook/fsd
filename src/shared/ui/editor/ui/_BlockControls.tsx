@@ -2,9 +2,17 @@ import type { EditorControlProps } from "../model/editorControl";
 import { EditorIcon } from "./_EditorIcon";
 import { ToolbarButton } from "./_ToolbarButton";
 
-type Props = EditorControlProps;
+type Props = EditorControlProps & {
+  htmlSourceMode: "editor" | "preview" | "source"; // 수정됨
+  onToggleHtmlSource: () => void; // 수정됨
+};
 
-export const BlockControls = ({ disabled, editor }: Props) => (
+export const BlockControls = ({
+  disabled,
+  editor,
+  htmlSourceMode,
+  onToggleHtmlSource,
+}: Props) => (
   <div className="tiptapToolbarGroup">
     <ToolbarButton
       active={editor.isActive("bulletList")}
@@ -31,10 +39,10 @@ export const BlockControls = ({ disabled, editor }: Props) => (
       <EditorIcon name="formatQuote" />
     </ToolbarButton>
     <ToolbarButton
-      active={editor.isActive("codeBlock")}
+      active={htmlSourceMode === "source"} // 수정됨
       disabled={disabled}
-      label="코드 블록"
-      onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+      label="HTML 소스"
+      onClick={onToggleHtmlSource} // 수정됨
     >
       <EditorIcon name="code" />
     </ToolbarButton>

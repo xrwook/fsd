@@ -401,6 +401,42 @@
   min-height: 100%;
 }
 
+/* 수정됨: HTML 소스 입력과 샌드박스 미리보기 영역 */
+.tiptapEditorHtmlSource,
+.tiptapEditorHtmlPreview {
+  width: 100%;
+  min-height: 240px;
+  overflow: hidden;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.tiptapEditorHtmlSourceInput {
+  display: block;
+  width: 100%;
+  min-height: 240px;
+  padding: 16px;
+  resize: vertical;
+  color: #111827;
+  background: #fff;
+  border: 0;
+  outline: none;
+  box-sizing: border-box;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.tiptapEditorHtmlPreviewFrame {
+  display: block;
+  width: 100%;
+  min-height: 360px;
+  border: 0;
+  background: #fff;
+}
+
 .tiptapEditorContent.singleLine .tiptap {
   min-height: 48px;
   max-height: 160px;

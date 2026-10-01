@@ -11,6 +11,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import clsx from "clsx"; // 수정됨
 import {
+  type ClipboardEvent,
   type KeyboardEvent,
   useCallback,
   useEffect,
@@ -46,6 +47,8 @@ export type TiptapEditorProps = {
   /** 에디터 입력 영역 크기 조절 */ // 수정됨
   resizable?: boolean; // 수정됨
 };
+
+type HtmlSourceMode = "editor" | "preview" | "source"; // 수정됨
 
 const TiptapImage = Image.extend({
   addAttributes() {
@@ -90,6 +93,9 @@ export default function TiptapEditor({
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
+  const [htmlSource, setHtmlSource] = useState(value); // 수정됨
+  const [htmlSourceMode, setHtmlSourceMode] =
+    useState<HtmlSourceMode>("editor"); // 수정됨
   const emittedValueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const onEmptyChangeRef = useRef(onEmptyChange);
@@ -215,9 +221,54 @@ export default function TiptapEditor({
     if (!editor || value === emittedValueRef.current) return;
 
     emittedValueRef.current = value;
+    setHtmlSource(value); // 수정됨
     editor.commands.setContent(value, { emitUpdate: false });
     onEmptyChangeRef.current?.(editor.isEmpty);
   }, [editor, value]);
+
+  const handleHtmlSourceChange = (nextSource: string) => {
+    // 수정됨
+    setHtmlSource(nextSource);
+    emittedValueRef.current = nextSource;
+    onChangeRef.current?.(nextSource);
+    onEmptyChangeRef.current?.(!nextSource.trim());
+  };
+
+  // 소스 모드에서는 HTML 서식 변환 없이 클립보드의 문자열만 삽입한다. // 수정됨
+  const handleHtmlSourcePaste = (
+    event: ClipboardEvent<HTMLTextAreaElement>,
+  ) => {
+    // 수정됨
+    event.preventDefault();
+
+    const pastedText =
+      event.clipboardData.getData("text/plain") ||
+      event.clipboardData.getData("text/html");
+    const target = event.currentTarget;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const nextSource =
+      htmlSource.slice(0, start) + pastedText + htmlSource.slice(end);
+
+    handleHtmlSourceChange(nextSource);
+    requestAnimationFrame(() => {
+      const nextCursorPosition = start + pastedText.length;
+      target.setSelectionRange(nextCursorPosition, nextCursorPosition);
+    });
+  };
+
+  const handleToggleHtmlSource = () => {
+    // 수정됨
+    if (disabled) return;
+
+    if (htmlSourceMode === "editor") {
+      setHtmlSource(editor?.getHTML() ?? htmlSource);
+      setHtmlSourceMode("source");
+      return;
+    }
+
+    setHtmlSourceMode((mode) => (mode === "source" ? "preview" : "source"));
+  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (
@@ -233,6 +284,51 @@ export default function TiptapEditor({
     onSubmitRef.current?.();
   };
 
+  const editorContent = (() => {
+    // 수정됨
+    if (htmlSourceMode === "source") {
+      return (
+        <div className="tiptapEditorHtmlSource tiptapEditorContent">
+          <textarea
+            aria-label="HTML 소스"
+            autoFocus
+            className="tiptapEditorHtmlSourceInput"
+            disabled={disabled}
+            onChange={(event) => handleHtmlSourceChange(event.target.value)}
+            onPaste={handleHtmlSourcePaste}
+            spellCheck={false}
+            value={htmlSource}
+          />
+        </div>
+      );
+    }
+
+    if (htmlSourceMode === "preview") {
+      return (
+        <div className="tiptapEditorHtmlPreview tiptapEditorContent">
+          <iframe
+            className="tiptapEditorHtmlPreviewFrame"
+            sandbox=""
+            srcDoc={htmlSource}
+            title="HTML 미리보기"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <EditorContent
+        editor={editor}
+        className={clsx(
+          "tiptapEditorContent",
+          submitOnEnter && "singleLine",
+          resizable && "editorResizableContent",
+        )}
+        onKeyDown={handleKeyDown}
+      />
+    );
+  })();
+
   return (
     <div
       className={`tiptapEditor ${disabled ? "editorDisabled" : ""}`}
@@ -242,16 +338,10 @@ export default function TiptapEditor({
         allowImageUpload={allowImageUpload}
         disabled={disabled}
         editor={editor}
+        htmlSourceMode={htmlSourceMode}
+        onToggleHtmlSource={handleToggleHtmlSource}
       />
-      <EditorContent
-        editor={editor}
-        className={clsx(
-          "tiptapEditorContent",
-          submitOnEnter && "singleLine",
-          resizable && "editorResizableContent",
-        )} // 수정됨
-        onKeyDown={handleKeyDown}
-      />
+      {editorContent}
       <EditorUploadStatus error={uploadError} uploadCount={uploadCount} />
     </div>
   );

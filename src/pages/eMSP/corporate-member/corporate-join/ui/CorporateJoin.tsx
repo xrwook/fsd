@@ -7,6 +7,7 @@ import {
 } from "@/shared/ui/date-range-picker";
 import { DateTimePicker } from "@/shared/ui/date-time-picker";
 import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
+import { QUICK_RANGES_FILTER } from "@/shared/ui/date-range-picker/config/quickRanges";
 
 const USE_PERIOD_QUICK_RANGES: DateRangeQuickRange[] = [
   {
@@ -61,6 +62,22 @@ const CorporateJoin = () => {
           dateFormat="yyyy-MM"
           minDate={new Date("2026-08-20 15:00")}
           showMonthYearPicker
+        />
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <DateRangePicker
+          endDate={usePeriod.endDate}
+          onChange={(startDate, endDate) =>
+            setUsePeriod({
+              endDate,
+              startDate,
+            })
+          }
+          inputVariant="filter"
+          quickRangeDirection="future"
+          quickRanges={QUICK_RANGES_FILTER}
+          startDate={usePeriod.startDate}
         />
       </section>
 
