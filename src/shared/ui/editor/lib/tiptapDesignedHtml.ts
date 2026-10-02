@@ -515,7 +515,7 @@ const sanitizeViewerAttribute = (element: Element, name: string) => {
   return null;
 };
 
-const sanitizeElementAttributes = (element: HTMLElement) => {
+const sanitizeElementAttributes = (element: Element) => {
   for (const attributeName of element.getAttributeNames()) {
     const name = attributeName.toLowerCase();
 
@@ -537,7 +537,7 @@ const sanitizeElementAttributes = (element: HTMLElement) => {
   }
 };
 
-const sanitizeElement = (element: HTMLElement) => {
+const sanitizeElement = (element: Element) => {
   if (SANITIZED_HTML_REMOVAL_TAGS.has(element.tagName.toLowerCase())) {
     element.remove();
     return;
@@ -558,7 +558,7 @@ export const sanitizeDesignedHtml = (html: string) => {
 
   const document = new DOMParser().parseFromString(html, "text/html");
 
-  for (const element of document.body.querySelectorAll<HTMLElement>("*")) {
+  for (const element of document.body.querySelectorAll("*")) {
     sanitizeElement(element);
   }
 
