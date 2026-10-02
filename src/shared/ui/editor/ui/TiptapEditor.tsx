@@ -259,8 +259,8 @@ export default function TiptapEditor({
     event.preventDefault();
 
     const pastedText =
-      event.clipboardData.getData("text/html") ||
-      event.clipboardData.getData("text/plain");
+    event.clipboardData.getData("text/plain") ||
+      event.clipboardData.getData("text/html");
     const safePastedText = allowImageUpload
       ? pastedText
       : removeImageElements(pastedText);
