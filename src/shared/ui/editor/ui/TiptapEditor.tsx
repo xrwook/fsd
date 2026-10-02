@@ -24,6 +24,7 @@ import { uploadEditorImage } from "../api/editor.service";
 import { DesignedHtmlExtensions } from "../lib/tiptapDesignedHtml";
 import {
   type ImageUploadResult,
+  removeImageElements,
   TiptapImageUpload,
 } from "../lib/tiptapImageUpload";
 import { EditorToolbar } from "./_EditorToolbar";
@@ -48,7 +49,7 @@ export type TiptapEditorProps = {
   resizable?: boolean; //
 };
 
-type HtmlSourceMode = "editor" | "preview" | "source"; //
+type HtmlSourceMode = "editor" | "source";
 
 const TiptapImage = Image.extend({
   addAttributes() {
@@ -93,16 +94,15 @@ export default function TiptapEditor({
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
-  const [htmlSource, setHtmlSource] = useState(value); //
+  const [htmlSource, setHtmlSource] = useState(value);
   const [htmlSourceMode, setHtmlSourceMode] =
-    useState<HtmlSourceMode>("editor"); //
+    useState<HtmlSourceMode>("editor");
   const emittedValueRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const onEmptyChangeRef = useRef(onEmptyChange);
   const onSubmitRef = useRef(onSubmit);
   const referenceTypeRef = useRef(referenceType);
   const uploadImageRef = useRef(uploadImage);
-
   useEffect(() => {
     onChangeRef.current = onChange;
     onEmptyChangeRef.current = onEmptyChange;
@@ -217,48 +217,67 @@ export default function TiptapEditor({
     editor.setEditable(!disabled);
   }, [disabled, editor]);
 
+  const applyHtmlSourceToEditor = useCallback(() => {
+    if (!editor) return false;
+
+    editor.commands.setContent(htmlSource, { emitUpdate: false });
+    const normalizedValue = editor.isEmpty ? "" : editor.getHTML();
+    setHtmlSource(normalizedValue);
+    emittedValueRef.current = normalizedValue;
+    onChangeRef.current?.(normalizedValue);
+    onEmptyChangeRef.current?.(editor.isEmpty);
+    return true;
+  }, [editor, htmlSource]);
+
+  useEffect(() => {
+    if (disabled && htmlSourceMode === "source") {
+      applyHtmlSourceToEditor();
+      setHtmlSourceMode("editor");
+    }
+  }, [applyHtmlSourceToEditor, disabled, htmlSourceMode]);
+
   useEffect(() => {
     if (!editor || value === emittedValueRef.current) return;
 
     emittedValueRef.current = value;
-    setHtmlSource(value); //
+    setHtmlSource(value);
     editor.commands.setContent(value, { emitUpdate: false });
     onEmptyChangeRef.current?.(editor.isEmpty);
   }, [editor, value]);
 
   const handleHtmlSourceChange = (nextSource: string) => {
-    //
     setHtmlSource(nextSource);
     emittedValueRef.current = nextSource;
     onChangeRef.current?.(nextSource);
     onEmptyChangeRef.current?.(!nextSource.trim());
   };
 
-  // 소스 모드에서는 HTML 서식 변환 없이 클립보드의 문자열만 삽입한다. //
+  // 소스 모드에서는 클립보드의 HTML 표현을 우선 보존합니다.
   const handleHtmlSourcePaste = (
     event: ClipboardEvent<HTMLTextAreaElement>,
   ) => {
-    //
     event.preventDefault();
 
     const pastedText =
-      event.clipboardData.getData("text/plain") ||
-      event.clipboardData.getData("text/html");
+      event.clipboardData.getData("text/html") ||
+      event.clipboardData.getData("text/plain");
+    const safePastedText = allowImageUpload
+      ? pastedText
+      : removeImageElements(pastedText);
     const target = event.currentTarget;
     const start = target.selectionStart;
     const end = target.selectionEnd;
     const nextSource =
-      htmlSource.slice(0, start) + pastedText + htmlSource.slice(end);
+      htmlSource.slice(0, start) + safePastedText + htmlSource.slice(end);
 
     handleHtmlSourceChange(nextSource);
     requestAnimationFrame(() => {
-      const nextCursorPosition = start + pastedText.length;
+      const nextCursorPosition = start + safePastedText.length;
       target.setSelectionRange(nextCursorPosition, nextCursorPosition);
     });
   };
 
   const handleToggleHtmlSource = () => {
-    //
     if (disabled) return;
 
     if (htmlSourceMode === "editor") {
@@ -267,7 +286,9 @@ export default function TiptapEditor({
       return;
     }
 
-    setHtmlSourceMode((mode) => (mode === "source" ? "preview" : "source"));
+    if (!applyHtmlSourceToEditor()) return;
+
+    setHtmlSourceMode("editor");
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -285,7 +306,6 @@ export default function TiptapEditor({
   };
 
   const editorContent = (() => {
-    //
     if (htmlSourceMode === "source") {
       return (
         <div className="tiptapEditorHtmlSource tiptapEditorContent">
@@ -298,19 +318,6 @@ export default function TiptapEditor({
             onPaste={handleHtmlSourcePaste}
             spellCheck={false}
             value={htmlSource}
-          />
-        </div>
-      );
-    }
-
-    if (htmlSourceMode === "preview") {
-      return (
-        <div className="tiptapEditorHtmlPreview tiptapEditorContent">
-          <iframe
-            className="tiptapEditorHtmlPreviewFrame"
-            sandbox=""
-            srcDoc={htmlSource}
-            title="HTML 미리보기"
           />
         </div>
       );

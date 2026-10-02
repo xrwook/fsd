@@ -64,7 +64,6 @@
     sans-serif;
 }
 
-/* 수정됨 */
 .tiptapEditorContent.editorResizableContent {
   height: 316px;
   min-height: 160px;
@@ -395,15 +394,13 @@
   overflow-wrap: anywhere;
 }
 
-/* 수정됨 */
 .tiptapEditorContent.editorResizableContent .tiptap {
   box-sizing: border-box;
   min-height: 100%;
 }
 
-/* 수정됨: HTML 소스 입력과 샌드박스 미리보기 영역 */
-.tiptapEditorHtmlSource,
-.tiptapEditorHtmlPreview {
+/* HTML 소스 입력 영역 */
+.tiptapEditorHtmlSource {
   width: 100%;
   min-height: 240px;
   overflow: hidden;
@@ -427,14 +424,6 @@
   font-size: 14px;
   line-height: 1.55;
   white-space: pre;
-}
-
-.tiptapEditorHtmlPreviewFrame {
-  display: block;
-  width: 100%;
-  min-height: 360px;
-  border: 0;
-  background: #fff;
 }
 
 .tiptapEditorContent.singleLine .tiptap {

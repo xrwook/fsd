@@ -82,6 +82,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
 
   const handleHeadingChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const value = event.target.value;
+
     const chain = editor.chain().focus();
 
     if (!value) {
@@ -94,6 +95,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
 
   const handleFontFamilyChange = (event: SelectChangeEvent<string>) => {
     const fontFamily = event.target.value;
+
     const chain = editor.chain().focus();
 
     if (fontFamily && fontFamily !== DEFAULT_FONT_FAMILY_VALUE) {
@@ -105,6 +107,7 @@ export const FontControls = ({ disabled, editor }: Props) => {
 
   const handleFontSizeChange = (event: ChangeEvent<HTMLSelectElement>) => {
     const fontSize = event.target.value;
+
     const chain = editor.chain().focus();
 
     if (fontSize) {

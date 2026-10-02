@@ -437,6 +437,134 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
   },
 });
 
+const SANITIZED_HTML_REMOVAL_TAGS = new Set([
+  "base",
+  "embed",
+  "form",
+  "iframe",
+  "input",
+  "link",
+  "meta",
+  "object",
+  "option",
+  "script",
+  "select",
+  "style",
+  "svg",
+  "template",
+  "textarea",
+]);
+
+const SANITIZED_HTML_ALLOWED_ATTRIBUTES = new Set([
+  "alt",
+  "colspan",
+  "colwidth",
+  "height",
+  "rel",
+  "rowspan",
+  "target",
+  "title",
+  "type",
+  "width",
+]);
+
+const sanitizeViewerAttribute = (element: Element, name: string) => {
+  const value = element.getAttribute(name);
+
+  if (name === "class") {
+    return sanitizeClass(value);
+  }
+
+  if (name === "id") {
+    return sanitizeId(value);
+  }
+
+  if (name === "role") {
+    return sanitizeRole(value);
+  }
+
+  if (name === "style") {
+    return sanitizeStyle(value);
+  }
+
+  if (name === "href" || name === "src" || name === "data-href") {
+    return sanitizeUrl(value);
+  }
+
+  if (name === "data-file-detail-id") {
+    return sanitizePlainAttribute(value);
+  }
+
+  if (name === "target") {
+    return value === "_blank" ? value : null;
+  }
+
+  if (name === "rel") {
+    return (
+      value
+        ?.split(/\s+/)
+        .filter((token) => /^[a-z][\w-]*$/i.test(token))
+        .join(" ") || null
+    );
+  }
+
+  if (SANITIZED_HTML_ALLOWED_ATTRIBUTES.has(name)) {
+    return sanitizePlainAttribute(value);
+  }
+
+  return null;
+};
+
+const sanitizeElementAttributes = (element: HTMLElement) => {
+  for (const attributeName of element.getAttributeNames()) {
+    const name = attributeName.toLowerCase();
+
+    if (name.startsWith("on") || name === "srcdoc") {
+      element.removeAttribute(attributeName);
+      continue;
+    }
+
+    const sanitizedValue =
+      name === "aria-label" || name === "aria-describedby"
+        ? sanitizePlainAttribute(element.getAttribute(attributeName))
+        : sanitizeViewerAttribute(element, name);
+
+    if (sanitizedValue) {
+      element.setAttribute(attributeName, sanitizedValue);
+    } else {
+      element.removeAttribute(attributeName);
+    }
+  }
+};
+
+const sanitizeElement = (element: HTMLElement) => {
+  if (SANITIZED_HTML_REMOVAL_TAGS.has(element.tagName.toLowerCase())) {
+    element.remove();
+    return;
+  }
+
+  sanitizeElementAttributes(element);
+
+  if (element.tagName.toLowerCase() === "a") {
+    const target = element.getAttribute("target");
+    if (target === "_blank") {
+      element.setAttribute("rel", "noopener noreferrer nofollow");
+    }
+  }
+};
+
+export const sanitizeDesignedHtml = (html: string) => {
+  if (!html || typeof DOMParser === "undefined") return "";
+
+  const document = new DOMParser().parseFromString(html, "text/html");
+
+  for (const element of document.body.querySelectorAll<HTMLElement>("*")) {
+    sanitizeElement(element);
+  }
+
+  return document.body.innerHTML;
+};
+
 export const DesignedHtmlExtensions = [
   DesignedHtmlAttributes,
   DesignedHtmlBlock,

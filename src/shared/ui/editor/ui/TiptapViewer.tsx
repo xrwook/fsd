@@ -2,6 +2,8 @@ import "../assets/editor.css";
 
 import { type MouseEvent } from "react";
 
+import { sanitizeDesignedHtml } from "../lib/tiptapDesignedHtml";
+
 export type TiptapViewerProps = {
   value?: string | null;
   className?: string;
@@ -13,13 +15,15 @@ export type TiptapViewerProps = {
 const joinClassNames = (...classNames: Array<string | undefined>) =>
   classNames.filter(Boolean).join(" ");
 
-export default function TiptapViewer({
+export function TiptapViewer({
   value,
   className,
   contentClassName,
   emptyText = "(작성된 내용이 없습니다.)",
   onHrefClick,
 }: TiptapViewerProps) {
+  const sanitizedValue = value ? sanitizeDesignedHtml(value) : "";
+
   const handleClick = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
@@ -41,10 +45,10 @@ export default function TiptapViewer({
       className={joinClassNames("tiptapEditorContent", className)}
       onClick={handleClick}
     >
-      {value ? (
+      {sanitizedValue ? (
         <div
           className={joinClassNames("tiptap", contentClassName)}
-          dangerouslySetInnerHTML={{ __html: value }}
+          dangerouslySetInnerHTML={{ __html: sanitizedValue }}
         />
       ) : (
         <div
@@ -59,3 +63,5 @@ export default function TiptapViewer({
     </div>
   );
 }
+
+export default TiptapViewer;

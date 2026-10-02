@@ -1,9 +1,6 @@
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import { type MouseEvent, useId, useState } from "react";
 
+import { sanitizeDesignedHtml } from "../lib/tiptapDesignedHtml";
 import type { EditorControlProps } from "../model/editorControl";
 import { EditorIcon } from "./_EditorIcon";
 import { ToolbarButton } from "./_ToolbarButton";
@@ -11,9 +8,9 @@ import { ToolbarButton } from "./_ToolbarButton";
 type Props = EditorControlProps;
 
 export const HistoryControls = ({ disabled, editor }: Props) => {
-  const previewTitleId = useId();
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewHtml, setPreviewHtml] = useState("");
+    // const previewTitleId = useId();
+    // const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    // const [previewHtml, setPreviewHtml] = useState("");
 
   const clearFormatting = () => {
     editor
@@ -30,25 +27,27 @@ export const HistoryControls = ({ disabled, editor }: Props) => {
       .run();
   };
 
-  const openPreview = () => {
-    setPreviewHtml(editor.isEmpty ? "" : editor.getHTML());
-    setIsPreviewOpen(true);
-  };
+  // const openPreview = () => {
+  //   setPreviewHtml(
+  //     editor.isEmpty ? "" : sanitizeDesignedHtml(editor.getHTML()),
+  //   );
+  //   setIsPreviewOpen(true);
+  // };
 
-  const closePreview = () => {
-    setIsPreviewOpen(false);
-  };
+  // const closePreview = () => {
+  //   setIsPreviewOpen(false);
+  // };
 
-  const handlePreviewClick = (event: MouseEvent<HTMLDivElement>) => {
-    const target = event.target;
-    if (!(target instanceof HTMLElement)) return;
+  // const handlePreviewClick = (event: MouseEvent<HTMLDivElement>) => {
+  //   const target = event.target;
+  //   if (!(target instanceof HTMLElement)) return;
 
-    const button = target.closest<HTMLButtonElement>("button[data-href]");
-    const href = button?.dataset.href;
-    if (!href) return;
+  //   const button = target.closest<HTMLButtonElement>("button[data-href]");
+  //   const href = button?.dataset.href;
+  //   if (!href) return;
 
-    window.open(href, "_blank", "noopener,noreferrer");
-  };
+  //   window.open(href, "_blank", "noopener,noreferrer");
+  // };
 
   return (
     <>
@@ -77,13 +76,13 @@ export const HistoryControls = ({ disabled, editor }: Props) => {
         <ToolbarButton
           disabled={disabled}
           label="미리 보기"
-          onClick={openPreview}
+          onClick={() => {}}
         >
           <EditorIcon name="visibility" />
         </ToolbarButton>
       </div>
 
-      <Dialog
+      {/* <Dialog
         fullWidth
         aria-labelledby={previewTitleId}
         maxWidth="md"
@@ -123,7 +122,7 @@ export const HistoryControls = ({ disabled, editor }: Props) => {
             닫기
           </button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </>
   );
 };

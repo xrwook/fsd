@@ -1,14 +1,10 @@
 import { type Editor, Extension, type JSONContent } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
 
-export type ImageUploadResult =
-  | string
-  | {
-      fileDetailId?: string;
-      fileDtlId?: string;
-      imgId?: string;
-      src: string;
-    };
+export type ImageUploadResult = {
+  fileDtlId: string;
+  src: string;
+};
 
 type ImageUploadOptions = {
   enabled: boolean;
@@ -31,7 +27,7 @@ const getImageFiles = (files?: FileList | File[] | null) =>
 
 const hasImageHtml = (html?: string | null) => !!html && /<img\b/i.test(html);
 
-const removeImageElements = (html: string) => {
+export const removeImageElements = (html: string) => {
   if (!hasImageHtml(html)) return html;
 
   if (typeof document === "undefined") {
@@ -48,14 +44,14 @@ const removeImageElements = (html: string) => {
 };
 
 const toImageAttrs = (result: ImageUploadResult, file: File) => {
-  if (typeof result === "string") {
-    return { src: result, alt: file.name };
+  if (!result.src || !result.fileDtlId) {
+    throw new Error("이미지 업로드 응답에 fileDtlId 또는 src가 없습니다.");
   }
 
   return {
     src: result.src,
     alt: file.name,
-    fileDetailId: result.fileDetailId ?? result.fileDtlId ?? result.imgId,
+    fileDetailId: result.fileDtlId,
   };
 };
 
