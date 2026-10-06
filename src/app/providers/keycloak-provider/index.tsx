@@ -77,11 +77,17 @@ export const KeycloakProvider = ({ children }: Props) => {
       }));
     };
 
+    const handleLoginRecoveryError = (error: unknown) => {
+      // 토큰 갱신 후의 로그인 복구 실패는 화면을 error 상태로 전환하지 않습니다.
+      // 초기화/최초 로그인 실패와 달리 일시적인 세션·네트워크 오류일 수 있습니다.
+      console.error("[Keycloak] Login recovery failed.", error);
+    };
+
     const handleTokenRefreshError = (error: unknown) => {
       // 토큰 갱신 실패는 세션 만료/일시적인 네트워크 오류일 수 있습니다.
       // 화면을 error 상태로 전환하지 않고 로그인 복구만 시도합니다.
       console.warn("[Keycloak] Token refresh failed; redirecting to login.", error);
-      loginKeycloak().catch(setErrorState);
+      loginKeycloak().catch(handleLoginRecoveryError);
     };
 
     if (keycloak) {
@@ -102,7 +108,7 @@ export const KeycloakProvider = ({ children }: Props) => {
       };
       keycloak.onAuthRefreshError = () => {
         // 갱신 실패 메시지는 일시적인 복구 과정이므로 화면에 노출하지 않습니다.
-        loginKeycloak().catch(setErrorState);
+        loginKeycloak().catch(handleLoginRecoveryError);
       };
       keycloak.onTokenExpired = () => {
         refreshKeycloakToken().catch(handleTokenRefreshError);
