@@ -1,13 +1,14 @@
 import { useState } from "react";
 
 import { SCREEN_ID } from "@/shared/config";
+import { Calendar } from "@/shared/ui/calendar";
 import {
   DateRangePicker,
   type DateRangeQuickRange,
 } from "@/shared/ui/date-range-picker";
+import { QUICK_RANGES_FILTER } from "@/shared/ui/date-range-picker/config/quickRanges";
 import { DateTimePicker } from "@/shared/ui/date-time-picker";
 import { TiptapEditor, TiptapViewer } from "@/shared/ui/editor";
-import { QUICK_RANGES_FILTER } from "@/shared/ui/date-range-picker/config/quickRanges";
 
 const USE_PERIOD_QUICK_RANGES: DateRangeQuickRange[] = [
   {
@@ -62,6 +63,14 @@ const CorporateJoin = () => {
           dateFormat="yyyy-MM"
           minDate={new Date("2026-08-20 15:00")}
           showMonthYearPicker
+        />
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+        <h2 className="mb-3 font-semibold text-gray-900">읽기 전용 달력</h2>
+        <Calendar
+          displayDate="2026-10-01"
+          markedDates={["2026-10-08", "2026-10-15"]}
         />
       </section>
 

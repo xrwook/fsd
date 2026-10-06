@@ -1,0 +1,181 @@
+.calendar {
+  position: relative;
+  width: fit-content;
+  color: #16181d;
+  font-family: inherit;
+}
+
+.calendarTrigger {
+  height: 40px;
+  padding: 0 16px;
+  color: #16181d;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fff;
+  border: 1px solid #cfd3da;
+  cursor: pointer;
+}
+
+.calendarTrigger:hover {
+  background: #f6f8fb;
+}
+
+.calendarTrigger:focus-visible,
+.calendarTrigger[aria-expanded="true"] {
+  border-color: #165dff;
+  box-shadow: inset 0 0 0 1px #165dff;
+  outline: none;
+}
+
+.calendarPopover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 1400;
+}
+
+.calendarPanel {
+  overflow: hidden;
+  color: #16181d;
+  font-family: inherit;
+  background: #fff;
+  border: 1px solid #20242b;
+  border-radius: 0;
+  box-shadow: 0 6px 16px rgb(16 24 40 / 14%);
+}
+
+.calendarPanel [class~="react-datepicker__month-container"] {
+  float: none;
+  width: 320px;
+}
+
+.calendarPanel [class~="react-datepicker__header"] {
+  padding: 22px 20px 8px;
+  background: #fff;
+  border-bottom: 0;
+}
+
+.calendarPanel [class~="react-datepicker__current-month"] {
+  margin-bottom: 24px;
+  color: #16181d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.calendarPanel [class~="react-datepicker__navigation"] {
+  top: 24px;
+}
+
+.calendarPanel [class~="react-datepicker__navigation--previous"] {
+  left: 22px;
+}
+
+.calendarPanel [class~="react-datepicker__navigation--next"] {
+  right: 22px;
+}
+
+.calendarPanel [class~="react-datepicker__navigation-icon"]::before {
+  width: 12px;
+  height: 12px;
+  border-color: #687080;
+  border-width: 2px 2px 0 0;
+}
+
+.calendarPanel [class~="react-datepicker__day-name"],
+.calendarPanel [class~="react-datepicker__day"] {
+  width: 36px;
+  margin: 4px;
+  font-size: 16px;
+  line-height: 36px;
+}
+
+.calendarPanel [class~="react-datepicker__day-name"] {
+  color: #687080;
+  font-weight: 400;
+}
+
+.calendarPanel [class~="react-datepicker__day"] {
+  color: #16181d;
+  background: transparent;
+  border-radius: 50%;
+  cursor: default;
+}
+
+.calendarPanel [class~="react-datepicker__day"]:hover {
+  color: #16181d;
+  background: transparent;
+}
+
+.calendarPanel
+  [class~="react-datepicker__day--keyboard-selected"]:not(
+    [class~="calendarDayMarked"]
+  ) {
+  color: #16181d;
+  background: transparent;
+  box-shadow: none;
+}
+
+.calendarPanel
+  [class~="react-datepicker__day--today"]:not([class~="calendarDayMarked"]) {
+  color: #16181d;
+  font-weight: 400;
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #165dff;
+}
+
+.calendarPanel [class~="calendarDayMarked"],
+.calendarPanel [class~="calendarDayMarked"]:hover {
+  color: #fff;
+  background: #165dff;
+}
+
+.calendarPanel
+  [class~="calendarDayMarked"][class~="react-datepicker__day--today"] {
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.calendarPanel [class~="react-datepicker__day--outside-month"] {
+  color: #c4c9d1;
+}
+
+.calendarPanel [class~="react-datepicker__month"] {
+  margin: 0 16px 20px;
+}
+
+@media (width <= 700px) {
+  .calendarPanel [class~="react-datepicker__month-container"] {
+    width: 300px;
+  }
+
+  .calendarPanel [class~="react-datepicker__header"] {
+    padding: 28px 14px 10px;
+  }
+
+  .calendarPanel [class~="react-datepicker__current-month"] {
+    margin-bottom: 22px;
+  }
+
+  .calendarPanel [class~="react-datepicker__navigation"] {
+    top: 36px;
+  }
+
+  .calendarPanel [class~="react-datepicker__navigation--previous"] {
+    left: 18px;
+  }
+
+  .calendarPanel [class~="react-datepicker__navigation--next"] {
+    right: 18px;
+  }
+
+  .calendarPanel [class~="react-datepicker__day-name"],
+  .calendarPanel [class~="react-datepicker__day"] {
+    width: 32px;
+    font-size: 18px;
+    line-height: 32px;
+  }
+
+  .calendarPanel [class~="react-datepicker__month"] {
+    margin: 0 6px 24px;
+  }
+}
