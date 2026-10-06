@@ -19,7 +19,9 @@ const SearchResultList = ({ search, keyword, onClick: handleClick }: Props) => {
         <p className="typo-body-2 text-text-neutral-stronger font-medium">
           <HighlightText keyword={keyword} text={search.name} />
         </p>
-        <p className="typo-body-3 text-text-neutral-weaker mt-1 font-normal">{search.address}</p>
+        <p className="typo-body-3 text-text-neutral-weaker mt-1 font-normal">
+          {search.address}
+        </p>
       </button>
     </li>
   );

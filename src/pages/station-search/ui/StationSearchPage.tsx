@@ -11,7 +11,12 @@ import { stationList } from "../mock/station-search";
 
 const DEFAULT_CENTER = { lat: 37.5774, lng: 126.9875 };
 
-import { DEFAULT_ZOOM, getMarkerDisplay, MAX_ZOOM, MIN_ZOOM } from "../config/zoom";
+import {
+  DEFAULT_ZOOM,
+  getMarkerDisplay,
+  MAX_ZOOM,
+  MIN_ZOOM,
+} from "../config/zoom";
 import MapControl from "./_MapControl";
 import SearchField from "./_SearchField";
 
@@ -21,7 +26,8 @@ interface MapProps extends BaseMapProps {
 
 const SELF_BRAND_CPO_ID = "HY";
 
-export const isSelfBrandCpo = (cpoId: string): boolean => cpoId === SELF_BRAND_CPO_ID;
+export const isSelfBrandCpo = (cpoId: string): boolean =>
+  cpoId === SELF_BRAND_CPO_ID;
 
 // CF-01-01 | 충전소 탐색 페이지
 const StationSearchPage = ({
@@ -94,7 +100,10 @@ const StationSearchPage = ({
             ))
           ) : (
             // 줌레벨 3이경우, 로밍은 클러스터로, epit은 epit(MapMarker)로 심볼이 노출되어야합니다.
-            <RegionCountMarker count={10} position={{ lat: 37.508_87, lng: 127.063_19 }} />
+            <RegionCountMarker
+              count={10}
+              position={{ lat: 37.508_87, lng: 127.063_19 }}
+            />
           )}
         </NaverMap>
       </MapDiv>

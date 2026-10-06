@@ -2,7 +2,7 @@
   "include": ["**/*", "**/.server/**/*", "**/.client/**/*"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "navermaps"],
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
@@ -10,9 +10,7 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@extra-page-routes/emsp": [
-        "./src/app/router/extra-page-routes/emsp.ts"
-      ]
+      "@extra-page-routes/emsp": ["./src/app/router/extra-page-routes/emsp.ts"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,
