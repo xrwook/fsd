@@ -78,7 +78,9 @@ export const KeycloakProvider = ({ children }: Props) => {
     };
 
     const handleTokenRefreshError = (error: unknown) => {
-      setErrorState(error);
+      // 토큰 갱신 실패는 세션 만료/일시적인 네트워크 오류일 수 있습니다.
+      // 화면을 error 상태로 전환하지 않고 로그인 복구만 시도합니다.
+      console.warn("[Keycloak] Token refresh failed; redirecting to login.", error);
       loginKeycloak().catch(setErrorState);
     };
 
@@ -99,7 +101,7 @@ export const KeycloakProvider = ({ children }: Props) => {
         }));
       };
       keycloak.onAuthRefreshError = () => {
-        setErrorState(new Error("Keycloak token refresh failed."));
+        // 갱신 실패 메시지는 일시적인 복구 과정이므로 화면에 노출하지 않습니다.
         loginKeycloak().catch(setErrorState);
       };
       keycloak.onTokenExpired = () => {
