@@ -17,6 +17,8 @@ export const getMarkerDisplay = (mapLevel: MapLevel): MarkerDisplay => {
   return mapLevel === 1 || mapLevel === 2 ? mapLevel : 3;
 };
 
-export const getClusterLevel = (mapLevel: MapLevel): ClusterLevel => {
-  return mapLevel === 4 ? 2 : 1;
+export const getClusterLevel = (mapLevel: MapLevel): ClusterLevel | null => {
+  if (mapLevel === 3) return 1;
+  if (mapLevel === 4) return 2;
+  return null;
 };

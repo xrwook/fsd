@@ -62,12 +62,13 @@ const StationSearchPage = ({
   const handleZoom = (newValue: number) => setZoom(newValue);
   const mapLevel = getMapLevel(zoom);
   const markerDisplay = getMarkerDisplay(mapLevel);
-  const isClusterView = mapLevel >= 3;
+  const clusterLevel = getClusterLevel(mapLevel);
+  const isClusterView = clusterLevel !== null;
   const [map, setMap] = useState<naver.maps.Map | null>(null);
   const [clusterRequest, setClusterRequest] = useState<LocationClustersRequest>(
     {
       requestBody: {
-        level: getClusterLevel(getMapLevel(defaultZoom)),
+        level: getClusterLevel(getMapLevel(defaultZoom)) ?? 1,
         maxLatitude: defaultCenter.lat,
         maxLongitude: defaultCenter.lng,
         minLatitude: defaultCenter.lat,
@@ -80,14 +81,18 @@ const StationSearchPage = ({
     if (!map) return;
 
     const currentZoom = map.getZoom();
+    const currentClusterLevel = getClusterLevel(getMapLevel(currentZoom));
     const bounds = map.getBounds() as naver.maps.LatLngBounds;
     const southWest = bounds.getSW();
     const northEast = bounds.getNE();
 
     setZoom(currentZoom);
+
+    if (currentClusterLevel === null) return;
+
     setClusterRequest({
       requestBody: {
-        level: getClusterLevel(getMapLevel(currentZoom)),
+        level: currentClusterLevel,
         minLatitude: southWest.lat(),
         maxLatitude: northEast.lat(),
         minLongitude: southWest.lng(),
@@ -100,9 +105,11 @@ const StationSearchPage = ({
     handleSyncMapViewport();
   }, [handleSyncMapViewport]);
 
+  const canFetchClusters =
+    clusterLevel !== null && clusterRequest.requestBody.level === clusterLevel;
   const { data: locationClustersResponse } = useGetLocationClustersQuery(
     clusterRequest,
-    isClusterView,
+    canFetchClusters,
   );
   const clusters = locationClustersResponse?.data.ClusterList ?? [];
   const locationCoordinates =
