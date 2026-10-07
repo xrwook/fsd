@@ -14,6 +14,7 @@ import {
 import {
   DEFAULT_ZOOM,
   getClusterLevel,
+  getMapLevel,
   getMarkerDisplay,
   MAX_ZOOM,
   MIN_ZOOM,
@@ -59,12 +60,14 @@ const StationSearchPage = ({
   const selectedStationId = "1";
   const [zoom, setZoom] = useState<number>(defaultZoom);
   const handleZoom = (newValue: number) => setZoom(newValue);
-  const isRegionView = getMarkerDisplay(zoom) < 3;
+  const mapLevel = getMapLevel(zoom);
+  const markerDisplay = getMarkerDisplay(mapLevel);
+  const isClusterView = mapLevel >= 3;
   const [map, setMap] = useState<naver.maps.Map | null>(null);
   const [clusterRequest, setClusterRequest] = useState<LocationClustersRequest>(
     {
       requestBody: {
-        level: getClusterLevel(defaultZoom),
+        level: getClusterLevel(getMapLevel(defaultZoom)),
         maxLatitude: defaultCenter.lat,
         maxLongitude: defaultCenter.lng,
         minLatitude: defaultCenter.lat,
@@ -84,7 +87,7 @@ const StationSearchPage = ({
     setZoom(currentZoom);
     setClusterRequest({
       requestBody: {
-        level: getClusterLevel(currentZoom),
+        level: getClusterLevel(getMapLevel(currentZoom)),
         minLatitude: southWest.lat(),
         maxLatitude: northEast.lat(),
         minLongitude: southWest.lng(),
@@ -97,8 +100,10 @@ const StationSearchPage = ({
     handleSyncMapViewport();
   }, [handleSyncMapViewport]);
 
-  const { data: locationClustersResponse } =
-    useGetLocationClustersQuery(clusterRequest);
+  const { data: locationClustersResponse } = useGetLocationClustersQuery(
+    clusterRequest,
+    isClusterView,
+  );
   const clusters = locationClustersResponse?.data.ClusterList ?? [];
   const locationCoordinates =
     locationClustersResponse?.data.locationCoordinates ?? [];
@@ -130,22 +135,7 @@ const StationSearchPage = ({
           onIdle={handleSyncMapViewport}
           onZoomChanged={handleZoom}
         >
-          {isRegionView ? (
-            stationList.map((station) => (
-              <MapMarker
-                available={1}
-                cpoName={station.cpoName}
-                display={getMarkerDisplay(zoom)}
-                isSelected={selectedStationId === station.locationId}
-                key={station.locationId}
-                position={{ lat: station.latitude, lng: station.longitude }}
-                stationType={isSelfBrandCpo(station.cpoId) ? "epit" : "roaming"}
-                status={station.locationStatus}
-                total={5}
-                onClick={() => alert(station.csId)}
-              />
-            ))
-          ) : (
+          {isClusterView ? (
             <>
               {clusters.map((cluster) => (
                 <RegionCountMarker
@@ -159,7 +149,7 @@ const StationSearchPage = ({
               ))}
               {locationCoordinates.map((location) => (
                 <MapMarker
-                  display={getMarkerDisplay(zoom)}
+                  display={markerDisplay}
                   key={location.locationId}
                   position={{
                     lat: location.latitude,
@@ -169,6 +159,21 @@ const StationSearchPage = ({
                 />
               ))}
             </>
+          ) : (
+            stationList.map((station) => (
+              <MapMarker
+                available={1}
+                cpoName={station.cpoName}
+                display={markerDisplay}
+                isSelected={selectedStationId === station.locationId}
+                key={station.locationId}
+                position={{ lat: station.latitude, lng: station.longitude }}
+                stationType={isSelfBrandCpo(station.cpoId) ? "epit" : "roaming"}
+                status={station.locationStatus}
+                total={5}
+                onClick={() => alert(station.csId)}
+              />
+            ))
           )}
         </NaverMap>
       </MapDiv>

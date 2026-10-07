@@ -1,5 +1,7 @@
 import { MinusIcon, PlusIcon } from "@/shared/assets/icons";
 
+import { MAX_ZOOM, MIN_ZOOM } from "../config/zoom";
+
 interface Props {
   display: number;
   onZoomIn: () => void;
@@ -11,7 +13,7 @@ const MapControl = ({ display, onZoomIn, onZoomOut }: Props) => {
     <div className="absolute right-10 bottom-10 z-1 flex flex-col gap-[1.6px]">
       <button
         className="bg-surface-inverse-strongest flex items-center justify-center rounded-t-[20px] rounded-b-sm p-3 shadow-[0_1.6px_3.2px_0_rgba(0,0,0,0.06)]"
-        disabled={display <= 7}
+        disabled={display >= MAX_ZOOM}
         type="button"
         onClick={() => onZoomIn()}
       >
@@ -21,7 +23,7 @@ const MapControl = ({ display, onZoomIn, onZoomOut }: Props) => {
       </button>
       <button
         className="bg-surface-inverse-strongest flex items-center justify-center rounded-t-sm rounded-b-[20px] p-3 shadow-[0_1.6px_3.2px_0_rgba(0,0,0,0.06)]"
-        disabled={display > 21}
+        disabled={display <= MIN_ZOOM}
         type="button"
         onClick={() => onZoomOut()}
       >
