@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Container as MapDiv,
   NaverMap,
@@ -7,20 +7,25 @@ import {
 
 import { MapMarker, RegionCountMarker } from "@/shared/ui/map";
 
-import { stationList } from "../mock/station-search";
-
-const DEFAULT_CENTER = { lat: 37.5774, lng: 126.9875 };
-
+import {
+  type LocationClustersRequest,
+  useGetLocationClustersQuery,
+} from "../api/location-clusters";
 import {
   DEFAULT_ZOOM,
+  getClusterLevel,
   getMarkerDisplay,
   MAX_ZOOM,
   MIN_ZOOM,
 } from "../config/zoom";
+import { stationList } from "../mock/station-search";
 import MapControl from "./_MapControl";
 import SearchField from "./_SearchField";
 
-interface MapProps extends BaseMapProps {
+const DEFAULT_CENTER = { lat: 37.5774, lng: 126.9875 };
+
+interface MapProps extends Omit<BaseMapProps, "defaultCenter"> {
+  defaultCenter?: { lat: number; lng: number };
   height?: number;
 }
 
@@ -52,10 +57,51 @@ const StationSearchPage = ({
   };
 
   const selectedStationId = "1";
-  const [zoom, setZoom] = useState<number>(DEFAULT_ZOOM);
+  const [zoom, setZoom] = useState<number>(defaultZoom);
   const handleZoom = (newValue: number) => setZoom(newValue);
   const isRegionView = getMarkerDisplay(zoom) < 3;
   const [map, setMap] = useState<naver.maps.Map | null>(null);
+  const [clusterRequest, setClusterRequest] = useState<LocationClustersRequest>(
+    {
+      requestBody: {
+        level: getClusterLevel(defaultZoom),
+        maxLatitude: defaultCenter.lat,
+        maxLongitude: defaultCenter.lng,
+        minLatitude: defaultCenter.lat,
+        minLongitude: defaultCenter.lng,
+      },
+    },
+  );
+
+  const handleSyncMapViewport = useCallback(() => {
+    if (!map) return;
+
+    const currentZoom = map.getZoom();
+    const bounds = map.getBounds() as naver.maps.LatLngBounds;
+    const southWest = bounds.getSW();
+    const northEast = bounds.getNE();
+
+    setZoom(currentZoom);
+    setClusterRequest({
+      requestBody: {
+        level: getClusterLevel(currentZoom),
+        minLatitude: southWest.lat(),
+        maxLatitude: northEast.lat(),
+        minLongitude: southWest.lng(),
+        maxLongitude: northEast.lng(),
+      },
+    });
+  }, [map]);
+
+  useEffect(() => {
+    handleSyncMapViewport();
+  }, [handleSyncMapViewport]);
+
+  const { data: locationClustersResponse } =
+    useGetLocationClustersQuery(clusterRequest);
+  const clusters = locationClustersResponse?.data.ClusterList ?? [];
+  const locationCoordinates =
+    locationClustersResponse?.data.locationCoordinates ?? [];
 
   return (
     <div className="fixed inset-0">
@@ -81,6 +127,7 @@ const StationSearchPage = ({
           minZoom={MIN_ZOOM}
           ref={setMap}
           {...props}
+          onIdle={handleSyncMapViewport}
           onZoomChanged={handleZoom}
         >
           {isRegionView ? (
@@ -99,11 +146,29 @@ const StationSearchPage = ({
               />
             ))
           ) : (
-            // 줌레벨 3이경우, 로밍은 클러스터로, epit은 epit(MapMarker)로 심볼이 노출되어야합니다.
-            <RegionCountMarker
-              count={10}
-              position={{ lat: 37.508_87, lng: 127.063_19 }}
-            />
+            <>
+              {clusters.map((cluster) => (
+                <RegionCountMarker
+                  count={cluster.count}
+                  key={`${cluster.level}-${cluster.districtCode}-${cluster.latitude}-${cluster.longitude}`}
+                  position={{
+                    lat: cluster.latitude,
+                    lng: cluster.longitude,
+                  }}
+                />
+              ))}
+              {locationCoordinates.map((location) => (
+                <MapMarker
+                  display={getMarkerDisplay(zoom)}
+                  key={location.locationId}
+                  position={{
+                    lat: location.latitude,
+                    lng: location.longitude,
+                  }}
+                  stationType="epit"
+                />
+              ))}
+            </>
           )}
         </NaverMap>
       </MapDiv>

@@ -3,6 +3,11 @@ import type { QueryKeyParams } from "@/shared/query-keys/types";
 const ROOT = ["serviceKeys"] as const;
 
 export const serviceKeys = {
+  stationSearch: {
+    all: () => [...ROOT, "station-search"] as const,
+    locationClusters: (params?: QueryKeyParams) =>
+      [...ROOT, "station-search", "location-clusters", params] as const,
+  },
   event: {
     all: () => [...ROOT, "event"] as const,
     lists: [...ROOT, "event", "lists"] as const,
