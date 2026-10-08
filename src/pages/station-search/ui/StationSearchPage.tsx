@@ -5,6 +5,7 @@ import {
   type NaverMapProps as BaseMapProps,
 } from "react-naver-maps";
 
+import type { LocationItem } from "../api/locations";
 import {
   DEFAULT_ZOOM,
   getClusterLevel,
@@ -31,40 +32,30 @@ const StationSearchPage = ({
   defaultZoom = DEFAULT_ZOOM,
   ...props
 }: MapProps) => {
-  const [searchValue, setSearchValue] = useState<string>("");
-  const [isSearch, setIsSearch] = useState(false);
+  const [selectedStationId, setSelectedStationId] = useState<string>();
+  const [map, setMap] = useState<naver.maps.Map | null>(null);
 
-  const handleSearchValue = (newValue: string) => {
-    setSearchValue(newValue);
+  const handleSubmitValue = (location: LocationItem) => {
+    setSelectedStationId(location.locationId);
+    map?.morph(
+      { lat: location.latitude, lng: location.longitude },
+      DEFAULT_ZOOM,
+    );
   };
 
-  const handleSubmitValue = (newValue: string) => {
-    setSearchValue(newValue);
-    setIsSearch(false);
-  };
-
-  const handleSearch = (newValue: boolean) => {
-    setIsSearch(newValue);
-  };
-
-  const selectedStationId = "1";
   const [zoom, setZoom] = useState<number>(defaultZoom);
   const handleZoom = (newValue: number) => setZoom(newValue);
   const mapLevel = getMapLevel(zoom);
   const markerDisplay = getMarkerDisplay(mapLevel);
   const clusterLevel = getClusterLevel(mapLevel);
-  const [map, setMap] = useState<naver.maps.Map | null>(null);
+  const currentCenter = map?.getCenter() as naver.maps.LatLng | undefined;
+  const searchCenter = currentCenter
+    ? { lat: currentCenter.lat(), lng: currentCenter.lng() }
+    : defaultCenter;
 
   return (
     <div className="fixed inset-0">
-      <SearchField
-        isSearch={isSearch}
-        searchValue={searchValue}
-        onChange={handleSearchValue}
-        onClear={() => handleSearchValue("")}
-        onSearch={handleSearch}
-        onSubmit={handleSubmitValue}
-      />
+      <SearchField center={searchCenter} onSubmit={handleSubmitValue} />
 
       <MapDiv className="relative h-full w-full">
         <MapControl
@@ -92,7 +83,7 @@ const StationSearchPage = ({
               defaultCenter={defaultCenter}
               display={markerDisplay}
               selectedStationId={selectedStationId}
-              onClick={(locationId) => alert(locationId)}
+              onClick={setSelectedStationId}
             />
           )}
         </NaverMap>

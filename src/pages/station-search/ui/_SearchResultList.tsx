@@ -1,9 +1,9 @@
 import { HighlightText } from "@/shared/ui/highlight-text";
 
-import type { SearchStationResultProps } from "../model/station-search";
+import type { LocationItem } from "../api/locations";
 
 interface Props {
-  search: SearchStationResultProps;
+  search: LocationItem;
   keyword: string;
   onClick: () => void;
 }
@@ -20,7 +20,7 @@ const SearchResultList = ({ search, keyword, onClick: handleClick }: Props) => {
           <HighlightText keyword={keyword} text={search.name} />
         </p>
         <p className="typo-body-3 text-text-neutral-weaker mt-1 font-normal">
-          {search.address}
+          {search.roadAddress || search.address}
         </p>
       </button>
     </li>

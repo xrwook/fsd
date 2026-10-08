@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 import { CancelIcon, SearchIcon } from "@/shared/assets/icons";
 import { cn } from "@/shared/lib/tailwind";
 
@@ -14,10 +12,6 @@ const SearchActionButton = ({
   onActive: handleActive,
   onClear: handleSearchClear,
 }: Props) => {
-  useEffect(() => {
-    console.log(searchValue);
-  }, [searchValue]);
-
   if (searchValue) {
     return (
       <button

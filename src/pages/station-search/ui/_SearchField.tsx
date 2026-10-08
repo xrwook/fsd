@@ -1,39 +1,81 @@
-import { useRef } from "react";
+import { debounce } from "lodash-es";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { cn } from "@/shared/lib/tailwind";
 import { Divider } from "@/shared/ui/divider";
 
-import { StationSearchMock } from "../mock/station-search";
+import {
+  type LocationItem,
+  type LocationsRequest,
+  useGetLocationsQuery,
+} from "../api/locations";
 import SearchActionButton from "./_SearchActionButton";
 import SearchResultList from "./_SearchResultList";
 
 interface Props {
-  searchValue: string;
-  onChange: (newValue: string) => void;
-  onClear: () => void;
-  onSubmit: (newValue: string) => void;
-  onSearch: (newValue: boolean) => void;
-  isSearch: boolean;
+  center: { lat: number; lng: number };
+  onSubmit: (location: LocationItem) => void;
 }
 
-const SearchField = ({
-  searchValue,
-  onChange: handleChange,
-  onClear,
-  onSubmit: handleOnSubmit,
-  isSearch,
-  onSearch,
-}: Props) => {
-  const searchInput = useRef<HTMLInputElement>(null);
+const SEARCH_DEBOUNCE_MS = 300;
 
-  const handleIsSearch = (newValue: boolean) => {
-    onSearch(newValue);
+const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
+  const searchInput = useRef<HTMLInputElement>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [isSearch, setIsSearch] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState("");
+
+  const debouncedSetSearchKeyword = useMemo(
+    () => debounce(setSearchKeyword, SEARCH_DEBOUNCE_MS),
+    [],
+  );
+
+  useEffect(() => {
+    debouncedSetSearchKeyword(searchValue.trim());
+
+    return () => {
+      debouncedSetSearchKeyword.cancel();
+    };
+  }, [debouncedSetSearchKeyword, searchValue]);
+
+  const searchRequest = useMemo<LocationsRequest>(
+    () => ({
+      query: {
+        page: 0,
+        size: 20,
+        sort: ["distanceMeters,ASC"],
+      },
+      requestBody: {
+        latitude: center.lat,
+        longitude: center.lng,
+        keywordSearch: {
+          searchType: "L",
+          text: searchKeyword,
+        },
+      },
+    }),
+    [center.lat, center.lng, searchKeyword],
+  );
+
+  const {
+    data: searchResponse,
+  } = useGetLocationsQuery(searchRequest, isSearch && Boolean(searchKeyword));
+  const searchResults = searchResponse?.data.content ?? [];
+
+  const handleActive = () => {
+    setIsSearch(true);
     searchInput.current?.focus();
   };
 
   const handleClear = () => {
-    onClear();
+    setSearchValue("");
     searchInput.current?.focus();
+  };
+
+  const handleSelect = (location: LocationItem) => {
+    setSearchValue(location.name);
+    setIsSearch(false);
+    handleOnSubmit(location);
   };
 
   return (
@@ -58,29 +100,29 @@ const SearchField = ({
             ref={searchInput}
             type="text"
             value={searchValue}
-            onChange={(event) => handleChange(event.target.value)}
+            onChange={(event) => setSearchValue(event.target.value)}
           />
         </div>
         <div className="inline-flex items-center justify-center">
           <SearchActionButton
             searchValue={searchValue}
-            onActive={() => handleIsSearch(true)}
-            onClear={() => handleClear()}
+            onActive={handleActive}
+            onClear={handleClear}
           />
         </div>
       </div>
 
-      {searchValue && (
+      {isSearch && searchValue && (
         <>
           <Divider />
           <div className="bg-background-white scrollbar-custom max-h-90 overflow-hidden overflow-y-auto pb-5">
             <ul>
-              {StationSearchMock.map((item) => (
+              {searchResults.map((location) => (
                 <SearchResultList
-                  key={item.id}
-                  keyword={searchValue}
-                  search={item}
-                  onClick={() => handleOnSubmit(item.name)}
+                  key={location.locationId}
+                  keyword={searchKeyword}
+                  search={location}
+                  onClick={() => handleSelect(location)}
                 />
               ))}
             </ul>
