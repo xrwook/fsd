@@ -34,6 +34,15 @@ const StationSearchPage = ({
 }: MapProps) => {
   const [selectedStationId, setSelectedStationId] = useState<string>();
   const [map, setMap] = useState<naver.maps.Map | null>(null);
+  const [zoom, setZoom] = useState<number>(defaultZoom);
+
+  const mapLevel = getMapLevel(zoom);
+  const markerDisplay = getMarkerDisplay(mapLevel);
+  const clusterLevel = getClusterLevel(mapLevel);
+  const currentCenter = map?.getCenter() as naver.maps.LatLng | undefined;
+  const searchCenter = currentCenter
+    ? { lat: currentCenter.lat(), lng: currentCenter.lng() }
+    : defaultCenter;
 
   const handleSubmitValue = (location: LocationItem) => {
     setSelectedStationId(location.locationId);
@@ -43,15 +52,7 @@ const StationSearchPage = ({
     );
   };
 
-  const [zoom, setZoom] = useState<number>(defaultZoom);
   const handleZoom = (newValue: number) => setZoom(newValue);
-  const mapLevel = getMapLevel(zoom);
-  const markerDisplay = getMarkerDisplay(mapLevel);
-  const clusterLevel = getClusterLevel(mapLevel);
-  const currentCenter = map?.getCenter() as naver.maps.LatLng | undefined;
-  const searchCenter = currentCenter
-    ? { lat: currentCenter.lat(), lng: currentCenter.lng() }
-    : defaultCenter;
 
   return (
     <div className="fixed inset-0">

@@ -57,9 +57,10 @@ const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
     [center.lat, center.lng, searchKeyword],
   );
 
-  const {
-    data: searchResponse,
-  } = useGetLocationsQuery(searchRequest, isSearch && Boolean(searchKeyword));
+  const { data: searchResponse } = useGetLocationsQuery(
+    searchRequest,
+    isSearch && Boolean(searchKeyword),
+  );
   const searchResults = searchResponse?.data.content ?? [];
 
   const handleActive = () => {
