@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { debounce } from "lodash-es";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useListener, useMap } from "react-naver-maps";
 
 import { MapMarker, RegionCountMarker } from "@/shared/ui/map";
@@ -14,6 +15,8 @@ interface Props {
   display: MarkerDisplay;
   level: ClusterLevel;
 }
+
+const MARKER_QUERY_DEBOUNCE_MS = 1000;
 
 const ClusterMarkers = ({ defaultCenter, display, level }: Props) => {
   const map = useMap();
@@ -43,11 +46,20 @@ const ClusterMarkers = ({ defaultCenter, display, level }: Props) => {
     });
   }, [level, map]);
 
-  useListener(map, "idle", handleSyncMapViewport);
+  const debouncedSyncMapViewport = useMemo(
+    () => debounce(handleSyncMapViewport, MARKER_QUERY_DEBOUNCE_MS),
+    [handleSyncMapViewport],
+  );
+
+  useListener(map, "idle", debouncedSyncMapViewport);
 
   useEffect(() => {
-    handleSyncMapViewport();
-  }, [handleSyncMapViewport]);
+    debouncedSyncMapViewport();
+
+    return () => {
+      debouncedSyncMapViewport.cancel();
+    };
+  }, [debouncedSyncMapViewport]);
 
   const { data: locationClustersResponse } =
     useGetLocationClustersQuery(request);

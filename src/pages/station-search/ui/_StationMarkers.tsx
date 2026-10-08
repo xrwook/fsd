@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { debounce } from "lodash-es";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useListener, useMap } from "react-naver-maps";
 
 import { MapMarker, type MarkerStatus } from "@/shared/ui/map";
@@ -18,6 +19,7 @@ interface Props {
 }
 
 const SELF_BRAND_CPO_ID = "HY";
+const MARKER_QUERY_DEBOUNCE_MS = 1000;
 
 const isSelfBrandCpo = (cpoId: string): boolean => cpoId === SELF_BRAND_CPO_ID;
 
@@ -85,13 +87,22 @@ const StationMarkers = ({
         maxLongitude: northEast.lng(),
       },
     });
-  }, [display, map]);
+  }, [map]);
 
-  useListener(map, "idle", handleSyncMapViewport);
+  const debouncedSyncMapViewport = useMemo(
+    () => debounce(handleSyncMapViewport, MARKER_QUERY_DEBOUNCE_MS),
+    [handleSyncMapViewport],
+  );
+
+  useListener(map, "idle", debouncedSyncMapViewport);
 
   useEffect(() => {
-    handleSyncMapViewport();
-  }, [handleSyncMapViewport]);
+    debouncedSyncMapViewport();
+
+    return () => {
+      debouncedSyncMapViewport.cancel();
+    };
+  }, [debouncedSyncMapViewport]);
 
   const { data: locationsResponse } = useGetLocationsQuery(request);
   const locations = locationsResponse?.data.content ?? [];
