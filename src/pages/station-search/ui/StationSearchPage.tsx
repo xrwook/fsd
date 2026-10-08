@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Container as MapDiv,
   NaverMap,
   type NaverMapProps as BaseMapProps,
 } from "react-naver-maps";
 
-import { MapMarker, RegionCountMarker } from "@/shared/ui/map";
-
-import {
-  type LocationClustersRequest,
-  useGetLocationClustersQuery,
-} from "../api/location-clusters";
 import {
   DEFAULT_ZOOM,
   getClusterLevel,
@@ -19,9 +13,10 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
 } from "../config/zoom";
-import { stationList } from "../mock/station-search";
+import ClusterMarkers from "./_ClusterMarkers";
 import MapControl from "./_MapControl";
 import SearchField from "./_SearchField";
+import StationMarkers from "./_StationMarkers";
 
 const DEFAULT_CENTER = { lat: 37.5774, lng: 126.9875 };
 
@@ -29,11 +24,6 @@ interface MapProps extends Omit<BaseMapProps, "defaultCenter"> {
   defaultCenter?: { lat: number; lng: number };
   height?: number;
 }
-
-const SELF_BRAND_CPO_ID = "HY";
-
-export const isSelfBrandCpo = (cpoId: string): boolean =>
-  cpoId === SELF_BRAND_CPO_ID;
 
 // CF-01-01 | 충전소 탐색 페이지
 const StationSearchPage = ({
@@ -63,57 +53,7 @@ const StationSearchPage = ({
   const mapLevel = getMapLevel(zoom);
   const markerDisplay = getMarkerDisplay(mapLevel);
   const clusterLevel = getClusterLevel(mapLevel);
-  const isClusterView = clusterLevel !== null;
   const [map, setMap] = useState<naver.maps.Map | null>(null);
-  const [clusterRequest, setClusterRequest] = useState<LocationClustersRequest>(
-    {
-      requestBody: {
-        level: getClusterLevel(getMapLevel(defaultZoom)) ?? 1,
-        maxLatitude: defaultCenter.lat,
-        maxLongitude: defaultCenter.lng,
-        minLatitude: defaultCenter.lat,
-        minLongitude: defaultCenter.lng,
-      },
-    },
-  );
-
-  const handleSyncMapViewport = useCallback(() => {
-    if (!map) return;
-
-    const currentZoom = map.getZoom();
-    const currentClusterLevel = getClusterLevel(getMapLevel(currentZoom));
-    const bounds = map.getBounds() as naver.maps.LatLngBounds;
-    const southWest = bounds.getSW();
-    const northEast = bounds.getNE();
-
-    setZoom(currentZoom);
-
-    if (currentClusterLevel === null) return;
-
-    setClusterRequest({
-      requestBody: {
-        level: currentClusterLevel,
-        minLatitude: southWest.lat(),
-        maxLatitude: northEast.lat(),
-        minLongitude: southWest.lng(),
-        maxLongitude: northEast.lng(),
-      },
-    });
-  }, [map]);
-
-  useEffect(() => {
-    handleSyncMapViewport();
-  }, [handleSyncMapViewport]);
-
-  const canFetchClusters =
-    clusterLevel !== null && clusterRequest.requestBody.level === clusterLevel;
-  const { data: locationClustersResponse } = useGetLocationClustersQuery(
-    clusterRequest,
-    canFetchClusters,
-  );
-  const clusters = locationClustersResponse?.data.ClusterList ?? [];
-  const locationCoordinates =
-    locationClustersResponse?.data.locationCoordinates ?? [];
 
   return (
     <div className="fixed inset-0">
@@ -139,48 +79,21 @@ const StationSearchPage = ({
           minZoom={MIN_ZOOM}
           ref={setMap}
           {...props}
-          onIdle={handleSyncMapViewport}
           onZoomChanged={handleZoom}
         >
-          {isClusterView ? (
-            <>
-              {clusters.map((cluster) => (
-                <RegionCountMarker
-                  count={cluster.count}
-                  key={`${cluster.level}-${cluster.districtCode}-${cluster.latitude}-${cluster.longitude}`}
-                  position={{
-                    lat: cluster.latitude,
-                    lng: cluster.longitude,
-                  }}
-                />
-              ))}
-              {locationCoordinates.map((location) => (
-                <MapMarker
-                  display={markerDisplay}
-                  key={location.locationId}
-                  position={{
-                    lat: location.latitude,
-                    lng: location.longitude,
-                  }}
-                  stationType="epit"
-                />
-              ))}
-            </>
+          {clusterLevel ? (
+            <ClusterMarkers
+              defaultCenter={defaultCenter}
+              display={markerDisplay}
+              level={clusterLevel}
+            />
           ) : (
-            stationList.map((station) => (
-              <MapMarker
-                available={1}
-                cpoName={station.cpoName}
-                display={markerDisplay}
-                isSelected={selectedStationId === station.locationId}
-                key={station.locationId}
-                position={{ lat: station.latitude, lng: station.longitude }}
-                stationType={isSelfBrandCpo(station.cpoId) ? "epit" : "roaming"}
-                status={station.locationStatus}
-                total={5}
-                onClick={() => alert(station.csId)}
-              />
-            ))
+            <StationMarkers
+              defaultCenter={defaultCenter}
+              display={markerDisplay}
+              selectedStationId={selectedStationId}
+              onClick={(locationId) => alert(locationId)}
+            />
           )}
         </NaverMap>
       </MapDiv>
