@@ -85,7 +85,7 @@ const StationMarkers = ({
         maxLongitude: northEast.lng(),
       },
     });
-  }, [map]);
+  }, [display, map]);
 
   useListener(map, "idle", handleSyncMapViewport);
 
