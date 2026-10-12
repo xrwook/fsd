@@ -17,6 +17,7 @@ import {
 import ClusterMarkers from "./_ClusterMarkers";
 import MapControl from "./_MapControl";
 import SearchField from "./_SearchField";
+import StationDetailWrap from "./_StationDetailWrap";
 import StationMarkers from "./_StationMarkers";
 
 const DEFAULT_CENTER = { lat: 37.5774, lng: 126.9875 };
@@ -53,10 +54,19 @@ const StationSearchPage = ({
   };
 
   const handleZoom = (newValue: number) => setZoom(newValue);
+  const handleCloseDetail = () => setSelectedStationId(undefined);
 
   return (
     <div className="fixed inset-0">
-      <SearchField center={searchCenter} onSubmit={handleSubmitValue} />
+      {selectedStationId ? (
+        <StationDetailWrap
+          center={searchCenter}
+          locationId={selectedStationId}
+          onClose={handleCloseDetail}
+        />
+      ) : (
+        <SearchField center={searchCenter} onSubmit={handleSubmitValue} />
+      )}
 
       <MapDiv className="relative h-full w-full">
         <MapControl
