@@ -9,6 +9,8 @@ export const serviceKeys = {
       [...ROOT, "station-search", "locations", params] as const,
     locationDetail: (params?: QueryKeyParams) =>
       [...ROOT, "station-search", "location-detail", params] as const,
+    locationPrices: (params?: QueryKeyParams) =>
+      [...ROOT, "station-search", "location-prices", params] as const,
     locationClusters: (params?: QueryKeyParams) =>
       [...ROOT, "station-search", "location-clusters", params] as const,
   },

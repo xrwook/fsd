@@ -1,4 +1,7 @@
-import type { ChargingStationDetail } from "@/entities/charging-station";
+import type {
+  ChargingStationDetail,
+  LocationPrices,
+} from "@/entities/charging-station";
 import { getChargerGroupRows } from "@/entities/charging-station";
 import { cn } from "@/shared/lib/tailwind";
 
@@ -10,9 +13,24 @@ const GridStyleClass = {
 
 interface Props {
   station: ChargingStationDetail;
+  prices?: LocationPrices;
 }
 
-export const StationPriceTable = ({ station }: Props) => {
+const getChargerFee = (label: string, prices?: LocationPrices) => {
+  if (!prices) return;
+  if (label.includes("초급속")) return prices.ultraFastFee;
+  if (label.includes("완속")) return prices.slowFee;
+
+  return prices.fastFee;
+};
+
+const formatFee = (fee?: string) => {
+  if (!fee) return "-";
+
+  return fee.endsWith("원") ? fee : `${fee}원`;
+};
+
+export const StationPriceTable = ({ station, prices }: Props) => {
   const rows = getChargerGroupRows(station);
 
   return (
@@ -51,14 +69,13 @@ export const StationPriceTable = ({ station }: Props) => {
                   / {row.total}
                 </p>
               </td>
-              {/* TODO: 요금 API 미연동. 실제 가격 확정 전까지 하드코딩 유지 */}
               <td
                 className={cn(GridStyleClass.td, "text-right", {
                   "border-border-neutral-weakest border-b":
                     idx !== rows.length - 1,
                 })}
               >
-                280원
+                {formatFee(getChargerFee(row.label, prices))}
               </td>
             </tr>
           ))}

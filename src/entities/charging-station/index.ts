@@ -1,3 +1,13 @@
+export type {
+  LocationPrices,
+  LocationPricesRequest,
+  LocationPricesResponse,
+} from "./api/location-prices";
+export {
+  locationPricesApi,
+  locationPricesQueryFactory,
+  useGetLocationPricesQuery,
+} from "./api/location-prices";
 export {
   getChargerGroupRows,
   getStationEvses,

@@ -2,11 +2,12 @@ import type { ChargingStationDetail } from "@/entities/charging-station";
 
 interface Props {
   station: ChargingStationDetail;
-  onCopyAddress?: () => void;
 }
 
-export const StationAddressInfo = ({ onCopyAddress, station }: Props) => {
-  const handleCopyAddress = onCopyAddress;
+export const StationAddressInfo = ({ station }: Props) => {
+  const handleCopyAddress = async () => {
+    await navigator.clipboard.writeText(station.address);
+  };
 
   return (
     <div className="mx-6 mb-5">
