@@ -1,179 +1,182 @@
-import AccessTimeIcon from "@mui/icons-material/AccessTime";
-import ApartmentIcon from "@mui/icons-material/Apartment";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
-import LocalParkingIcon from "@mui/icons-material/LocalParking";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import PhoneIcon from "@mui/icons-material/Phone";
 import { useState } from "react";
 
-import type { ChargingStationDetail } from "@/entities/charging-station";
 import {
+  type ChargingStationDetail,
   getChargerGroupRows,
   isSelfBrandCpo,
 } from "@/entities/charging-station";
+import {
+  Call20Icon,
+  ExBenefit16Icon,
+  Parking20Icon,
+  Pin20Icon,
+  Station20Icon,
+  Time20Icon,
+} from "@/shared/assets/icons";
+import { AppTextButton } from "@/shared/ui/button";
 import { Divider } from "@/shared/ui/divider";
+import { ImageBanner } from "@/shared/ui/image-banner";
+import { TabSegmented, TabSegmentedList } from "@/shared/ui/tab";
+import {
+  AppTableCaption,
+  AppTableCell,
+  AppTableHeaderCell,
+} from "@/shared/ui/table";
+
+import type { StationInfoTab } from "../model/station";
 
 interface Props {
   station: ChargingStationDetail;
   onCopyAddress?: () => void;
 }
 
-type StationInfoTab = "basicInfo" | "costInfo";
-
-const PARKING_TYPE_DESCRIPTION: Record<string, string> = {
-  FREE: "무료 주차",
-  PUBLIC: "공영 주차장 요금이 적용돼요.",
-  GOVERNMENT: "시설 주차 요금이 적용돼요.",
-  OPTIONAL_FREE: "충전 고객에게 조건부 무료 주차가 제공돼요.",
-};
-
-const InfoTitle = ({
-  icon,
-  children,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-}) => (
-  <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
-    {icon}
-    <span className="text-text-neutral-stronger text-sm font-medium">
-      {children}
-    </span>
-  </dt>
-);
-
-const StationInfoContent = ({ station, onCopyAddress }: Props) => {
-  const [stationInfoTab, setStationInfoTab] =
+export const StationInfoContent = ({ onCopyAddress, station }: Props) => {
+  const [chargeStationInfoTab, setChargeStationInfoTab] =
     useState<StationInfoTab>("basicInfo");
-
   const isSelfBrand = isSelfBrandCpo(station.cpoId);
   const costRows = getChargerGroupRows(station);
-  const parkingDescription =
-    PARKING_TYPE_DESCRIPTION[station.parkingType] ?? station.parkingType;
+  const handleCopyAddress = onCopyAddress;
 
   const handleCallClick = () => {
-    globalThis.location.href = `tel:${station.tellNumber}`;
+    location.href = `tel:${station.tellNumber}`;
   };
 
   return (
-    <section className="px-4 pt-8 pb-10">
-      <div className="flex items-center justify-between px-2">
-        <h3 className="text-text-neutral-stronger text-base font-semibold">
-          충전소 정보
-        </h3>
+    <>
+      <div className="flex justify-between px-2">
+        <div className="flex items-center gap-1">
+          <p className="text-text-neutral-stronger text-base font-semibold">
+            충전소 정보
+          </p>
+        </div>
       </div>
 
-      <div className="mt-4 flex rounded-xl bg-gray-100 p-1">
-        <button
-          className={`h-10 flex-1 rounded-lg text-sm font-semibold ${stationInfoTab === "basicInfo" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
-          type="button"
-          onClick={() => setStationInfoTab("basicInfo")}
-        >
-          기본 정보
-        </button>
-        <button
-          className={`h-10 flex-1 rounded-lg text-sm font-semibold ${stationInfoTab === "costInfo" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}
-          type="button"
-          onClick={() => setStationInfoTab("costInfo")}
-        >
-          충전 요금
-        </button>
-      </div>
+      <TabSegmentedList
+        className="mt-4"
+        color="white"
+        value={chargeStationInfoTab}
+        onChange={(value: string) =>
+          setChargeStationInfoTab(value as StationInfoTab)
+        }
+      >
+        <TabSegmented value="basicInfo">기본 정보</TabSegmented>
+        <TabSegmented value="costInfo">충전 요금</TabSegmented>
+      </TabSegmentedList>
 
       <div className="mt-4">
-        {stationInfoTab === "basicInfo" ? (
-          <div>
-            {station.imageUrls.length > 0 && (
-              <div className="mb-5 flex snap-x gap-2 overflow-x-auto">
-                {station.imageUrls.map((imageUrl, index) => (
-                  <img
-                    alt={`${station.name} 충전소 이미지 ${index + 1}`}
-                    className="h-36 min-w-[85%] snap-center rounded-2xl object-cover"
-                    key={`${imageUrl}-${index}`}
-                    src={imageUrl}
-                  />
-                ))}
-              </div>
-            )}
+        {chargeStationInfoTab === "basicInfo" && (
+          <div className="mb-5 pt-2">
+            <ImageBanner
+              items={(station.imageUrls.length > 0
+                ? station.imageUrls
+                : [
+                    "/images/graphics/GR_ChargeStationDetailDummyImg.jpg",
+                    "/images/graphics/GR_ChargeStationDetailDummyImg.jpg",
+                  ]
+              ).map((imageUrl) => ({
+                type: "link" as const,
+                imgUrl: imageUrl,
+                alt: "충전소 이미지",
+              }))}
+            />
 
-            <dl>
-              <div className="px-2 py-4">
-                <InfoTitle icon={<LocationOnIcon fontSize="small" />}>
-                  위치
-                </InfoTitle>
-                <dd className="mt-2 text-base font-medium">
+            <div className="flex flex-col">
+              <dl className="px-2 py-4">
+                <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
+                  <Pin20Icon aria-hidden className="size-4" />
+                  <span className="text-sm font-medium">위치</span>
+                </dt>
+                <dd className="mt-2">
                   <div className="flex items-center gap-1">
-                    <span>{station.address}</span>
-                    <button
-                      aria-label="주소 복사"
-                      className="text-text-primary-stronger inline-flex items-center gap-1 text-sm font-semibold"
-                      type="button"
-                      onClick={onCopyAddress}
+                    <span className="text-text-neutral-stronger text-base font-medium">
+                      {station.address}
+                    </span>
+                    <AppTextButton
+                      color="primary"
+                      size="medium"
+                      onClick={handleCopyAddress}
                     >
-                      <ContentCopyIcon sx={{ fontSize: 16 }} /> 복사
-                    </button>
+                      복사
+                    </AppTextButton>
                   </div>
-                  <span className="text-text-neutral-stronger mt-1 block">
+                  <span className="text-text-neutral-stronger text-base font-medium">
                     {station.addressDetail}
                   </span>
                 </dd>
-              </div>
+              </dl>
 
               <Divider />
 
-              <div className="px-2 py-4">
-                <InfoTitle icon={<AccessTimeIcon fontSize="small" />}>
-                  운영시간
-                </InfoTitle>
-                <dd className="mt-2 text-base font-medium">
-                  {station.openingTimes || (
+              <dl className="px-2 py-4">
+                <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
+                  <Time20Icon aria-hidden className="size-4" />
+                  <span className="text-sm font-medium">운영시간</span>
+                </dt>
+                <dd className="typo-body-16-medium mt-2 whitespace-pre-line">
+                  {station.openingTimes ? (
+                    <span className="text-text-neutral-stronger">
+                      {station.openingTimes}
+                    </span>
+                  ) : (
                     <span className="text-text-neutral-weaker">
                       운영시간 정보가 없어요.
                     </span>
                   )}
                 </dd>
-              </div>
+              </dl>
 
               <Divider />
 
-              <div className="px-2 py-4">
-                <InfoTitle icon={<LocalParkingIcon fontSize="small" />}>
-                  주차 요금
-                </InfoTitle>
-                <dd className="mt-2 text-base font-medium">
-                  {parkingDescription}
+              <dl className="px-2 py-4">
+                <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
+                  <Parking20Icon aria-hidden className="size-4" />
+                  <span className="text-sm font-medium">주차 요금</span>
+                </dt>
+                <dd className="mt-2 text-base font-medium whitespace-pre-line">
+                  {station.parkingType === "FREE" ? (
+                    <span className="text-text-neutral-stronger">
+                      무료 주차
+                    </span>
+                  ) : (
+                    <span className="text-text-neutral-stronger">
+                      유료. 충전 고객 1시간 무료, 이후 50% 감면
+                    </span>
+                  )}
                 </dd>
-              </div>
+              </dl>
 
               <Divider />
 
-              <div className="px-2 py-4">
-                <InfoTitle icon={<ApartmentIcon fontSize="small" />}>
-                  운영 기관
-                </InfoTitle>
-                <dd className="mt-2 text-base font-medium">
+              <dl className="px-2 py-4">
+                <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
+                  <Station20Icon aria-hidden className="size-4" />
+                  <span className="text-sm font-medium">운영 기관</span>
+                </dt>
+                <dd className="text-text-neutral-stronger mt-2 text-base font-medium whitespace-pre-line">
                   {isSelfBrand ? "E-pit" : station.cpoName}
                 </dd>
-              </div>
+              </dl>
 
               <Divider />
 
-              <div className="px-2 py-4">
-                <InfoTitle icon={<PhoneIcon fontSize="small" />}>
-                  전화번호
-                </InfoTitle>
-                <dd className="mt-2 text-base font-medium">
+              <dl className="px-2 py-4">
+                <dt className="text-icon-neutral-weaker flex items-center gap-1.5">
+                  <Call20Icon aria-hidden className="size-4" />
+                  <span className="text-sm font-medium">전화번호</span>
+                </dt>
+                <dd className="mt-2 text-base font-medium whitespace-pre-line">
                   {station.tellNumber ? (
-                    <div className="flex items-center gap-1">
-                      <span>{station.tellNumber}</span>
-                      <button
-                        className="text-text-primary-stronger text-sm font-semibold"
-                        type="button"
+                    <div className="inline-flex gap-1">
+                      <span className="text-text-neutral-stronger">
+                        {station.tellNumber}
+                      </span>
+                      <AppTextButton
+                        color="primary"
+                        size="medium"
                         onClick={handleCallClick}
                       >
                         전화
-                      </button>
+                      </AppTextButton>
                     </div>
                   ) : (
                     <span className="text-text-neutral-weaker">
@@ -181,48 +184,60 @@ const StationInfoContent = ({ station, onCopyAddress }: Props) => {
                     </span>
                   )}
                 </dd>
-              </div>
-            </dl>
-          </div>
-        ) : (
-          <div>
-            <div className="text-text-neutral-weaker mt-3 flex items-center gap-1 text-xs">
-              <LocalOfferIcon sx={{ fontSize: 16 }} />
-              <span>원/kWh · 부가세 포함</span>
+              </dl>
+              <Divider />
             </div>
-            <table className="mt-3 w-full">
-              <thead>
-                <tr>
-                  <th className="py-2 text-left text-sm font-medium">구분</th>
-                  <th className="py-2 text-right text-sm font-medium">
-                    비회원가
-                  </th>
-                  <th className="py-2 text-right text-sm font-medium">
-                    회원가
-                  </th>
-                  <th className="text-text-primary-stronger py-2 text-right text-sm font-medium">
-                    내 혜택가
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {costRows.map((row) => (
-                  <tr className="border-t border-gray-100" key={row.key}>
-                    <td className="py-3 text-left text-sm">{row.label}</td>
-                    <td className="py-3 text-right text-sm">480원</td>
-                    <td className="py-3 text-right text-sm">420원</td>
-                    <td className="text-text-primary-stronger py-3 text-right text-sm font-semibold">
-                      310원
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         )}
+
+        {chargeStationInfoTab === "costInfo" && (
+          <table className="w-full">
+            <AppTableCaption
+              captions={["원/kWh", "부가세 포함"]}
+              className="mt-3"
+            />
+            <thead>
+              <tr>
+                <AppTableHeaderCell align="left" type="text">
+                  구분
+                </AppTableHeaderCell>
+                <AppTableHeaderCell align="right" type="text">
+                  비회원가
+                </AppTableHeaderCell>
+                <AppTableHeaderCell align="right" type="text">
+                  회원가
+                </AppTableHeaderCell>
+                <AppTableHeaderCell
+                  align="right"
+                  icon={<ExBenefit16Icon />}
+                  type="accentText"
+                >
+                  내 혜택가
+                </AppTableHeaderCell>
+              </tr>
+            </thead>
+            <tbody>
+              {costRows.map((row) => (
+                <tr key={row.key}>
+                  <AppTableCell align="left" type="text">
+                    {row.label}
+                  </AppTableCell>
+                  {/* TODO: 요금 API 미연동. 실제 가격 확정 전까지 하드코딩 유지 */}
+                  <AppTableCell align="right" type="text">
+                    480원
+                  </AppTableCell>
+                  <AppTableCell align="right" type="text">
+                    420원
+                  </AppTableCell>
+                  <AppTableCell align="right" type="accentText">
+                    310원
+                  </AppTableCell>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
-    </section>
+    </>
   );
 };
-
-export default StationInfoContent;

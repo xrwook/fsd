@@ -5,9 +5,11 @@ interface Props {
   onCopyAddress?: () => void;
 }
 
-const StationAddressInfo = ({ station, onCopyAddress }: Props) => {
+export const StationAddressInfo = ({ onCopyAddress, station }: Props) => {
+  const handleCopyAddress = onCopyAddress;
+
   return (
-    <section className="mx-6 mb-5">
+    <div className="mx-6 mb-5">
       <div className="flex items-center gap-1.5">
         <p className="text-text-neutral-stronger text-sm font-medium">
           {station.address}
@@ -15,16 +17,14 @@ const StationAddressInfo = ({ station, onCopyAddress }: Props) => {
         <button
           className="text-text-primary-stronger text-sm font-semibold"
           type="button"
-          onClick={onCopyAddress}
+          onClick={handleCopyAddress}
         >
           복사
         </button>
       </div>
-      <p className="text-text-neutral-weaker mt-1 text-sm font-medium">
+      <p className="text-text-neutral-weaker text-sm font-medium">
         {station.addressDetail}
       </p>
-    </section>
+    </div>
   );
 };
-
-export default StationAddressInfo;

@@ -4,6 +4,12 @@ export interface ChargingSpeedDivisionCount {
   totalCount: number;
 }
 
+export type StationParkingType =
+  | "FREE"
+  | "PUBLIC"
+  | "GOVERNMENT"
+  | "OPTIONAL_FREE";
+
 export interface ChargingSpeedGroup {
   groupName: string;
   minPowerKw: number;
@@ -22,7 +28,7 @@ export interface Evse {
   chargerType: string;
   availCpkW: number;
   status: string;
-  chargeEndDate?: string;
+  chargeEndDate: string;
 }
 
 export interface EvseResponse {
@@ -43,7 +49,7 @@ export interface ChargingStationDetail {
   latitude: number;
   longitude: number;
   publicOpenYn: boolean;
-  parkingType: string;
+  parkingType: StationParkingType;
   parkingFeeYn?: boolean;
   qrScanYn: boolean;
   pncYn: boolean;

@@ -11,4 +11,5 @@ export type {
   ChargingStationDetail,
   Evse,
   EvseResponse,
+  StationParkingType,
 } from "./model/types";

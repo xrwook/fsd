@@ -1,29 +1,30 @@
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { useEffect } from "react";
 
 import type { ChargingStationDetail } from "@/entities/charging-station";
+import { useBreakpoint } from "@/shared/lib/breakpoint";
 import { useModal } from "@/shared/lib/modal";
 import { ExpandableBottomSheet } from "@/shared/ui/bottom-sheet";
 
-import StationDetail from "./_StationDetail";
+import { StationDetail } from "./_StationDetail";
 
 interface Props {
   station: ChargingStationDetail;
   onClose: () => void;
+  onRefresh: () => Promise<ChargingStationDetail | undefined>;
 }
 
-const StationDetailModal = ({ station, onClose }: Props) => {
-  const isMobile = useMediaQuery("(max-width: 767px)");
+const StationDetailModal = ({ station, onClose, onRefresh }: Props) => {
   const { close } = useModal();
+  const breakPoint = useBreakpoint();
 
   const handleClose = () => {
-    onClose();
+    onClose?.();
     close();
   };
 
   useEffect(() => {
-    if (!isMobile) close();
-  }, [close, isMobile]);
+    if (breakPoint !== "mobile") close();
+  }, [breakPoint, close]);
 
   return (
     <ExpandableBottomSheet initialHeight={450} isShowDim={false} topInset={72}>
@@ -31,6 +32,7 @@ const StationDetailModal = ({ station, onClose }: Props) => {
         className="scrollbar-hide relative max-h-full overflow-y-auto"
         station={station}
         onClose={handleClose}
+        onRefresh={onRefresh}
       />
     </ExpandableBottomSheet>
   );
