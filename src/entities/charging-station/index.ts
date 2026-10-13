@@ -10,11 +10,13 @@ export {
 } from "./api/location-prices";
 export {
   getChargerGroupRows,
+  getChargerGroupRowsWithEvses,
   getStationEvses,
   isSelfBrandCpo,
 } from "./lib/station";
 export type {
   ChargerGroupRow,
+  ChargerGroupRowWithEvses,
   ChargingSpeedDivisionCount,
   ChargingSpeedGroup,
   ChargingSpeedGroupDivisionCount,

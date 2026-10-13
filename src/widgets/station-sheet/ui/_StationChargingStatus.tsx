@@ -2,7 +2,7 @@ import { DateTime } from "luxon";
 import { useState } from "react";
 
 import type { ChargingStationDetail } from "@/entities/charging-station";
-import { getChargerGroupRows } from "@/entities/charging-station";
+import { getChargerGroupRowsWithEvses } from "@/entities/charging-station";
 import { Expand16Icon, Help12Icon, Refresh16Icon } from "@/shared/assets/icons";
 import { AppTextButton } from "@/shared/ui/button";
 import { AppChargerCard } from "@/shared/ui/card";
@@ -40,8 +40,16 @@ const toRelativeTimeText = (value: string) => {
 export const StationChargingStatus = ({ station, onRefresh }: Props) => {
   const [refreshedAt, setRefreshedAt] = useState(() => DateTime.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const priceRowLabels = getChargerGroupRows(station).map((row) => row.label);
-  const evses = station.evseResponses.flatMap((group) => group.evses);
+  const chargerGroupRows = getChargerGroupRowsWithEvses(station);
+  const evseCount = chargerGroupRows.reduce(
+    (total, row) =>
+      total +
+      row.evseResponses.reduce(
+        (rowTotal, response) => rowTotal + response.evses.length,
+        0,
+      ),
+    0,
+  );
   const currentTimeText = refreshedAt.toFormat("HH:mm");
 
   const handleRefresh = async () => {
@@ -81,32 +89,43 @@ export const StationChargingStatus = ({ station, onRefresh }: Props) => {
         </AppTextButton>
       </div>
 
-      {priceRowLabels.map((label) => (
-        <ChargerPriceRow key={label} label={label} />
+      {chargerGroupRows.map((row) => (
+        <div key={row.key}>
+          <ChargerPriceRow label={row.label} />
+
+          {row.evseResponses.map((response) => (
+            <div
+              className="flex flex-col gap-2"
+              key={`${row.key}-${response.availCpKw}`}
+            >
+              {response.evses.map((evse) => {
+                const state = CHARGER_CARD_STATE_BY_EVSE_STATUS[evse.status];
+
+                return state === "unconfirmed" ? (
+                  <AppChargerCard key={evse.cpId} state="unconfirmed" />
+                ) : (
+                  <AppChargerCard
+                    key={evse.cpId}
+                    state={state}
+                    time={
+                      evse.chargeEndDate
+                        ? toRelativeTimeText(evse.chargeEndDate)
+                        : undefined
+                    }
+                  />
+                );
+              })}
+            </div>
+          ))}
+        </div>
       ))}
-
-      <div className="flex flex-col gap-2">
-        {evses.map((evse) => {
-          const state = CHARGER_CARD_STATE_BY_EVSE_STATUS[evse.status];
-
-          return state === "unconfirmed" ? (
-            <AppChargerCard key={evse.cpId} state="unconfirmed" />
-          ) : (
-            <AppChargerCard
-              key={evse.cpId}
-              state={state}
-              time={toRelativeTimeText(evse.chargeEndDate)}
-            />
-          );
-        })}
-      </div>
 
       <div className="mt-6 flex justify-center">
         <button
           className="border-border-neutral-faint text-text-neutral-stronger flex h-12 items-center gap-0.5 rounded-full border px-5 text-[15px] font-semibold"
           type="button"
         >
-          {evses.length}개 더보기 <Expand16Icon />
+          {evseCount}개 더보기 <Expand16Icon />
         </button>
       </div>
     </>

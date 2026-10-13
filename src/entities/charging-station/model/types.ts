@@ -28,7 +28,7 @@ export interface Evse {
   chargerType: string;
   availCpkW: number;
   status: string;
-  chargeEndDate: string;
+  chargeEndDate: string | null;
 }
 
 export interface EvseResponse {
@@ -66,4 +66,8 @@ export interface ChargerGroupRow {
   label: string;
   available: number;
   total: number;
+}
+
+export interface ChargerGroupRowWithEvses extends ChargerGroupRow {
+  evseResponses: EvseResponse[];
 }
