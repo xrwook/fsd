@@ -67,7 +67,3 @@ export interface ChargerGroupRow {
   available: number;
   total: number;
 }
-
-export interface ChargerGroupRowWithEvses extends ChargerGroupRow {
-  evseResponses: EvseResponse[];
-}

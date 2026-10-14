@@ -8,15 +8,15 @@ export {
   locationPricesQueryFactory,
   useGetLocationPricesQuery,
 } from "./api/location-prices";
+export type { MemberType } from "./lib/price";
+export { getPrice, MEMBER_TYPE } from "./lib/price";
 export {
   getChargerGroupRows,
-  getChargerGroupRowsWithEvses,
   getStationEvses,
   isSelfBrandCpo,
 } from "./lib/station";
 export type {
   ChargerGroupRow,
-  ChargerGroupRowWithEvses,
   ChargingSpeedDivisionCount,
   ChargingSpeedGroup,
   ChargingSpeedGroupDivisionCount,
