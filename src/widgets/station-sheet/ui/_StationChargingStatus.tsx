@@ -3,6 +3,7 @@ import { Fragment, useState } from "react";
 
 import {
   type ChargingStationDetail,
+  type EvseResponse,
   getPrice,
   isSelfBrandCpo,
   MEMBER_TYPE,
@@ -15,6 +16,8 @@ import { Divider } from "@/shared/ui/divider";
 import { Tooltip } from "@/shared/ui/tooltip";
 
 import { CHARGER_CARD_STATE_BY_EVSE_STATUS } from "../config/charger";
+
+const INITIAL_VISIBLE_CHARGER_COUNT = 3;
 
 const ChargerPriceRow = ({
   label,
@@ -42,11 +45,43 @@ interface Props {
   onRefresh: () => Promise<boolean>;
 }
 
+const getVisibleEvseResponses = (
+  row: EvseResponse[],
+  count: number,
+) => {
+  let remainingChargerCount = count;
+
+  return row.flatMap((response) => {
+    if (remainingChargerCount <= 0) return [];
+
+    const evses = response.evses.slice(0, remainingChargerCount);
+    remainingChargerCount -= evses.length;
+
+    return evses.length > 0 ? [{ ...response, evses }] : [];
+  });
+};
+
 export const StationChargingStatus = ({ station, onRefresh }: Props) => {
   const [isRefresh, setIsRefresh] = useState(false);
   const [refreshedAt, setRefreshedAt] = useState(() => DateTime.now());
+  const [expandedLocationId, setExpandedLocationId] = useState<string | null>(
+    null,
+  );
   const evses = station.evseResponses;
   const isSelfBrand = isSelfBrandCpo(station.cpoId);
+  const isExpanded = expandedLocationId === station.locationId;
+  const totalChargerCount = evses.reduce(
+    (total, response) => total + response.evses.length,
+    0,
+  );
+  const visibleChargerCount = isExpanded
+    ? totalChargerCount
+    : INITIAL_VISIBLE_CHARGER_COUNT;
+  const visibleEvses = getVisibleEvseResponses(evses, visibleChargerCount);
+  const hiddenChargerCount = Math.max(
+    totalChargerCount - INITIAL_VISIBLE_CHARGER_COUNT,
+    0,
+  );
 
   const handleRefresh = async () => {
     if (isRefresh) return;
@@ -83,7 +118,7 @@ export const StationChargingStatus = ({ station, onRefresh }: Props) => {
         </AppTextButton>
       </div>
 
-      {evses.map((item, idx) => {
+      {visibleEvses.map((item, idx) => {
         const feeType = isSelfBrand ? MEMBER_TYPE.MEMBER : MEMBER_TYPE.ROAMING;
 
         return (
@@ -114,14 +149,17 @@ export const StationChargingStatus = ({ station, onRefresh }: Props) => {
         );
       })}
 
-      <div className="mt-6 flex justify-center">
-        <button
-          className="border-border-neutral-faint text-text-neutral-stronger flex h-12 items-center gap-0.5 rounded-full border px-5 text-[15px] font-semibold"
-          type="button"
-        >
-          N개 더보기 <Expand16Icon />
-        </button>
-      </div>
+      {!isExpanded && hiddenChargerCount > 0 && (
+        <div className="mt-6 flex justify-center">
+          <button
+            className="border-border-neutral-faint text-text-neutral-stronger flex h-12 items-center gap-0.5 rounded-full border px-5 text-[15px] font-semibold"
+            type="button"
+            onClick={() => setExpandedLocationId(station.locationId)}
+          >
+            {hiddenChargerCount}개 더보기 <Expand16Icon />
+          </button>
+        </div>
+      )}
     </>
   );
 };
