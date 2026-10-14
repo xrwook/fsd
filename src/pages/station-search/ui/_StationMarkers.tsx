@@ -15,7 +15,7 @@ interface Props {
   defaultCenter: { lat: number; lng: number };
   display: MarkerDisplay;
   selectedStationId?: string;
-  onClick?: (locationId: string) => void;
+  onClick?: (location: LocationItem) => void;
 }
 
 const SELF_BRAND_CPO_ID = "HY";
@@ -126,7 +126,7 @@ const StationMarkers = ({
             stationType={isSelfBrandCpo(location.cpoId) ? "epit" : "roaming"}
             status={getMarkerStatus(location.locationStatus)}
             total={chargerCount.total}
-            onClick={() => handleClick?.(location.locationId)}
+            onClick={() => handleClick?.(location)}
           />
         );
       })}

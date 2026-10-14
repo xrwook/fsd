@@ -45,11 +45,11 @@ const StationSearchPage = ({
     ? { lat: currentCenter.lat(), lng: currentCenter.lng() }
     : defaultCenter;
 
-  const handleSubmitValue = (location: LocationItem) => {
+  const handleSelectStation = (location: LocationItem) => {
     setSelectedStationId(location.locationId);
     map?.morph(
       { lat: location.latitude, lng: location.longitude },
-      DEFAULT_ZOOM,
+      defaultZoom,
     );
   };
 
@@ -65,7 +65,7 @@ const StationSearchPage = ({
           onClose={handleCloseDetail}
         />
       ) : (
-        <SearchField center={searchCenter} onSubmit={handleSubmitValue} />
+        <SearchField center={searchCenter} onSubmit={handleSelectStation} />
       )}
 
       <MapDiv className="relative h-full w-full">
@@ -94,7 +94,7 @@ const StationSearchPage = ({
               defaultCenter={defaultCenter}
               display={markerDisplay}
               selectedStationId={selectedStationId}
-              onClick={setSelectedStationId}
+              onClick={handleSelectStation}
             />
           )}
         </NaverMap>
