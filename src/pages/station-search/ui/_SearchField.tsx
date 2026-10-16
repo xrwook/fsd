@@ -19,11 +19,30 @@ interface Props {
 
 const SEARCH_DEBOUNCE_MS = 300;
 
+const SearchLoading = () => (
+  <div
+    aria-label="충전소 검색 중"
+    className="flex h-36 items-center justify-center"
+    role="status"
+  >
+    <span className="border-border-neutral-weak border-t-text-primary-stronger size-6 animate-spin rounded-full border-2" />
+  </div>
+);
+
+const StationEmptyCase = ({ description }: { description: string }) => (
+  <div className="flex h-36 items-center justify-center px-4 text-center">
+    <p className="text-text-neutral-weaker text-sm font-medium">
+      {description}
+    </p>
+  </div>
+);
+
 const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
   const searchInput = useRef<HTMLInputElement>(null);
   const [searchValue, setSearchValue] = useState("");
   const [isSearch, setIsSearch] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const normalizedSearchValue = searchValue.trim();
 
   const debouncedSetSearchKeyword = useMemo(
     () => debounce(setSearchKeyword, SEARCH_DEBOUNCE_MS),
@@ -57,11 +76,14 @@ const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
     [center.lat, center.lng, searchKeyword],
   );
 
-  const { data: searchResponse } = useGetLocationsQuery(
-    searchRequest,
-    isSearch && Boolean(searchKeyword),
-  );
+  const {
+    data: searchResponse,
+    isFetched,
+    isFetching,
+  } = useGetLocationsQuery(searchRequest, isSearch && Boolean(searchKeyword));
   const searchResults = searchResponse?.data.content ?? [];
+  const isWaitingForDebounce = normalizedSearchValue !== searchKeyword;
+  const isSearchLoading = isWaitingForDebounce || isFetching;
 
   const handleActive = () => {
     setIsSearch(true);
@@ -113,20 +135,30 @@ const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
         </div>
       </div>
 
-      {isSearch && searchValue && (
+      {isSearch && Boolean(normalizedSearchValue) && (
         <>
           <Divider />
           <div className="bg-background-white scrollbar-custom max-h-90 overflow-hidden overflow-y-auto pb-5">
-            <ul>
-              {searchResults.map((location) => (
-                <SearchResultList
-                  key={location.locationId}
-                  keyword={searchKeyword}
-                  search={location}
-                  onClick={() => handleSelect(location)}
-                />
-              ))}
-            </ul>
+            {(() => {
+              if (isSearchLoading) return <SearchLoading />;
+              if (!isFetched) return null;
+              if (searchResults.length === 0) {
+                return <StationEmptyCase description="검색 결과가 없습니다." />;
+              }
+
+              return (
+                <ul>
+                  {searchResults.map((location) => (
+                    <SearchResultList
+                      key={location.locationId}
+                      keyword={searchKeyword}
+                      search={location}
+                      onClick={() => handleSelect(location)}
+                    />
+                  ))}
+                </ul>
+              );
+            })()}
           </div>
         </>
       )}
