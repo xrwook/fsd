@@ -20,6 +20,7 @@ import {
   normalizeDate, //
   parseDate,
   type RangeDirection,
+  startOfToday,
 } from "../lib/date";
 import { DateRangeInput } from "./_DateRangeInput";
 import { DateRangeQuickActions } from "./_DateRangeQuickActions";
@@ -145,11 +146,18 @@ export const DateRangePicker = ({
     () => getDisabledInterval(disabledRanges),
     [disabledRanges],
   );
-  const quickRangeBaseDate = getQuickRangeBaseDate(
-    quickRangeDirection,
-    selectedStartDate,
-    selectedEndDate,
-  );
+  const filterQuickRangeBaseDate =
+    selectedStartDate && !selectedEndDate
+      ? selectedStartDate
+      : startOfToday();
+  const quickRangeBaseDate =
+    inputVariant === "filter"
+      ? filterQuickRangeBaseDate
+      : getQuickRangeBaseDate(
+          quickRangeDirection,
+          selectedStartDate,
+          selectedEndDate,
+        );
   const quickRanges = getQuickRanges(
     quickRangeOptions,
     quickRangeDirection,
@@ -260,7 +268,12 @@ export const DateRangePicker = ({
             setDraftRange({ endDate, startDate });
           }
         }} //
-        onCalendarOpen={() => setIsOpen(!disabled)} //
+        onCalendarOpen={() => {
+          setIsOpen(!disabled);
+          if (inputVariant === "filter") {
+            pickerRef.current?.setPreSelection(startOfToday());
+          }
+        }} //
         onChange={([nextStartDate, nextEndDate]) => {
           if (disabled) {
             //
