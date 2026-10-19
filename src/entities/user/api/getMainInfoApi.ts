@@ -1,10 +1,7 @@
 import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 
 import { apiRequest, type Response } from "@/shared/lib/api";
-import {
-  getKeycloakInstance,
-  isKeycloakEnabled,
-} from "@/shared/lib/keycloak";
+import { getKeycloakInstance, isKeycloakEnabled } from "@/shared/lib/keycloak";
 
 import type { MainInfoData } from "../lib/main-info";
 
@@ -12,10 +9,8 @@ type MainInfoResponse = Response<MainInfoData>;
 type RecentVisitResponse = Response<string>;
 export type ReconsentRequiredExistsResponse = Response<boolean>;
 
-const reconsentRequests = new Map<
-  string,
-  Promise<boolean>
->();
+const reconsentRequests = new Map<string, Promise<boolean>>();
+const RECONSENT_STORAGE_KEY = "reconsent-required-exists";
 
 const getReconsentSessionKey = () => {
   return getKeycloakInstance()?.sessionId ?? "anonymous";
@@ -27,6 +22,51 @@ const isReconsentQueryEnabled = () => {
   }
 
   return Boolean(getKeycloakInstance()?.authenticated);
+};
+
+const getPersistedReconsentResult = (sessionKey: string) => {
+  if (
+    !isKeycloakEnabled() ||
+    sessionKey === "anonymous" ||
+    typeof window === "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    const value = window.sessionStorage.getItem(
+      `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
+    );
+
+    if (value === "true") {
+      return true;
+    }
+
+    if (value === "false") {
+      return false;
+    }
+  } catch {
+    // 저장소를 사용할 수 없는 환경에서는 메모리 캐시만 사용합니다.
+  }
+};
+
+const persistReconsentResult = (sessionKey: string, value: boolean) => {
+  if (
+    !isKeycloakEnabled() ||
+    sessionKey === "anonymous" ||
+    typeof window === "undefined"
+  ) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
+      String(value),
+    );
+  } catch {
+    // 저장소를 사용할 수 없는 환경에서는 메모리 캐시만 사용합니다.
+  }
 };
 
 const requestMainInfo = async () => {
@@ -57,7 +97,15 @@ export const getReconsentRequiredExistsApi = () => {
     return cachedRequest;
   }
 
-  const request = requestReconsentRequiredExists();
+  const persistedResult = getPersistedReconsentResult(sessionKey);
+  const request =
+    persistedResult === undefined
+      ? requestReconsentRequiredExists().then((result) => {
+          persistReconsentResult(sessionKey, result);
+          return result;
+        })
+      : Promise.resolve(persistedResult);
+
   reconsentRequests.set(sessionKey, request);
 
   return request;
