@@ -39,15 +39,25 @@ const StationEmptyCase = ({ description }: { description: string }) => (
 
 const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
   const searchInput = useRef<HTMLInputElement>(null);
+  const latestCenterRef = useRef(center);
   const [searchValue, setSearchValue] = useState("");
   const [isSearch, setIsSearch] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchCenter, setSearchCenter] = useState(center);
   const normalizedSearchValue = searchValue.trim();
 
   const debouncedSetSearchKeyword = useMemo(
-    () => debounce(setSearchKeyword, SEARCH_DEBOUNCE_MS),
+    () =>
+      debounce((keyword: string) => {
+        setSearchKeyword(keyword);
+        setSearchCenter(latestCenterRef.current);
+      }, SEARCH_DEBOUNCE_MS),
     [],
   );
+
+  useEffect(() => {
+    latestCenterRef.current = center;
+  }, [center]);
 
   useEffect(() => {
     debouncedSetSearchKeyword(searchValue.trim());
@@ -65,15 +75,15 @@ const SearchField = ({ center, onSubmit: handleOnSubmit }: Props) => {
         sort: ["distanceMeters,ASC"],
       },
       requestBody: {
-        latitude: center.lat,
-        longitude: center.lng,
+        latitude: searchCenter.lat,
+        longitude: searchCenter.lng,
         keywordSearch: {
           searchType: "L",
           text: searchKeyword,
         },
       },
     }),
-    [center.lat, center.lng, searchKeyword],
+    [searchCenter.lat, searchCenter.lng, searchKeyword],
   );
 
   const {

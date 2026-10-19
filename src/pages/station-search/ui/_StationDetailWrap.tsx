@@ -1,5 +1,5 @@
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { useModal } from "@/shared/lib/modal";
 import { StationDetail, StationDetailModal } from "@/widgets/station-sheet";
@@ -19,19 +19,24 @@ const StationDetailWrap = ({ locationId, center, onClose }: Props) => {
   const isMobile = useMediaQuery("(max-width: 767px)");
   const { open } = useModal();
   const isModalOpenedRef = useRef(false);
+  const requestRef = useRef<LocationDetailRequest | undefined>(undefined);
 
-  const request = useMemo<LocationDetailRequest>(
-    () => ({
+  if (
+    !requestRef.current ||
+    requestRef.current.path.locationId !== locationId
+  ) {
+    requestRef.current = {
       path: { locationId },
       requestBody: {
         latitude: center.lat,
         longitude: center.lng,
       },
-    }),
-    [center.lat, center.lng, locationId],
-  );
+    };
+  }
 
-  const { data: detail, refetch } = useGetLocationDetailQuery(request);
+  const { data: detail, refetch } = useGetLocationDetailQuery(
+    requestRef.current,
+  );
   const station = detail?.data;
 
   const handleRefresh = useCallback(async () => {
