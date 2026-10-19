@@ -2,7 +2,10 @@ import { useCallback, useMemo } from "react";
 
 import type { ScreenIdValues } from "@/shared/config";
 
-import { useGetMainInfoQuery } from "../../api";
+import {
+  useGetMainInfoQuery,
+  useGetReconsentRequiredExistsApiQuery,
+} from "../../api";
 import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MenuData } from "./types";
 import {
@@ -138,6 +141,8 @@ export const useMainInfo = () => {
     isError,
     isFetched,
   } = useGetMainInfoQuery();
+  const { data: hasReconsentRequiredTerms = false } =
+    useGetReconsentRequiredExistsApiQuery();
   const visibleMenus = useMemo(
     () => (mainInfoData ? filterMenusForBuild(mainInfoData.menus) : []),
     [mainInfoData],
@@ -158,15 +163,6 @@ export const useMainInfo = () => {
   );
   const userInfo = mainInfoData?.userInfo ?? null;
   const partnerInfo = mainInfoData?.partnerInfo ?? null;
-  const hasReconsentRequiredTerms = useMemo(() => {
-    const termAgreements = mainInfoData?.termAgreements;
-
-    return (
-      Array.isArray(termAgreements) &&
-      termAgreements.some((term) => term.isReconsent)
-    );
-  }, [mainInfoData?.termAgreements]);
-
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
     (

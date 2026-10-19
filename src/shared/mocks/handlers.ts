@@ -27,6 +27,14 @@ export const handlers = [
 
     return HttpResponse.json(createMockResponse(response));
   }),
+  http.post("/api/home/main/terms/reconsent-required/exists", async () => {
+    const response = await getMainInfoMockApi();
+    const hasReconsentRequiredTerms = response.termAgreements.some(
+      (term) => term.isReconsent,
+    );
+
+    return HttpResponse.json(createMockResponse(hasReconsentRequiredTerms));
+  }),
   http.post("/api/v1/backoffice/home/main/recent-visits", ({ request }) => {
     if (!request.headers.has(SCREEN_ID_HEADER)) {
       return HttpResponse.json(
