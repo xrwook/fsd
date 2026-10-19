@@ -19,6 +19,7 @@ const USER_STATUS_STORAGE_KEY = "user-status";
 
 const reconsentRequests = new Map<string, Promise<boolean>>();
 const userStatusRequests = new Map<string, Promise<UserStatusData>>();
+let activeSessionKey: string | null = null;
 
 const getSessionKey = () => {
   return getKeycloakInstance()?.sessionId ?? ANONYMOUS_SESSION_KEY;
@@ -54,6 +55,54 @@ const setSessionStorageValue = (key: string, value: string) => {
   } catch {
     // 저장소를 사용할 수 없는 환경에서는 메모리 캐시만 사용합니다.
   }
+};
+
+type SessionRequestOptions<T> = {
+  requests: Map<string, Promise<T>>;
+  sessionKey: string;
+  persistedValue: T | undefined;
+  request: () => Promise<T>;
+  persist: (value: T) => void;
+};
+
+const getSessionRequest = <T>({
+  requests,
+  sessionKey,
+  persistedValue,
+  request: requestFn,
+  persist,
+}: SessionRequestOptions<T>) => {
+  if (activeSessionKey !== sessionKey) {
+    reconsentRequests.clear();
+    userStatusRequests.clear();
+    activeSessionKey = sessionKey;
+  }
+
+  const cachedRequest = requests.get(sessionKey);
+
+  if (cachedRequest) {
+    return cachedRequest;
+  }
+
+  const request =
+    persistedValue === undefined
+      ? requestFn().then((result) => {
+          persist(result);
+          return result;
+        })
+      : Promise.resolve(persistedValue);
+
+  const trackedRequest = request.catch((error: unknown) => {
+    if (requests.get(sessionKey) === trackedRequest) {
+      requests.delete(sessionKey);
+    }
+
+    throw error;
+  });
+
+  requests.set(sessionKey, trackedRequest);
+
+  return trackedRequest;
 };
 
 const getPersistedReconsentResult = (sessionKey: string) => {
@@ -159,46 +208,26 @@ const requestUserStatus = async () => {
 
 export const getReconsentRequiredExistsApi = () => {
   const sessionKey = getSessionKey();
-  const cachedRequest = reconsentRequests.get(sessionKey);
 
-  if (cachedRequest) {
-    return cachedRequest;
-  }
-
-  const persistedResult = getPersistedReconsentResult(sessionKey);
-  const request =
-    persistedResult === undefined
-      ? requestReconsentRequiredExists().then((result) => {
-          persistReconsentResult(sessionKey, result);
-          return result;
-        })
-      : Promise.resolve(persistedResult);
-
-  reconsentRequests.set(sessionKey, request);
-
-  return request;
+  return getSessionRequest({
+    requests: reconsentRequests,
+    sessionKey,
+    persistedValue: getPersistedReconsentResult(sessionKey),
+    request: requestReconsentRequiredExists,
+    persist: (result) => persistReconsentResult(sessionKey, result),
+  });
 };
 
 export const getUserStatusApi = () => {
   const sessionKey = getSessionKey();
-  const cachedRequest = userStatusRequests.get(sessionKey);
 
-  if (cachedRequest) {
-    return cachedRequest;
-  }
-
-  const persistedUserStatus = getPersistedUserStatus(sessionKey);
-  const request =
-    persistedUserStatus === undefined
-      ? requestUserStatus().then((result) => {
-          persistUserStatus(sessionKey, result);
-          return result;
-        })
-      : Promise.resolve(persistedUserStatus);
-
-  userStatusRequests.set(sessionKey, request);
-
-  return request;
+  return getSessionRequest({
+    requests: userStatusRequests,
+    sessionKey,
+    persistedValue: getPersistedUserStatus(sessionKey),
+    request: requestUserStatus,
+    persist: (result) => persistUserStatus(sessionKey, result),
+  });
 };
 
 // 사용자/파트너/약관/메뉴 정보를 조회해 라우트 가드와 사이드 메뉴에서 공통으로 사용합니다.
@@ -255,7 +284,7 @@ export const mainInfoQueryFactory = {
     queryOptions({
       queryKey: ["reconsent-required-exists", sessionKey] as const,
       queryFn: getReconsentRequiredExistsApi,
-      enabled: isSessionQueryEnabled(),
+      enabled: isSessionQueryEnabled,
       staleTime: Infinity,
       gcTime: Infinity,
       refetchOnMount: false,
@@ -267,7 +296,7 @@ export const mainInfoQueryFactory = {
     queryOptions({
       queryKey: ["user-status", sessionKey] as const,
       queryFn: getUserStatusApi,
-      enabled: isSessionQueryEnabled(),
+      enabled: isSessionQueryEnabled,
       staleTime: Infinity,
       gcTime: Infinity,
       refetchOnMount: false,
