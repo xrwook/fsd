@@ -3,20 +3,28 @@ import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, type Response } from "@/shared/lib/api";
 import { getKeycloakInstance, isKeycloakEnabled } from "@/shared/lib/keycloak";
 
-import type { MainInfoData } from "../lib/main-info";
+import type { MainInfoData, UserInfo } from "../lib/main-info";
 
 type MainInfoResponse = Response<MainInfoData>;
 type RecentVisitResponse = Response<string>;
 export type ReconsentRequiredExistsResponse = Response<boolean>;
+export type UserStatusData = {
+  userStatus: UserInfo["userStatus"];
+};
+export type UserStatusResponse = Response<UserStatusData>;
+
+const ANONYMOUS_SESSION_KEY = "anonymous";
+const RECONSENT_STORAGE_KEY = "reconsent-required-exists";
+const USER_STATUS_STORAGE_KEY = "user-status";
 
 const reconsentRequests = new Map<string, Promise<boolean>>();
-const RECONSENT_STORAGE_KEY = "reconsent-required-exists";
+const userStatusRequests = new Map<string, Promise<UserStatusData>>();
 
-const getReconsentSessionKey = () => {
-  return getKeycloakInstance()?.sessionId ?? "anonymous";
+const getSessionKey = () => {
+  return getKeycloakInstance()?.sessionId ?? ANONYMOUS_SESSION_KEY;
 };
 
-const isReconsentQueryEnabled = () => {
+const isSessionQueryEnabled = () => {
   if (!isKeycloakEnabled()) {
     return true;
   }
@@ -24,49 +32,100 @@ const isReconsentQueryEnabled = () => {
   return Boolean(getKeycloakInstance()?.authenticated);
 };
 
-const getPersistedReconsentResult = (sessionKey: string) => {
-  if (
-    !isKeycloakEnabled() ||
-    sessionKey === "anonymous" ||
-    typeof window === "undefined"
-  ) {
+const getSessionStorageValue = (key: string) => {
+  if (typeof window === "undefined") {
     return;
   }
 
   try {
-    const value = window.sessionStorage.getItem(
-      `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
-    );
-
-    if (value === "true") {
-      return true;
-    }
-
-    if (value === "false") {
-      return false;
-    }
+    return window.sessionStorage.getItem(key) ?? undefined;
   } catch {
     // 저장소를 사용할 수 없는 환경에서는 메모리 캐시만 사용합니다.
   }
 };
 
-const persistReconsentResult = (sessionKey: string, value: boolean) => {
-  if (
-    !isKeycloakEnabled() ||
-    sessionKey === "anonymous" ||
-    typeof window === "undefined"
-  ) {
+const setSessionStorageValue = (key: string, value: string) => {
+  if (typeof window === "undefined") {
     return;
   }
 
   try {
-    window.sessionStorage.setItem(
-      `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
-      String(value),
-    );
+    window.sessionStorage.setItem(key, value);
   } catch {
     // 저장소를 사용할 수 없는 환경에서는 메모리 캐시만 사용합니다.
   }
+};
+
+const getPersistedReconsentResult = (sessionKey: string) => {
+  if (!isKeycloakEnabled() || sessionKey === ANONYMOUS_SESSION_KEY) {
+    return;
+  }
+
+  const value = getSessionStorageValue(
+    `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
+  );
+
+  if (value === "true") {
+    return true;
+  }
+
+  if (value === "false") {
+    return false;
+  }
+};
+
+const persistReconsentResult = (sessionKey: string, value: boolean) => {
+  if (!isKeycloakEnabled() || sessionKey === ANONYMOUS_SESSION_KEY) {
+    return;
+  }
+
+  setSessionStorageValue(
+    `${RECONSENT_STORAGE_KEY}:${sessionKey}`,
+    String(value),
+  );
+};
+
+const isUserStatusData = (value: unknown): value is UserStatusData => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const data = value as Partial<UserStatusData>;
+
+  return typeof data.userStatus === "string";
+};
+
+const getPersistedUserStatus = (sessionKey: string) => {
+  if (!isKeycloakEnabled() || sessionKey === ANONYMOUS_SESSION_KEY) {
+    return;
+  }
+
+  const value = getSessionStorageValue(
+    `${USER_STATUS_STORAGE_KEY}:${sessionKey}`,
+  );
+
+  if (!value) {
+    return;
+  }
+
+  try {
+    const parsedValue: unknown = JSON.parse(value);
+
+    return isUserStatusData(parsedValue) ? parsedValue : undefined;
+  } catch {
+    return;
+  }
+};
+
+const persistUserStatus = (sessionKey: string, value: UserStatusData) => {
+  if (!isKeycloakEnabled() || sessionKey === ANONYMOUS_SESSION_KEY) {
+    return;
+  }
+
+  setSessionStorageValue(
+    `${USER_STATUS_STORAGE_KEY}:${sessionKey}`,
+    JSON.stringify(value),
+  );
 };
 
 const requestMainInfo = async () => {
@@ -89,8 +148,17 @@ const requestReconsentRequiredExists = async () => {
   return response.data.data;
 };
 
+const requestUserStatus = async () => {
+  const response = await apiRequest<UserStatusResponse>(
+    "get",
+    "/v1/backoffice/home/main/user-status",
+  );
+
+  return response.data.data;
+};
+
 export const getReconsentRequiredExistsApi = () => {
-  const sessionKey = getReconsentSessionKey();
+  const sessionKey = getSessionKey();
   const cachedRequest = reconsentRequests.get(sessionKey);
 
   if (cachedRequest) {
@@ -107,6 +175,28 @@ export const getReconsentRequiredExistsApi = () => {
       : Promise.resolve(persistedResult);
 
   reconsentRequests.set(sessionKey, request);
+
+  return request;
+};
+
+export const getUserStatusApi = () => {
+  const sessionKey = getSessionKey();
+  const cachedRequest = userStatusRequests.get(sessionKey);
+
+  if (cachedRequest) {
+    return cachedRequest;
+  }
+
+  const persistedUserStatus = getPersistedUserStatus(sessionKey);
+  const request =
+    persistedUserStatus === undefined
+      ? requestUserStatus().then((result) => {
+          persistUserStatus(sessionKey, result);
+          return result;
+        })
+      : Promise.resolve(persistedUserStatus);
+
+  userStatusRequests.set(sessionKey, request);
 
   return request;
 };
@@ -165,7 +255,19 @@ export const mainInfoQueryFactory = {
     queryOptions({
       queryKey: ["reconsent-required-exists", sessionKey] as const,
       queryFn: getReconsentRequiredExistsApi,
-      enabled: isReconsentQueryEnabled(),
+      enabled: isSessionQueryEnabled(),
+      staleTime: Infinity,
+      gcTime: Infinity,
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: false,
+    }),
+  userStatus: (sessionKey: string) =>
+    queryOptions({
+      queryKey: ["user-status", sessionKey] as const,
+      queryFn: getUserStatusApi,
+      enabled: isSessionQueryEnabled(),
       staleTime: Infinity,
       gcTime: Infinity,
       refetchOnMount: false,
@@ -176,9 +278,15 @@ export const mainInfoQueryFactory = {
 };
 
 export const useGetReconsentRequiredExistsApiQuery = () => {
-  const sessionKey = getReconsentSessionKey();
+  const sessionKey = getSessionKey();
 
   return useQuery(mainInfoQueryFactory.reconsentRequiredExists(sessionKey));
+};
+
+export const useGetUserStatusApiQuery = () => {
+  const sessionKey = getSessionKey();
+
+  return useQuery(mainInfoQueryFactory.userStatus(sessionKey));
 };
 
 export const useGetMainInfoQuery = () => {

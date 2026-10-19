@@ -5,6 +5,7 @@ import type { ScreenIdValues } from "@/shared/config";
 import {
   useGetMainInfoQuery,
   useGetReconsentRequiredExistsApiQuery,
+  useGetUserStatusApiQuery,
 } from "../../api";
 import type { TMenuPermission, TMenuPermissionField } from "./models";
 import type { MenuData } from "./types";
@@ -143,6 +144,8 @@ export const useMainInfo = () => {
   } = useGetMainInfoQuery();
   const { data: hasReconsentRequiredTerms = false } =
     useGetReconsentRequiredExistsApiQuery();
+  const { data: userStatusData, isFetched: isUserStatusInitialized } =
+    useGetUserStatusApiQuery();
   const visibleMenus = useMemo(
     () => (mainInfoData ? filterMenusForBuild(mainInfoData.menus) : []),
     [mainInfoData],
@@ -161,7 +164,16 @@ export const useMainInfo = () => {
         : EMPTY_MAIN_MENUS,
     [visibleMenus],
   );
-  const userInfo = mainInfoData?.userInfo ?? null;
+  const userInfo = useMemo(() => {
+    if (!mainInfoData?.userInfo || !userStatusData) {
+      return mainInfoData?.userInfo ?? null;
+    }
+
+    return {
+      ...mainInfoData.userInfo,
+      userStatus: userStatusData.userStatus,
+    };
+  }, [mainInfoData, userStatusData]);
   const partnerInfo = mainInfoData?.partnerInfo ?? null;
   // 초기화 전에는 권한 데이터가 아직 없으므로 모든 접근을 보류합니다.
   const canAccessMenu = useCallback(
@@ -242,6 +254,8 @@ export const useMainInfo = () => {
     userInfo,
     partnerInfo,
     hasReconsentRequiredTerms,
+    userStatusData,
+    isUserStatusInitialized,
     mainMenus,
     menuPermissions,
     mainInfoError: error,

@@ -15,6 +15,7 @@ export const AppRouter = () => {
   const {
     hasReconsentRequiredTerms,
     isMainInfoInitialized,
+    isUserStatusInitialized,
     mainInfoError,
     userInfo,
   } = useMainInfo();
@@ -50,6 +51,7 @@ export const AppRouter = () => {
 
   if (
     isMainInfoInitialized &&
+    isUserStatusInitialized &&
     userInfo?.userStatus === "E" &&
     location.pathname !== ACCESS_PAGE_PATHS.approvalExtension
   ) {

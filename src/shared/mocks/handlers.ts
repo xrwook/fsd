@@ -35,6 +35,15 @@ export const handlers = [
 
     return HttpResponse.json(createMockResponse(hasReconsentRequiredTerms));
   }),
+  http.get("/api/v1/backoffice/home/main/user-status", async () => {
+    const response = await getMainInfoMockApi();
+
+    return HttpResponse.json(
+      createMockResponse({
+        userStatus: response.userInfo.userStatus,
+      }),
+    );
+  }),
   http.post("/api/v1/backoffice/home/main/recent-visits", ({ request }) => {
     if (!request.headers.has(SCREEN_ID_HEADER)) {
       return HttpResponse.json(
