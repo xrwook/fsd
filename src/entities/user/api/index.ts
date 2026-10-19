@@ -6,13 +6,15 @@ export type {
 export {
   getMainInfoApi,
   getReconsentRequiredExistsApi,
-  reconsentQueryKey,
   getUserStatusApi,
   mainInfoQueryFactory,
   postRecentVisitApi,
+  reconsentQueryKey,
   setReconsentCache,
+  setUserStatusCache,
   useGetMainInfoQuery,
   useGetReconsentRequiredExistsApiQuery,
   useGetUserStatusApiQuery,
   usePostRecentVisitMutation,
+  userStatusQueryKey,
 } from "./getMainInfoApi";

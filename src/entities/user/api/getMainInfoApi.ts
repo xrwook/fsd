@@ -140,9 +140,7 @@ const persistReconsentResult = (sessionKey: string, value: boolean) => {
   );
 };
 
-export const reconsentQueryKey = (
-  sessionKey = getSessionKey(),
-) => {
+export const reconsentQueryKey = (sessionKey = getSessionKey()) => {
   return ["reconsent-required-exists", sessionKey] as const;
 };
 
@@ -152,6 +150,21 @@ export const setReconsentCache = (value: boolean) => {
   syncActiveSession(sessionKey);
   persistReconsentResult(sessionKey, value);
   reconsentRequests.set(sessionKey, Promise.resolve(value));
+};
+
+export const userStatusQueryKey = (sessionKey = getSessionKey()) => {
+  return ["user-status", sessionKey] as const;
+};
+
+export const setUserStatusCache = (
+  userStatus: UserStatusData["userStatus"],
+) => {
+  const sessionKey = getSessionKey();
+  const value = { userStatus };
+
+  syncActiveSession(sessionKey);
+  persistUserStatus(sessionKey, value);
+  userStatusRequests.set(sessionKey, Promise.resolve(value));
 };
 
 const isUserStatusData = (value: unknown): value is UserStatusData => {
@@ -314,7 +327,7 @@ export const mainInfoQueryFactory = {
     }),
   userStatus: (sessionKey: string) =>
     queryOptions({
-      queryKey: ["user-status", sessionKey] as const,
+      queryKey: userStatusQueryKey(sessionKey),
       queryFn: getUserStatusApi,
       enabled: isSessionQueryEnabled,
       staleTime: Infinity,
