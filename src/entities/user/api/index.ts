@@ -6,9 +6,11 @@ export type {
 export {
   getMainInfoApi,
   getReconsentRequiredExistsApi,
+  reconsentQueryKey,
   getUserStatusApi,
   mainInfoQueryFactory,
   postRecentVisitApi,
+  setReconsentCache,
   useGetMainInfoQuery,
   useGetReconsentRequiredExistsApiQuery,
   useGetUserStatusApiQuery,
