@@ -25,6 +25,8 @@ import {
 import { DateRangeInput } from "./_DateRangeInput";
 import { DateRangeQuickActions } from "./_DateRangeQuickActions";
 
+const DATE_RANGE_PICKER_PORTAL_ID = "date-range-picker-portal";
+
 export type Props = {
   /** 선택된 시작일. yyyy-MM-dd 문자열을 사용한다. */
   startDate: string;
@@ -147,9 +149,7 @@ export const DateRangePicker = ({
     [disabledRanges],
   );
   const filterQuickRangeBaseDate =
-    selectedStartDate && !selectedEndDate
-      ? selectedStartDate
-      : startOfToday();
+    selectedStartDate && !selectedEndDate ? selectedStartDate : startOfToday();
   const quickRangeBaseDate =
     inputVariant === "filter"
       ? filterQuickRangeBaseDate
@@ -316,6 +316,7 @@ export const DateRangePicker = ({
         }}
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
+        portalId={DATE_RANGE_PICKER_PORTAL_ID}
         ref={pickerRef}
         open={disabled ? false : undefined} //
         selectsRange
