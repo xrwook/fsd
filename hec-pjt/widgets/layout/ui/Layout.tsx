@@ -66,7 +66,6 @@ export const Layout = ({ children }: PropsWithChildren) => {
       />
       <div className="relative flex flex-1 shrink flex-row overflow-hidden pt-14">
         <Lnb
-          navigation={navigation}
           manualCollapsed={manualCollapsed}
           setManualCollapsed={setManualCollapsed}
           drawerOpen={drawerOpen}

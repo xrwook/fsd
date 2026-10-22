@@ -10,15 +10,11 @@ import type { MenuPermission } from '@/entities/user';
 import { useMainInfo } from '@/entities/user';
 import { navigateToScreen } from '@/shared/lib/navigation/navigation';
 
-import {
-  findTopMenuByPath,
-  isPathMatched,
-} from '../lib/menuPath';
+import { isPathMatched } from '../lib/menuPath';
 
 interface Props {
   manualCollapsed: boolean;
   setManualCollapsed: (value: boolean) => void;
-  navigation: string | null;
 
   drawerOpen: boolean;
   setDrawerOpen: (value: boolean) => void;
@@ -28,19 +24,13 @@ interface Props {
 export const Lnb = ({
   manualCollapsed,
   setManualCollapsed,
-  navigation,
   drawerOpen,
   setDrawerOpen,
   showPersistentLnb,
 }: Props) => {
   // const { headerMenus } = useMainInfo();
   const { sidebarHidden, sidebarCollapsed } = useNavigationBreakpoint();
-  const {
-    menuPermissions,
-    canAccessMenu,
-    canAccessMenuGroup,
-    findParentUrl,
-  } = useMainInfo();
+  const { menuPermissions, canAccessMenu, canAccessMenuGroup } = useMainInfo();
   const location = useLocation();
 
   const collapsed = sidebarHidden
@@ -85,16 +75,6 @@ export const Lnb = ({
     );
   };
 
-  // 메뉴
-  const parentFromUrl = findParentUrl(location.pathname);
-  const currentMenuPermission =
-    (parentFromUrl?.screenId
-      ? menuPermissions.find((x) => x.screenId === parentFromUrl.screenId)
-      : undefined) ??
-    findTopMenuByPath(menuPermissions, location.pathname) ??
-    menuPermissions.find((x) => x.screenId === navigation);
-  const currentChild = currentMenuPermission?.children ?? [];
-
   return (
     <>
       {/* 상시 사이드바: tablet/desktop에서 표시 */}
@@ -108,7 +88,7 @@ export const Lnb = ({
           className="h-full"
         >
           <NavigationMenuWrapper>
-            {currentChild.map((x) => renderMenus(x))}
+            {menuPermissions.map((item) => renderMenus(item))}
           </NavigationMenuWrapper>
         </NavigationSidebar>
       )}
@@ -123,8 +103,7 @@ export const Lnb = ({
           // hidden={manualCollapsed}
         >
           <NavigationMenuWrapper>
-            {/* 모바일에서는 전체 메뉴가 보여야하지 않을까...? */}
-            {currentChild.map((x) => renderMenus(x))}
+            {menuPermissions.map((item) => renderMenus(item))}
           </NavigationMenuWrapper>
         </NavigationSidebar>
       )}
