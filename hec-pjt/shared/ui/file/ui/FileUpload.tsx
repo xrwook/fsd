@@ -188,6 +188,11 @@ export const FileUpload = ({
     Promise.resolve(onRetry(getActionFileId(file))).catch(() => {});
   };
 
+  const handleDelete = (file: FileUploadItem) => {
+    setHasInvalidUploadCondition(false);
+    onDelete(getActionFileId(file));
+  };
+
   const handleDeleteAll = () => {
     if (!onDeleteAll || disabled || allDeleteDisabled || isUploading) return;
 
@@ -247,7 +252,7 @@ export const FileUpload = ({
               fileItem={file}
               layout={layout}
               onDelete={() => {
-                onDelete(getActionFileId(file));
+                handleDelete(file);
               }}
               onDownload={() => {
                 handleDownload(file);
