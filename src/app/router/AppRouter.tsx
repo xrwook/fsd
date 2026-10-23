@@ -23,7 +23,7 @@ export const AppRouter = () => {
   const mainInfoErrorPageType = mainInfoError
     ? classifyApiError(mainInfoError, "approvalPending")
     : null;
-  const resolvedApiErrorPageType = apiErrorPageType ?? mainInfoErrorPageType;
+  const resolvedApiErrorPageType = mainInfoErrorPageType ?? apiErrorPageType;
   const apiErrorPath = resolvedApiErrorPageType
     ? API_ERROR_PAGE_PATHS[resolvedApiErrorPageType]
     : null;
