@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQuery } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 
 import { apiRequest, type Response } from "@/shared/lib/api";
 import { getKeycloakInstance, isKeycloakEnabled } from "@/shared/lib/keycloak";
@@ -215,7 +216,7 @@ const requestMainInfo = async () => {
     "get",
     "/permissions",
     undefined,
-    { skipGlobalErrorPage: true, skipScreenId: true },
+    { accessErrorPageType: "approvalPending", skipScreenId: true },
   );
 
   return response.data.data;
@@ -225,6 +226,8 @@ const requestReconsentRequiredExists = async () => {
   const response = await apiRequest<ReconsentRequiredExistsResponse>(
     "post",
     "/home/main/terms/reconsent-required/exists",
+    undefined,
+    { accessErrorPageType: "approvalPending" },
   );
 
   return response.data.data;
@@ -234,6 +237,8 @@ const requestUserStatus = async () => {
   const response = await apiRequest<UserStatusResponse>(
     "get",
     "/v1/backoffice/home/main/user-status",
+    undefined,
+    { accessErrorPageType: "approvalPending" },
   );
 
   return response.data.data;
@@ -276,7 +281,13 @@ export const getMainInfoApi = async (): Promise<MainInfoData> => {
 
     try {
       return await requestMainInfo();
-    } catch {
+    } catch (error: unknown) {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
+
+      if (status === 401 || status === 403) {
+        throw error;
+      }
+
       return getMainInfoMockApi();
     }
   }

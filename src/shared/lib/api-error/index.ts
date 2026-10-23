@@ -28,6 +28,13 @@ type ApiErrorState = {
 
 const TEMPORARY_ERROR_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
+const API_ERROR_PAGE_PRIORITY: Record<ApiErrorPageType, number> = {
+  accessDenied: 1,
+  network: 1,
+  temporary: 1,
+  approvalPending: 2,
+};
+
 export const classifyApiError = (
   error: unknown,
   accessType: ApiErrorAccessType = "accessDenied",
@@ -58,7 +65,17 @@ export const useApiErrorPageStore = create<ApiErrorState>((set) => ({
   pageType: null,
   clearApiErrorPage: () => set({ error: null, pageType: null }),
   showApiErrorPage: (pageType, error) =>
-    set((state) => (state.pageType ? {} : { error, pageType })),
+    set((state) => {
+      if (
+        state.pageType &&
+        API_ERROR_PAGE_PRIORITY[pageType] <=
+          API_ERROR_PAGE_PRIORITY[state.pageType]
+      ) {
+        return {};
+      }
+
+      return { error, pageType };
+    }),
 }));
 
 export const showApiErrorPage = (
