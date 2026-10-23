@@ -52,6 +52,8 @@ export type Props = {
   maxDate?: string | Date; //
   /** 시작일과 종료일이 모두 선택된 경우에만 외부 값에 반영한다. */ //
   requireCompleteRange?: boolean; //
+  /** 달력 팝오버를 document body의 portal에 렌더링한다. */
+  usePortal?: boolean;
   /** 날짜가 변경될 때 yyyy-MM-dd 문자열로 반환한다. */
   onChange: (startDate: string, endDate: string) => void;
 };
@@ -107,6 +109,7 @@ export const DateRangePicker = ({
   minDate, //
   maxDate, //
   requireCompleteRange = false, //
+  usePortal = false,
   onChange,
 }: Props) => {
   const pickerRef = useRef<ReactDatePicker>(null);
@@ -316,7 +319,7 @@ export const DateRangePicker = ({
         }}
         popperClassName="dateRangePopper"
         popperPlacement="bottom-start"
-        portalId={DATE_RANGE_PICKER_PORTAL_ID}
+        portalId={usePortal ? DATE_RANGE_PICKER_PORTAL_ID : undefined}
         ref={pickerRef}
         open={disabled ? false : undefined} //
         selectsRange

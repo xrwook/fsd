@@ -39,9 +39,19 @@ describe("DateRangePicker filter quick actions", () => {
     ).toBe("2026 Oct");
   });
 
-  it("달력 팝오버를 document body의 portal에 렌더링한다", () => {
+  it("기본적으로 달력 팝오버를 컴포넌트 내부에 렌더링한다", () => {
     const { container } = render(
       <DateRangePicker endDate="" onChange={vi.fn()} startDate="" />,
+    );
+
+    fireEvent.click(screen.getByRole("group", { name: "조회 기간" }));
+
+    expect(container.querySelector(".dateRangeCalendar")).not.toBeNull();
+  });
+
+  it("usePortal이면 달력 팝오버를 document body의 portal에 렌더링한다", () => {
+    const { container } = render(
+      <DateRangePicker endDate="" onChange={vi.fn()} startDate="" usePortal />,
     );
 
     fireEvent.click(screen.getByRole("group", { name: "조회 기간" }));
