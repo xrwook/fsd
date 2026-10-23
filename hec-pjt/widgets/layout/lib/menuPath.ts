@@ -1,4 +1,4 @@
-import type { MenuPermission } from '@/entities/user';
+import type { TMenuPermission } from '@/entities/user';
 
 export const normalizePath = (url: string | null | undefined) => {
   if (!url || url === '#') {
@@ -27,7 +27,10 @@ export const isPathMatched = (
   return pathname === menuPath || pathname.startsWith(`${menuPath}/`);
 };
 
-const menuContainsPath = (menu: MenuPermission, pathname: string): boolean => {
+const menuContainsPath = (
+  menu: TMenuPermission,
+  pathname: string,
+): boolean => {
   return (
     isPathMatched(menu.url, pathname) ||
     (menu.children ?? []).some((child) => menuContainsPath(child, pathname))
@@ -35,6 +38,6 @@ const menuContainsPath = (menu: MenuPermission, pathname: string): boolean => {
 };
 
 export const findTopMenuByPath = (
-  menus: MenuPermission[],
+  menus: TMenuPermission[],
   pathname: string,
 ) => menus.find((menu) => menuContainsPath(menu, pathname));

@@ -4,13 +4,14 @@ import {
   NavigationSidebar,
   useNavigationBreakpoint,
 } from '@hae-fe/pattern';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
-import type { MenuPermission } from '@/entities/user';
+import type { TMenuPermission } from '@/entities/user';
 import { useMainInfo } from '@/entities/user';
 import { navigateToScreen } from '@/shared/lib/navigation/navigation';
 
-import { isPathMatched } from '../lib/menuPath';
+import { findTopMenuByPath, isPathMatched } from '../lib/menuPath';
 
 interface Props {
   manualCollapsed: boolean;
@@ -32,12 +33,21 @@ export const Lnb = ({
   const { sidebarHidden, sidebarCollapsed } = useNavigationBreakpoint();
   const { menuPermissions, canAccessMenu, canAccessMenuGroup } = useMainInfo();
   const location = useLocation();
+  const activeTopMenu = findTopMenuByPath(menuPermissions, location.pathname);
+  const activeTopMenuId = activeTopMenu?.screenId ?? null;
+  const [expandedTopMenuId, setExpandedTopMenuId] = useState<string | null>(
+    activeTopMenuId,
+  );
+
+  useEffect(() => {
+    setExpandedTopMenuId(activeTopMenuId);
+  }, [activeTopMenuId]);
 
   const collapsed = sidebarHidden
     ? false
     : (manualCollapsed ?? sidebarCollapsed);
 
-  const renderMenus = (item: MenuPermission) => {
+  const renderMenus = (item: TMenuPermission, level = 0) => {
     const children = (item.children ?? []).filter((child) => {
       return child.children?.length
         ? canAccessMenuGroup(child.screenId)
@@ -57,7 +67,14 @@ export const Lnb = ({
         key={item.screenId}
         label={item.name}
         expressive
-        defaultExpanded
+        {...(hasChildren && level === 0
+          ? {
+              expanded: expandedTopMenuId === item.screenId,
+              onExpandedChange: (expanded: boolean) => {
+                setExpandedTopMenuId(expanded ? item.screenId : null);
+              },
+            }
+          : { defaultExpanded: hasChildren })}
         selected={isPathMatched(item.url, location.pathname)}
         fontWeight={hasChildren ? 'bold' : undefined}
         onClick={() => {
@@ -68,7 +85,7 @@ export const Lnb = ({
       >
         {hasChildren && (
           <NavigationMenuWrapper>
-            {children.map((x) => renderMenus(x))}
+            {children.map((x) => renderMenus(x, level + 1))}
           </NavigationMenuWrapper>
         )}
       </NavigationMenuItem>
