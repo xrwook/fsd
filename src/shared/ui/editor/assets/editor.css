@@ -41,6 +41,8 @@
 }
 
 .tiptapEditor {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   width: 100%;
   border: 1px solid #d1d5db;
@@ -56,6 +58,12 @@
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+}
+
+.tiptapEditor > .tiptapEditorContent {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
 }
 
 .tiptapEditor.editorDisabled {
@@ -370,6 +378,11 @@
   overflow-wrap: anywhere;
 }
 
+.tiptapEditor > .tiptapEditorContent > .tiptap {
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
 .tiptapEditorHtmlSource {
   min-height: 280px;
 }
@@ -377,7 +390,8 @@
 .tiptapEditorHtmlSourceInput {
   display: block;
   width: 100%;
-  min-height: 280px;
+  height: 100%;
+  min-height: 100%;
   padding: 8px 12px;
   border: 0;
   outline: none;
