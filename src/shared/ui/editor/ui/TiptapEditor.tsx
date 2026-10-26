@@ -45,8 +45,6 @@ export type TiptapEditorProps = {
     referenceType: string,
   ) => Promise<ImageUploadResult>;
   allowImageUpload?: boolean;
-  /** 에디터 입력 영역 크기 조절 */ //
-  resizable?: boolean; //
 };
 
 type HtmlSourceMode = "editor" | "source";
@@ -90,7 +88,6 @@ export default function TiptapEditor({
   onUploadStateChange,
   uploadImage = uploadEditorImage,
   allowImageUpload = true,
-  resizable = false, //
 }: TiptapEditorProps) {
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
@@ -308,13 +305,7 @@ export default function TiptapEditor({
   const editorContent = (() => {
     if (htmlSourceMode === "source") {
       return (
-        <div
-          className={clsx(
-            "tiptapEditorHtmlSource",
-            "tiptapEditorContent",
-            resizable && "editorResizableContent",
-          )}
-        >
+        <div className="tiptapEditorHtmlSource tiptapEditorContent">
           <textarea
             aria-label="HTML 소스"
             autoFocus
@@ -335,7 +326,6 @@ export default function TiptapEditor({
         className={clsx(
           "tiptapEditorContent",
           submitOnEnter && "singleLine",
-          resizable && "editorResizableContent",
         )}
         onKeyDown={handleKeyDown}
       />
@@ -344,7 +334,7 @@ export default function TiptapEditor({
 
   return (
     <div
-      className={`tiptapEditor ${disabled ? "editorDisabled" : ""}`}
+      className={`tiptapEditor resize-y overflow-auto ${disabled ? "editorDisabled" : ""}`}
       aria-busy={uploadCount > 0}
     >
       <EditorToolbar
