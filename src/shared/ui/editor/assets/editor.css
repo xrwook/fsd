@@ -66,6 +66,10 @@
   overflow: auto;
 }
 
+.tiptapEditor > .tiptapEditorContent:not(.singleLine) {
+  min-height: 280px;
+}
+
 .tiptapEditor.editorDisabled {
   background: #f9fafb;
 }
