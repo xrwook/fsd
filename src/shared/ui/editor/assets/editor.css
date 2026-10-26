@@ -1,74 +1,61 @@
 @font-face {
-  font-family: "P-Light";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-Light;
   font-display: swap;
-  src: url("./fonts/Pretendard-Light.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-Light.subset.woff");
 }
 
 @font-face {
-  font-family: "P-Regular";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-Regular;
   font-display: swap;
-  src: url("./fonts/Pretendard-Regular.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-Regular.subset.woff");
 }
 
 @font-face {
-  font-family: "P-Medium";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-Medium;
   font-display: swap;
-  src: url("./fonts/Pretendard-Medium.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-Medium.subset.woff");
 }
 
 @font-face {
-  font-family: "P-SemiBold";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-SemiBold;
   font-display: swap;
-  src: url("./fonts/Pretendard-SemiBold.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-SemiBold.subset.woff");
 }
 
 @font-face {
-  font-family: "P-Bold";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-Bold;
   font-display: swap;
-  src: url("./fonts/Pretendard-Bold.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-Bold.subset.woff");
 }
 
 @font-face {
-  font-family: "P-Black";
-  font-weight: 400;
-  font-style: normal;
+  font-family: P-Black;
   font-display: swap;
-  src: url("./fonts/Pretendard-Black.subset.woff") format("woff");
+  font-style: normal;
+  src: url("./fonts/Pretendard-Black.subset.woff");
 }
 
 .tiptapEditor {
   overflow: hidden;
   width: 100%;
   border: 1px solid #d1d5db;
-  border-radius: 8px;
+  border-radius: 0;
   background: #fff;
   color: #111827;
 }
 
 .tiptapEditorContent {
   font-family:
-    "P-Regular",
+    P-Regular,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-}
-
-.tiptapEditorContent.editorResizableContent {
-  height: 316px;
-  min-height: 160px;
-  resize: vertical;
-  overflow: auto;
 }
 
 .tiptapEditor.editorDisabled {
@@ -81,9 +68,9 @@
   align-items: center;
   gap: 4px;
   flex-wrap: wrap;
-  padding: 6px 8px;
-  border-bottom: 1px solid #e5e7eb;
-  background: #f9fafb;
+  padding: 6px 12px;
+  border-bottom: 1px solid #dedfe3;
+  background: #f9fafa;
 }
 
 .tiptapToolbarGroup {
@@ -94,9 +81,9 @@
 
 .tiptapToolbarDivider {
   width: 1px;
-  height: 24px;
-  margin: 0 3px;
-  background: #d1d5db;
+  height: 20px;
+  margin: 0 6px;
+  background: #dedfe3;
 }
 
 .tiptapToolbarButton,
@@ -111,24 +98,24 @@
   border: 0;
   border-radius: 5px;
   background: transparent;
-  color: #374151;
+  color: #131416;
   cursor: pointer;
   font: inherit;
 }
 
 .tiptapEditorIcon {
   display: inline-block;
-  width: 19px;
-  height: 19px;
-  flex: 0 0 19px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   fill: currentcolor;
   pointer-events: none;
 }
 
 .tiptapToolbarButton .tiptapEditorIcon,
 .tiptapToolbarColor .tiptapEditorIcon {
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
 }
 
 .tiptapToolbarColor {
@@ -143,8 +130,8 @@
 
 .tiptapToolbarButton:focus-visible,
 .tiptapToolbarColor:focus-within {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
+  outline: 1px solid #0056ff;
+  outline-offset: 0;
 }
 
 .tiptapToolbarButton.active {
@@ -152,38 +139,75 @@
   color: #1d4ed8;
 }
 
+.tiptapToolbarButton:focus-within,
+.tiptapToolbarButton:active {
+  outline: 1px solid #0056ff;
+}
+
 .tiptapToolbarButton:hover:not(:disabled),
 .tiptapToolbarColor:hover:not(.controlDisabled) {
-  background: #e5e7eb;
+  background: #e5edff;
 }
 
 .tiptapToolbarButtonText {
   gap: 1px;
   padding: 0 7px 0 4px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .tiptapToolbarButtonText .tiptapEditorIcon {
-  width: 17px;
-  height: 17px;
-  flex-basis: 17px;
+  width: 16px;
+  height: 16px;
+  flex-basis: 16px;
+}
+
+.tiptapToolbarSltWrap {
+  position: relative;
 }
 
 .tiptapToolbarSelect {
   height: 32px;
-  padding: 0 25px 0 8px;
-  border: 1px solid #d1d5db;
+  padding: 0;
+  border: 0;
   border-radius: 5px;
-  background: #fff;
-  color: #374151;
-  font-size: 12px;
+  background: transparent;
+  color: #131416;
+  font-size: 13px;
   cursor: pointer;
+  appearance: none;
 }
 
-.tiptapToolbarSelect:focus {
-  border-color: #d1d5db;
-  outline: none;
+.tiptapToolbarSltWrap span {
+  position: absolute;
+  top: 10px;
+  right: 8px;
+}
+
+.tiptapToolbarGroup button {
+  width: 100%;
+  justify-content: space-between;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+
+.tiptapToolbarGroup button span {
+  color: #131416;
+}
+
+.tiptapToolbarSelect:hover {
+  background-color: rgb(19 20 22 / 5%);
+}
+
+.tiptapToolbarSelect:focus,
+.tiptapToolbarSelect:focus-within {
+  border-color: #0056ff;
+  outline: 1px solid #0056ff;
   box-shadow: none;
+}
+
+.tiptapToolbarSelect:focus + span,
+.tiptapToolbarSelect:focus-within + span {
+  transform: rotate(180deg);
 }
 
 .tiptapToolbarSelect:disabled {
@@ -193,15 +217,21 @@
 }
 
 .tiptapToolbarSelectFont {
-  width: 122px;
+  width: 120px;
 }
 
 .tiptapToolbarSelectSize {
-  width: 76px;
+  width: 80px;
 }
 
 .tiptapToolbarSelectHeading {
-  width: 84px;
+  width: 80px;
+}
+
+.tiptapToolbarSelect option {
+  min-height: 24px;
+  background-color: #fff;
+  color: #131416;
 }
 
 .tiptapToolbarColor input {
@@ -219,33 +249,41 @@
 
 .tiptapToolbarColorIndicator {
   position: absolute;
-  right: 6px;
-  bottom: 3px;
-  left: 6px;
-  height: 3px;
-  border: 1px solid rgb(17 24 39 / 15%);
-  border-radius: 2px;
+  right: 0;
+  bottom: 4px;
+  left: 9px;
+  width: 14px;
+  height: 2px;
+  border: 1px solid #b7bbc3;
+  border-radius: 0 !important;
+  box-shadow:
+    0 2px 6px 0 var(--color-light-alpha-shadow2, rgb(0 0 0 / 8%)),
+    0 1px 4px 0 var(--color-light-alpha-shadow1, rgb(0 0 0 / 4%));
 }
 
 .tiptapLinkPopover {
   width: min(360px, calc(100vw - 24px));
-  margin-top: 6px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 12px 30px rgb(15 23 42 / 18%);
+  margin-top: 4px;
+  border: 1px solid #b7bbc3;
+  border-radius: 0 !important;
+  box-shadow:
+    0 2px 6px 0 var(--color-light-alpha-shadow2, rgb(0 0 0 / 8%)),
+    0 1px 4px 0 var(--color-light-alpha-shadow1, rgb(0 0 0 / 4%));
 }
 
 .tiptapLinkPopoverForm {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
+  gap: 16px;
+  padding: 16px 24px 24px;
+  border: none;
+  box-shadow: none !important;
 }
 
 .tiptapLinkPopoverLabel {
-  color: #374151;
-  font-size: 12px;
-  font-weight: 600;
+  color: #131416;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .tiptapLinkPopoverInputRow {
@@ -256,19 +294,18 @@
 
 .tiptapLinkPopoverInput {
   width: 100%;
-  height: 36px;
-  padding: 0 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
+  height: 32px;
+  padding: 9px 12px;
+  border: 1px solid #dedfe3;
+  border-radius: 0 !important;
   outline: none;
   color: #111827;
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .tiptapLinkPopoverInput:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgb(37 99 235 / 12%);
+  border-color: #0056ff;
 }
 
 .tiptapLinkPopoverInput[aria-invalid="true"] {
@@ -282,21 +319,22 @@
 }
 
 .tiptapLinkPopoverButton {
-  height: 34px;
+  min-width: 68px;
+  height: 32px;
   padding: 0 11px;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
+  border: 1px solid #b7bbc3;
+  border-radius: 0 !important;
   background: #fff;
-  color: #374151;
+  color: #131416;
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 400;
 }
 
 .tiptapLinkPopoverButton.primary {
-  border-color: #2563eb;
-  background: #2563eb;
+  border-color: #0056ff;
+  background: #0056ff;
   color: #fff;
 }
 
@@ -314,7 +352,7 @@
 }
 
 .tiptapLinkPopoverButton.primary:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: #0056ff;
 }
 
 .tiptapLinkPopoverError {
@@ -323,106 +361,25 @@
   font-size: 12px;
 }
 
-.tiptapEditorPreviewPaper {
-  width: min(960px, calc(100vw - 32px));
-  max-height: calc(100vh - 64px);
-}
-
-.tiptapEditorPreviewTitle {
-  padding: 16px 20px 14px;
-  color: #111827;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.tiptapEditorPreviewDialogContent {
-  padding: 0;
-  background: #f3f4f6;
-}
-
-.tiptapEditorPreviewContent .tiptap {
-  min-height: 420px;
-  max-height: calc(100vh - 220px);
-  overflow: auto;
-  background: #fff;
-}
-
-.tiptapEditorPreviewEmpty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #9ca3af;
-}
-
-.tiptapEditorContent .tiptapViewerEmpty {
-  min-height: 120px;
-  color: #9ca3af;
-}
-
-.tiptapEditorPreviewActions {
-  padding: 12px 16px;
-}
-
-.tiptapEditorPreviewCloseButton {
-  height: 34px;
-  padding: 0 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 5px;
-  background: #fff;
-  color: #374151;
-  cursor: pointer;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.tiptapEditorPreviewCloseButton:focus-visible {
-  outline: 2px solid #2563eb;
-  outline-offset: 1px;
-}
-
-.tiptapEditorPreviewCloseButton:hover {
-  background: #f3f4f6;
-}
-
 .tiptapEditorContent .tiptap {
   min-height: 280px;
-  padding: 18px 20px;
+  padding: 8px 12px;
   outline: none;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.65;
   overflow-wrap: anywhere;
 }
 
-.tiptapEditorContent.editorResizableContent .tiptap {
-  box-sizing: border-box;
-  min-height: 100%;
-}
-
-/* HTML 소스 입력 영역 */
 .tiptapEditorHtmlSource {
-  width: 100%;
-  min-height: 240px;
-  overflow: hidden;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  box-sizing: border-box;
+  min-height: 280px;
 }
 
 .tiptapEditorHtmlSourceInput {
   display: block;
   width: 100%;
-  min-height: 240px;
-  padding: 16px;
-  resize: vertical;
-  color: #111827;
-  background: #fff;
-  border: 0;
+  min-height: 280px;
+  padding: 8px 12px;
   outline: none;
-  box-sizing: border-box;
-  font-family: "Courier New", monospace;
-  font-size: 14px;
-  line-height: 1.55;
   white-space: pre;
 }
 
@@ -509,8 +466,8 @@
   margin: 1em 0;
   padding: 0.45em 1em;
   border-left: 4px solid #93c5fd;
-  background: #eff6ff;
-  color: #374151;
+  background: #fff;
+  color: #131416;
 }
 
 .tiptapEditorContent .tiptap pre {
@@ -529,7 +486,7 @@
   padding: 0.1em 0.3em;
   border-radius: 3px;
   background: #f3f4f6;
-  color: #be123c;
+  color: #de123c;
   font-family: "Courier New", monospace;
 }
 
@@ -542,11 +499,11 @@
 .tiptapEditorContent .tiptap hr {
   margin: 1.5em 0;
   border: 0;
-  border-top: 2px solid #e5e7eb;
+  border-top: 2px solid #e5edff;
 }
 
 .tiptapEditorContent .tiptap a {
-  color: #2563eb;
+  color: #0056ff;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -621,7 +578,7 @@
   gap: 12px;
   min-height: 34px;
   padding: 7px 12px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e5edff;
   background: #f9fafb;
   font-size: 12px;
 }
@@ -637,7 +594,7 @@
   width: 13px;
   height: 13px;
   border: 2px solid #bfdbfe;
-  border-top-color: #2563eb;
+  border-top-color: #0056ff;
   border-radius: 50%;
   animation: tiptap-editor-spin 0.75s linear infinite;
 }
