@@ -308,7 +308,13 @@ export default function TiptapEditor({
   const editorContent = (() => {
     if (htmlSourceMode === "source") {
       return (
-        <div className="tiptapEditorHtmlSource tiptapEditorContent">
+        <div
+          className={clsx(
+            "tiptapEditorHtmlSource",
+            "tiptapEditorContent",
+            resizable && "editorResizableContent",
+          )}
+        >
           <textarea
             aria-label="HTML 소스"
             autoFocus

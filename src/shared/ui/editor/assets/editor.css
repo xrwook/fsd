@@ -58,6 +58,13 @@
     sans-serif;
 }
 
+.tiptapEditorContent.editorResizableContent {
+  height: 316px;
+  min-height: 160px;
+  overflow: auto;
+  resize: vertical;
+}
+
 .tiptapEditor.editorDisabled {
   background: #f9fafb;
 }
@@ -374,13 +381,30 @@
   min-height: 280px;
 }
 
+.tiptapEditorHtmlSource.editorResizableContent {
+  overflow: hidden;
+}
+
 .tiptapEditorHtmlSourceInput {
   display: block;
   width: 100%;
+  height: 100%;
   min-height: 280px;
   padding: 8px 12px;
+  border: 0;
   outline: none;
+  box-sizing: border-box;
+  resize: none;
   white-space: pre;
+}
+
+.tiptapEditorHtmlSource.editorResizableContent .tiptapEditorHtmlSourceInput {
+  min-height: 100%;
+}
+
+.tiptapEditorContent.editorResizableContent .tiptap {
+  box-sizing: border-box;
+  min-height: 100%;
 }
 
 .tiptapEditorContent.singleLine .tiptap {
