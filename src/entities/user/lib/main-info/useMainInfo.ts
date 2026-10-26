@@ -142,8 +142,10 @@ export const useMainInfo = () => {
     isError,
     isFetched,
   } = useGetMainInfoQuery();
-  const { data: hasReconsentRequiredTerms = false } =
-    useGetReconsentRequiredExistsApiQuery();
+  const {
+    data: hasReconsentRequiredTerms = false,
+    isFetched: isReconsentRequiredInitialized,
+  } = useGetReconsentRequiredExistsApiQuery();
   const { data: userStatusData, isFetched: isUserStatusInitialized } =
     useGetUserStatusApiQuery();
   const visibleMenus = useMemo(
@@ -254,6 +256,7 @@ export const useMainInfo = () => {
     userInfo,
     partnerInfo,
     hasReconsentRequiredTerms,
+    isReconsentRequiredInitialized,
     userStatusData,
     isUserStatusInitialized,
     mainMenus,

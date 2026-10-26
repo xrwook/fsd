@@ -15,6 +15,7 @@ export const AppRouter = () => {
   const {
     hasReconsentRequiredTerms,
     isMainInfoInitialized,
+    isReconsentRequiredInitialized,
     isUserStatusInitialized,
     mainInfoError,
     userInfo,
@@ -23,7 +24,12 @@ export const AppRouter = () => {
   const mainInfoErrorPageType = mainInfoError
     ? classifyApiError(mainInfoError, "approvalPending")
     : null;
-  const resolvedApiErrorPageType = mainInfoErrorPageType ?? apiErrorPageType;
+  const isMainInfoReady =
+    isMainInfoInitialized &&
+    isReconsentRequiredInitialized &&
+    isUserStatusInitialized;
+  const resolvedApiErrorPageType =
+    mainInfoErrorPageType ?? (isMainInfoReady ? apiErrorPageType : null);
   const apiErrorPath = resolvedApiErrorPageType
     ? API_ERROR_PAGE_PATHS[resolvedApiErrorPageType]
     : null;
