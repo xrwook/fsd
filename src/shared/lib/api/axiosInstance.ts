@@ -6,10 +6,17 @@ import { getKeycloakAccessToken } from "@/shared/lib/keycloak";
 import { SCREEN_ID_HEADER } from "./constants";
 import { getRequestScreenId } from "./requestContext";
 
+const apiBaseUrl =
+  !import.meta.env.DEV &&
+  import.meta.env.MODE !== "dev" &&
+  import.meta.env.VITE_BUILD_TARGET === "internal"
+    ? "/v1/backoffice"
+    : import.meta.env.VITE_API_URL;
+
 export const defaultAxios = axios.create({
   baseURL: IS_MOCK_MODE
     ? `${window.location.origin}/api`
-    : `${import.meta.env.VITE_API_URL}/api`,
+    : apiBaseUrl,
 });
 
 defaultAxios.interceptors.request.use(

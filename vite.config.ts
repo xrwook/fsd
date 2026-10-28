@@ -16,6 +16,7 @@ export default defineConfig(({ command, mode }) => {
     process.env.VITE_BUILD_TARGET ?? env.VITE_BUILD_TARGET ?? "internal";
   const buildTarget =
     command === "serve" || mode === "dev" ? "internal" : requestedBuildTarget;
+  const isDevelopmentRuntime = command === "serve" || mode === "dev";
 
   if (buildTarget !== "internal" && buildTarget !== "external") {
     throw new Error(
@@ -23,9 +24,14 @@ export default defineConfig(({ command, mode }) => {
     );
   }
 
+  const apiUrl =
+    !isDevelopmentRuntime && buildTarget === "internal"
+      ? "/v1/backoffice"
+      : env.VITE_API_URL;
   const resolvedEnv = {
     ...env,
     VITE_BUILD_TARGET: buildTarget,
+    VITE_API_URL: apiUrl,
   };
 
   return {
@@ -58,6 +64,7 @@ export default defineConfig(({ command, mode }) => {
     },
     define: {
       "import.meta.env.VITE_BUILD_TARGET": JSON.stringify(buildTarget),
+      "import.meta.env.VITE_API_URL": JSON.stringify(apiUrl),
       "process.env": JSON.stringify({ ...resolvedEnv, MODE: mode }),
     },
     server: {
