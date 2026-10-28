@@ -24,12 +24,11 @@ export const AppRouter = () => {
   const mainInfoErrorPageType = mainInfoError
     ? classifyApiError(mainInfoError, "approvalPending")
     : null;
-  const isMainInfoReady =
-    isMainInfoInitialized &&
-    isReconsentRequiredInitialized &&
-    isUserStatusInitialized;
+  const isSystemError =
+    apiErrorPageType === "temporary" || apiErrorPageType === "network";
   const resolvedApiErrorPageType =
-    mainInfoErrorPageType ?? (isMainInfoReady ? apiErrorPageType : null);
+    mainInfoErrorPageType ??
+    (isMainInfoInitialized || isSystemError ? apiErrorPageType : null);
   const apiErrorPath = resolvedApiErrorPageType
     ? API_ERROR_PAGE_PATHS[resolvedApiErrorPageType]
     : null;
@@ -48,6 +47,7 @@ export const AppRouter = () => {
 
   if (
     isMainInfoInitialized &&
+    isReconsentRequiredInitialized &&
     hasReconsentRequiredTerms &&
     import.meta.env.MODE !== "bo" &&
     location.pathname !== ACCESS_PAGE_PATHS.termsReconsent
