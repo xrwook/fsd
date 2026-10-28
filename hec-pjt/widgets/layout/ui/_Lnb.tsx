@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 
 import type { TMenuPermission } from '@/entities/user';
 import { useMainInfo } from '@/entities/user';
+import type { ScreenIdValues } from '@/shared/config';
 import { navigateToScreen } from '@/shared/lib/navigation/navigation';
 
 import { findTopMenuByPath, isPathMatched } from '../lib/menuPath';
@@ -16,24 +17,31 @@ import { findTopMenuByPath, isPathMatched } from '../lib/menuPath';
 interface Props {
   manualCollapsed: boolean;
   setManualCollapsed: (value: boolean) => void;
+  navigation: ScreenIdValues | null;
 
   drawerOpen: boolean;
   setDrawerOpen: (value: boolean) => void;
   showPersistentLnb?: boolean;
+  /** true면 전체 메뉴, false면 현재 대메뉴의 자식 메뉴만 표시합니다. */
+  isCompact?: boolean;
 }
 
 export const Lnb = ({
   manualCollapsed,
   setManualCollapsed,
+  navigation,
   drawerOpen,
   setDrawerOpen,
   showPersistentLnb,
+  isCompact = true,
 }: Props) => {
   // const { headerMenus } = useMainInfo();
   const { sidebarHidden, sidebarCollapsed } = useNavigationBreakpoint();
   const { menuPermissions, canAccessMenu, canAccessMenuGroup } = useMainInfo();
   const location = useLocation();
-  const activeTopMenu = findTopMenuByPath(menuPermissions, location.pathname);
+  const activeTopMenu =
+    findTopMenuByPath(menuPermissions, location.pathname) ??
+    menuPermissions.find((menu) => menu.screenId === navigation);
   const activeTopMenuId = activeTopMenu?.screenId ?? null;
   const [expandedTopMenuId, setExpandedTopMenuId] = useState<string | null>(
     activeTopMenuId,
@@ -46,6 +54,9 @@ export const Lnb = ({
   const collapsed = sidebarHidden
     ? false
     : (manualCollapsed ?? sidebarCollapsed);
+  const visibleMenus = isCompact
+    ? menuPermissions
+    : (activeTopMenu?.children ?? []);
 
   const renderMenus = (item: TMenuPermission, level = 0) => {
     const children = (item.children ?? []).filter((child) => {
@@ -105,7 +116,9 @@ export const Lnb = ({
           className="h-full"
         >
           <NavigationMenuWrapper>
-            {menuPermissions.map((item) => renderMenus(item))}
+            {visibleMenus.map((item) =>
+              renderMenus(item, isCompact ? 0 : 1),
+            )}
           </NavigationMenuWrapper>
         </NavigationSidebar>
       )}
@@ -120,7 +133,9 @@ export const Lnb = ({
           // hidden={manualCollapsed}
         >
           <NavigationMenuWrapper>
-            {menuPermissions.map((item) => renderMenus(item))}
+            {visibleMenus.map((item) =>
+              renderMenus(item, isCompact ? 0 : 1),
+            )}
           </NavigationMenuWrapper>
         </NavigationSidebar>
       )}

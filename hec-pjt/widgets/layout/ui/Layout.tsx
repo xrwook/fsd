@@ -8,6 +8,9 @@ import { Header } from './_Header';
 import { Lnb } from './_Lnb';
 
 type LayoutType = 'default' | 'noHeader' | 'noLnb';
+type LayoutProps = PropsWithChildren<{
+  isCompact?: boolean;
+}>;
 
 // 헤더 + Lnb 둘다 없는 풀페이지
 const NO_HEADER_PATHS = new Set(['']);
@@ -24,7 +27,7 @@ const getLayoutType = (pathname: string): LayoutType => {
   return 'default';
 };
 
-export const Layout = ({ children }: PropsWithChildren) => {
+export const Layout = ({ children, isCompact = true }: LayoutProps) => {
   const [manualCollapsed, setManualCollapsed] = useState<boolean>(false);
   const { sidebarHidden } = useNavigationBreakpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -68,9 +71,11 @@ export const Layout = ({ children }: PropsWithChildren) => {
         <Lnb
           manualCollapsed={manualCollapsed}
           setManualCollapsed={setManualCollapsed}
+          navigation={navigation}
           drawerOpen={drawerOpen}
           setDrawerOpen={setDrawerOpen}
           showPersistentLnb={showPersistentLnb}
+          isCompact={isCompact}
         />
         <div className="flex flex-1 flex-col">
           <main className="flex-1 overflow-auto">{children}</main>
