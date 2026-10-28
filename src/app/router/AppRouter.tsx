@@ -7,6 +7,7 @@ import {
   classifyApiError,
   useApiErrorPageStore,
 } from "@/shared/lib/api-error";
+import { isKeycloakRedirecting } from "@/shared/lib/keycloak";
 
 import { DynamicMenuRoute } from "./DynamicMenuRoute";
 
@@ -29,9 +30,14 @@ export const AppRouter = () => {
   const resolvedApiErrorPageType =
     mainInfoErrorPageType ??
     (isMainInfoInitialized || isSystemError ? apiErrorPageType : null);
-  const apiErrorPath = resolvedApiErrorPageType
-    ? API_ERROR_PAGE_PATHS[resolvedApiErrorPageType]
-    : null;
+
+  const apiErrorPath = (() => {
+    if (isKeycloakRedirecting() || !resolvedApiErrorPageType) {
+      return null;
+    }
+
+    return API_ERROR_PAGE_PATHS[resolvedApiErrorPageType];
+  })();
 
   if (apiErrorPath && location.pathname !== apiErrorPath) {
     return (
