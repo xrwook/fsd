@@ -49,7 +49,7 @@ export const Lnb = ({
 
   useEffect(() => {
     setExpandedTopMenuId(activeTopMenuId);
-  }, [activeTopMenuId]);
+  }, [activeTopMenuId, isCompact]);
 
   const collapsed = sidebarHidden
     ? false
