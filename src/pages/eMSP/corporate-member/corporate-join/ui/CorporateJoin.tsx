@@ -58,11 +58,13 @@ const CorporateJoin = () => {
       <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
         <DateTimePicker
           value={new Date()}
-          // mode="time"
+          clearable
           onChange={(value) => console.log(value)}
-          dateFormat="yyyy-MM"
-          minDate={new Date("2026-08-20 15:00")}
-          showMonthYearPicker
+        />
+        <DateTimePicker
+          value={new Date()}
+          clearable
+          onChange={(value) => console.log(value)}
         />
       </section>
 
