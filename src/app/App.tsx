@@ -15,12 +15,21 @@ import { Suspense, useEffect, useState } from "react";
 import { APP_SIDEBAR_WIDTH, AppSidebar } from "@/app/layouts/app-sidebar";
 import { NavigationInitializer } from "@/app/providers/navigation-provider";
 import { AppRouter } from "@/app/router";
+import { AppAccessGuard } from "@/app/router/AppAccessGuard";
 import {
   forceRefreshKeycloakToken,
   getKeycloakTokenExpiresInSeconds,
 } from "@/shared/lib/keycloak";
 
 const App = () => {
+  return (
+    <AppAccessGuard>
+      <AppLayout />
+    </AppAccessGuard>
+  );
+};
+
+const AppLayout = () => {
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <NavigationInitializer />
