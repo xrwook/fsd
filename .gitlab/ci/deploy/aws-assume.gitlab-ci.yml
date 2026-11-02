@@ -18,6 +18,198 @@ stages:
   - build
   - deploy
 
+variables:
+  ARTIFACTS_PATH: 'dist'
+
+.build-common-before-script:
+  before_script:
+    - echo "🚀 빌드 준비 단계 시작..."
+    - |
+      if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
+        export MODE="prod"
+      elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
+        export MODE="stg"
+      elif [[ "$CI_COMMIT_REF_NAME" =~ "develop" ]]; then
+        export MODE="dev"
+      else
+        export MODE="error"
+      fi
+      echo "ENV: $MODE"
+    - corepack enable
+    - >
+      COREPACK_NPM_REGISTRY=https://nexus.auto-hmg.io/repository/npm-group
+      corepack prepare pnpm@9.6.0 --activate
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --no-frozen-lockfile
+    - echo "✅ 빌드 준비 단계 완료"
+
+.build-common:
+  extends: .build-common-before-script
+  image: node:24.16.0
+  interruptible: true
+  artifacts:
+    paths:
+      - $ARTIFACTS_PATH
+    expire_in: 1 hour
+    when: on_success
+    reports:
+      dotenv: build_id.env
+
+.deploy-s3-assume-role:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint: ['']
+  before_script:
+    - |
+      echo "🔐 AssumeRole 인증 시작..."
+      if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
+        ENV_SUFFIX="PRD"
+      elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
+        ENV_SUFFIX="STG"
+      else
+        ENV_SUFFIX="DEV"
+      fi
+      ACCESS_KEY_VAR="AWS_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
+      SECRET_KEY_VAR="AWS_SECRET_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
+      export AWS_ACCESS_KEY_ID="${!ACCESS_KEY_VAR}"
+      export AWS_SECRET_ACCESS_KEY="${!SECRET_KEY_VAR}"
+      aws sts get-caller-identity || {
+        echo "❌ AWS 기본 자격 증명 확인 실패"
+        exit 1
+      }
+
+      ASSUME_OUTPUT=$(aws sts assume-role \
+        --role-arn "$ROLE_ARN" \
+        --role-session-name "gitlab-${CI_PIPELINE_ID}" \
+        --external-id "$EXTERNAL_ID" \
+        --duration-seconds 3600 \
+        --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+        --output text)
+
+      if [ $? -ne 0 ]; then
+        echo "❌ AssumeRole 실행 실패"
+        exit 1
+      fi
+
+      read AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN <<< "$ASSUME_OUTPUT"
+
+      export AWS_ACCESS_KEY_ID
+      export AWS_SECRET_ACCESS_KEY
+      export AWS_SESSION_TOKEN
+
+      echo "✅ AssumeRole 인증 완료"
+    - |
+      echo "🚀 배포 준비 단계 시작..."
+      if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
+        export ENV_PROFILE="PRD"
+      elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
+        export ENV_PROFILE="STG"
+      elif [[ "$CI_COMMIT_REF_NAME" =~ "develop" ]]; then
+        export ENV_PROFILE="DEV"
+      else
+        export ENV_PROFILE="error"
+      fi
+      echo "🌎 환경: $ENV_PROFILE"
+      if [ -z "${S3_BUCKET:-}" ]; then
+        S3_BUCKET_VAR="S3_BUCKET_${ENV_PROFILE}"
+        export S3_BUCKET="${!S3_BUCKET_VAR}"
+      fi
+      echo "🪣 S3_BUCKET: $S3_BUCKET"
+      echo "✅ 배포 준비 단계 완료"
+  script:
+    - export
+    - 'echo "Deploying to S3: ${S3_BUCKET}"'
+
+    # METADATAS 처리를 위한 JSON 변환 로직
+    - |
+      if [ -n "${METADATAS}" ]; then
+        META_JSON="{"
+        IFS=';' read -ra META_ARR <<< "${METADATAS}"
+        for i in "${META_ARR[@]}"; do
+          KEY=$(echo $i | cut -d':' -f1)
+          VALUE=$(echo $i | cut -d':' -f2-)
+          META_JSON="${META_JSON}\"${KEY}\":\"${VALUE}\","
+        done
+        META_JSON="${META_JSON%,}}"
+      else
+        META_JSON="{}"
+      fi
+
+    # INCLUDE_PATH_PATTERN, EXCLUDE_PATH_PATTERN 적용
+    - |
+      EXCLUDE_OPTS=""
+      INCLUDE_OPTS=""
+      if [ -n "${EXCLUDE_PATH_PATTERN}" ]; then
+        EXCLUDE_OPTS="--exclude \"${EXCLUDE_PATH_PATTERN}\""
+      fi
+      if [ -n "${INCLUDE_PATH_PATTERN}" ]; then
+        INCLUDE_OPTS="--include \"${INCLUDE_PATH_PATTERN}\""
+      fi
+
+    # 콘텐츠 인코딩, 타입, 디스포지션 옵션 처리
+    - |
+      CONTENT_ENCODING_OPT=""
+      if [ -n "${CONTENT_ENCODING}" ]; then
+        CONTENT_ENCODING_OPT="--content-encoding \"${CONTENT_ENCODING}\""
+      fi
+
+      CONTENT_TYPE_OPT=""
+      if [ -n "${CONTENT_TYPE}" ]; then
+        CONTENT_TYPE_OPT="--content-type \"${CONTENT_TYPE}\""
+      fi
+
+      CONTENT_DISPOSITION_OPT=""
+      if [ -n "${CONTENT_DISPOSITION}" ]; then
+        CONTENT_DISPOSITION_OPT="--content-disposition \"${CONTENT_DISPOSITION}\""
+      fi
+
+      # favicon, robots.txt 등 기타 파일 캐시 (CI 변수 CACHE_CONTROL로 오버라이드 가능, 기본값 24h)
+      OTHER_CACHE_CONTROL="${CACHE_CONTROL:-public, max-age=86400}"
+
+    # 1단계: hashed assets 업로드 (content hash 포함 → 1년 immutable 캐시)
+    - |
+      if [ ! -d "${ARTIFACTS_PATH}/assets" ]; then
+        echo "❌ assets/ 디렉토리 없음 - 빌드 결과물 확인 필요"
+        exit 1
+      fi
+
+      aws s3 cp ${ARTIFACTS_PATH}/assets/ s3://${S3_BUCKET}/${TO_PATH}/assets/ \
+        --recursive \
+        --cache-control "public, max-age=31536000, immutable" \
+        ${CONTENT_ENCODING_OPT} \
+        --metadata "${META_JSON}"
+      echo "✅ assets/ 업로드 완료 (immutable 캐시)"
+
+    # 2단계: index.html 제외 나머지 파일 업로드
+    # CMD 문자열 내 단따옴표: eval 실행 시 word splitting 방지 (${META_JSON}은 CMD 빌드 시 이미 치환됨)
+    - |
+      CMD="aws s3 cp ${ARTIFACTS_PATH} s3://${S3_BUCKET}/${TO_PATH}/ \
+        --recursive \
+        --exclude 'assets/*' \
+        --exclude 'index.html' \
+        --exclude 'bundle-analyze.html' \
+        ${EXCLUDE_OPTS} \
+        ${INCLUDE_OPTS} \
+        --cache-control '${OTHER_CACHE_CONTROL}' \
+        ${CONTENT_ENCODING_OPT} \
+        ${CONTENT_TYPE_OPT} \
+        ${CONTENT_DISPOSITION_OPT} \
+        --metadata '${META_JSON}'"
+      echo "Running command: $CMD"
+      eval $CMD
+      echo "✅ 기타 파일 업로드 완료"
+
+    # 3단계: index.html 마지막 업로드 (atomic swap, no-cache)
+    - |
+      aws s3 cp ${ARTIFACTS_PATH}/index.html s3://${S3_BUCKET}/${TO_PATH}/index.html \
+        --cache-control "no-cache, no-store, must-revalidate" \
+        ${CONTENT_ENCODING_OPT} \
+        --metadata "${META_JSON}"
+      echo "✅ index.html 업로드 완료 (no-cache)"
+  after_script:
+    - unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+
 ####################################
 # stage: initialize
 ####################################
