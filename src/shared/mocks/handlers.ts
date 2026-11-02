@@ -56,7 +56,7 @@ export const handlers = [
   }),
 ];
 
-if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+if (import.meta.env.VITE_BUILD_TARGET === "emsp") {
   const MEMBER_LIST_MOCK = [
     { id: "1001", name: "김현대", status: "이용 중" },
     { id: "1002", name: "이모빌리티", status: "휴면" },

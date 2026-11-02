@@ -12,20 +12,18 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig(({ command, mode }) => {
   // Load specific .env file
   const env = loadEnv(mode, process.cwd(), ["VITE_"]);
-  const requestedBuildTarget =
-    process.env.VITE_BUILD_TARGET ?? env.VITE_BUILD_TARGET ?? "internal";
-  const buildTarget =
-    command === "serve" || mode === "dev" ? "internal" : requestedBuildTarget;
+  const requestedBuildTarget = process.env.VITE_BUILD_TARGET ?? env.VITE_BUILD_TARGET ?? "emsp";
+  const buildTarget = command === "serve" || mode === "dev" ? "emsp" : requestedBuildTarget;
   const isDevelopmentRuntime = command === "serve" || mode === "dev";
 
-  if (buildTarget !== "internal" && buildTarget !== "external") {
+  if (buildTarget !== "emsp" && buildTarget !== "cpos") {
     throw new Error(
-      `VITE_BUILD_TARGET must be "internal" or "external", received "${buildTarget}".`,
+      `VITE_BUILD_TARGET must be "emsp" or "cpos", received "${buildTarget}".`,
     );
   }
 
   const apiUrl =
-    !isDevelopmentRuntime && buildTarget === "internal"
+    !isDevelopmentRuntime && buildTarget === "emsp"
       ? "/v1/backoffice"
       : env.VITE_API_URL;
   const resolvedEnv = {
@@ -56,7 +54,7 @@ export default defineConfig(({ command, mode }) => {
       alias: {
         "@extra-page-routes/emsp": resolve(
           process.cwd(),
-          buildTarget === "internal"
+          buildTarget === "emsp"
             ? "src/app/router/extra-page-routes/emsp.ts"
             : "src/app/router/extra-page-routes/emsp.external.ts",
         ),

@@ -9,7 +9,7 @@ import { getRequestScreenId } from "./requestContext";
 const apiBaseUrl =
   !import.meta.env.DEV &&
   import.meta.env.MODE !== "dev" &&
-  import.meta.env.VITE_BUILD_TARGET === "internal"
+  import.meta.env.VITE_BUILD_TARGET === "emsp"
     ? "/v1/backoffice"
     : import.meta.env.VITE_API_URL;
 

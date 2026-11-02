@@ -16,7 +16,7 @@ const isEmspMenu = (menu: MenuData) => {
 };
 
 export const filterMenusForBuild = (menus: MenuData[]): MenuData[] => {
-  if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+  if (import.meta.env.VITE_BUILD_TARGET === "emsp") {
     return menus;
   }
 
@@ -243,7 +243,7 @@ const fallbackMenuTreeMock: MenuData[] = [
     canDownload: false,
     children: [],
   },
-  ...(import.meta.env.VITE_BUILD_TARGET === "internal"
+  ...(import.meta.env.VITE_BUILD_TARGET === "emsp"
     ? [
         {
           menuId: 13,

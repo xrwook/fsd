@@ -44,7 +44,7 @@ const menuIconMap: Partial<Record<string, SvgIconComponent>> = {
   [SCREEN_ID.PLATFORM_MANAGEMENT]: SettingsOutlined,
 };
 
-if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+if (import.meta.env.VITE_BUILD_TARGET === "emsp") {
   Object.assign(menuIconMap, {
     [SCREEN_ID.EMSP.EMSP]: GroupsOutlined,
     [SCREEN_ID.EMSP.MEMBER_MANAGEMENT]: GroupsOutlined,

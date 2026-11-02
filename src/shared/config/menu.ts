@@ -38,13 +38,13 @@ type ScreenIdConfig = typeof commonScreenId & {
   readonly EMSP: EmspScreenId;
 };
 
-// Build target is optional outside Vite. Treat an omitted target as internal
-// so internal-only modules do not fail during local development.
-const isInternalBuild = import.meta.env.VITE_BUILD_TARGET !== "external";
+// Build target is optional outside Vite. Treat an omitted target as emsp
+// so emsp-only modules do not fail during local development.
+const isEmspBuild = import.meta.env.VITE_BUILD_TARGET !== "cpos";
 
 export const SCREEN_ID = {
   ...commonScreenId,
-  ...(isInternalBuild
+  ...(isEmspBuild
     ? {
         EMSP: emspScreenId,
       }

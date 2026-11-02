@@ -1,17 +1,17 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const [target = "internal", mode = "prod"] = process.argv.slice(2);
-const validTargets = new Set(["internal", "external"]);
+const [target = "emsp", mode = "prod"] = process.argv.slice(2);
+const validTargets = new Set(["emsp", "cpos"]);
 
 if (!validTargets.has(target)) {
   console.error(
-    `Invalid build target "${target}". Use "internal" or "external".`,
+    `Invalid build target "${target}". Use "emsp" or "cpos".`,
   );
   process.exit(1);
 }
 
-const effectiveTarget = mode === "dev" ? "internal" : target;
+const effectiveTarget = mode === "dev" ? "emsp" : target;
 
 const viteCli = fileURLToPath(
   new URL("../node_modules/vite/bin/vite.js", import.meta.url),

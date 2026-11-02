@@ -16,7 +16,7 @@ const pageMap: TPageMap = {
   ),
 };
 
-if (import.meta.env.VITE_BUILD_TARGET === "internal") {
+if (import.meta.env.VITE_BUILD_TARGET === "emsp") {
   Object.assign(pageMap, {
     [SCREEN_ID.EMSP.MEMBER_INFO]: lazy(
       () => import("@/pages/eMSP/member-management/member-info"),
