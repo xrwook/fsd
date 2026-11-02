@@ -1,0 +1,4 @@
+# 모든 CI 파일에서 공통으로 사용하는 기본 설정
+default:
+  tags:
+    - shared-docker-01
