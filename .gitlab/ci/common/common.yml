@@ -104,7 +104,7 @@ variables:
       echo "✅ 배포 준비 단계 완료"
   script:
     - export
-    - echo "Deploying to S3: ${S3_BUCKET}"
+    - 'echo "Deploying to S3: ${S3_BUCKET}"'
 
     # METADATAS 처리를 위한 JSON 변환 로직
     - |
