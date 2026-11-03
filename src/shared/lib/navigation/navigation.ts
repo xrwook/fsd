@@ -1,4 +1,9 @@
-import type { NavigateFunction, NavigateOptions, To } from "react-router-dom";
+import type {
+  Location,
+  NavigateFunction,
+  NavigateOptions,
+  To,
+} from "react-router-dom";
 
 import type { ScreenIdValues } from "@/shared/config";
 
@@ -20,6 +25,7 @@ export type ScreenRouteResolver = (
 ) => To | null;
 export type ScreenNavigateOptions = NavigateOptions & {
   pathParams?: ScreenRoutePathParams;
+  /** 목적지에 전달하며, 새 history entry로 이동할 때 출발 화면에도 저장합니다. */
   queryParams?: ScreenRouteQueryParams;
 };
 
@@ -27,6 +33,7 @@ const EXTERNAL_URL_PROTOCOL_PATTERN = /^(https?:\/\/|mailto:|tel:)/i;
 const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//;
 
 let navigateFunction: NavigateFunction | null = null;
+let navigationLocation: Location | null = null;
 let screenRouteResolver: ScreenRouteResolver | null = null;
 const searchByPath = new Map<string, string>();
 
@@ -221,8 +228,12 @@ export const getRememberedNavigationSearch = (to: To) => {
 };
 
 /** app 레이어의 NavigationInitializer가 React Router navigate 함수를 주입할 때 사용합니다. */
-export const initNavigation = (navigate: NavigateFunction) => {
+export const initNavigation = (
+  navigate: NavigateFunction,
+  location: Location,
+) => {
   navigateFunction = navigate;
+  navigationLocation = location;
 };
 
 /** app 레이어의 NavigationInitializer가 API 메뉴 기반 screenId route resolver를 주입할 때 사용합니다. */
@@ -234,6 +245,7 @@ export const initScreenRouteResolver = (resolver: ScreenRouteResolver) => {
 export const clearNavigation = (navigate?: NavigateFunction) => {
   if (!navigate || navigateFunction === navigate) {
     navigateFunction = null;
+    navigationLocation = null;
   }
 };
 
@@ -310,7 +322,47 @@ export const navigateToScreen = (
     return;
   }
 
+  if (options?.queryParams !== undefined && !options.replace) {
+    return navigateWithPreservedQueryParams(path, options);
+  }
+
   navigateTo(path, getNavigateOptions(options));
+};
+
+/** 전달받은 쿼리를 출발 화면의 history entry에도 저장한 뒤 목적지로 이동합니다. */
+const navigateWithPreservedQueryParams = async (
+  path: To,
+  options: ScreenNavigateOptions,
+) => {
+  const navigate = getNavigationInit();
+  const location = navigationLocation;
+
+  if (!navigate || !location || !guardInternalTo(path)) {
+    return;
+  }
+
+  const returnSearch = mergeSearchWithQueryParams(
+    location.search,
+    options.queryParams,
+  );
+
+  if (returnSearch !== location.search) {
+    await navigate(
+      {
+        pathname: location.pathname,
+        search: returnSearch,
+        hash: location.hash,
+      },
+      {
+        replace: true,
+        state: location.state,
+        preventScrollReset: true,
+        flushSync: true,
+      },
+    );
+  }
+
+  await navigate(path, getNavigateOptions(options));
 };
 
 /** 내부 React Router 경로로 현재 history entry를 대체하며 이동합니다. */

@@ -70,6 +70,113 @@ afterEach(() => {
 });
 
 describe("navigation query restoration", () => {
+  it("목록 URL에 없던 선택 값을 저장한 뒤 상세로 이동하고 뒤로가기로 복원한다", async () => {
+    const router = mountRouter(["/members"]);
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "1" },
+        queryParams: { position: "MAIN" },
+      }),
+    );
+    expect(router.state.location).toMatchObject({
+      pathname: "/members/1",
+      search: "?position=MAIN",
+    });
+
+    await act(() => goBack());
+    expect(router.state.location).toMatchObject({
+      pathname: "/members",
+      search: "?position=MAIN",
+    });
+
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "2" },
+        queryParams: { position: "SUB" },
+      }),
+    );
+    await act(() => router.navigate(-1));
+    expect(router.state.location.search).toBe("?position=SUB");
+  });
+
+  it("복귀 쿼리는 실제 history에 저장하며 기존 쿼리, hash, state를 유지한다", async () => {
+    const router = mountRouter([
+      "/before",
+      "/members?page=2&position=OLD#list",
+    ]);
+    await act(() =>
+      router.navigate(router.state.location, {
+        replace: true,
+        state: { from: "menu" },
+      }),
+    );
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "1" },
+        queryParams: { position: "MAIN", tab: "detail" },
+        state: { from: "row" },
+      }),
+    );
+    expect(router.state.location.state).toEqual({ from: "row" });
+
+    // Initializer와 메모리 캐시 없이도 history 자체에 목록 쿼리가 남아야 합니다.
+    cleanup();
+    clearScreenRouteResolver();
+    await router.navigate(-1);
+    expect(router.state.location).toMatchObject({
+      pathname: "/members",
+      search: "?page=2&position=MAIN&tab=detail",
+      hash: "#list",
+      state: { from: "menu" },
+    });
+    await router.navigate(-1);
+    expect(router.state.location.pathname).toBe("/before");
+  });
+
+  it("queryParams를 생략하면 출발 화면의 기존 쿼리를 그대로 유지한다", async () => {
+    const router = mountRouter(["/members?position=MAIN"]);
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "1" },
+      }),
+    );
+    expect(router.state.location.search).toBe("");
+    await act(() => goBack());
+    expect(router.state.location.search).toBe("?position=MAIN");
+  });
+
+  it("출발 화면에도 쿼리 삭제와 배열 값을 반영한다", async () => {
+    const router = mountRouter(["/members?position=OLD&page=2"]);
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "1" },
+        queryParams: { position: null, tag: ["A", "B"], active: false },
+      }),
+    );
+    expect(router.state.location.search).toBe("?tag=A&tag=B&active=false");
+    await act(() => goBack());
+    expect(router.state.location.search).toBe(
+      "?page=2&tag=A&tag=B&active=false",
+    );
+  });
+
+  it("replace 이동은 출발 화면을 남기거나 history를 추가하지 않는다", async () => {
+    const router = mountRouter(["/before", "/members"]);
+    await act(() =>
+      navigateToScreen("emsp-member-info-detail", {
+        pathParams: { id: "1" },
+        queryParams: { position: "MAIN" },
+        replace: true,
+      }),
+    );
+    expect(router.state.location).toMatchObject({
+      pathname: "/members/1",
+      search: "?position=MAIN",
+    });
+    await act(() => goBack());
+    expect(router.state.location.pathname).toBe("/before");
+  });
+
   it("버튼과 뒤로가기 모두 마지막 쿼리를 사용하고 과거 값으로 화면을 렌더링하지 않는다", async () => {
     const router = mountRouter();
     await act(() => router.navigate("/other"));

@@ -121,12 +121,12 @@ export const NavigationInitializer = ({
   );
 
   useLayoutEffect(() => {
-    initNavigation(navigate);
+    initNavigation(navigate, location);
 
     return () => {
       clearNavigation(navigate);
     };
-  }, [navigate]);
+  }, [navigate, location]);
 
   useLayoutEffect(() => {
     if (!isMainInfoInitialized) {

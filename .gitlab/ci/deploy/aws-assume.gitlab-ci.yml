@@ -204,6 +204,15 @@ build prd cpos:
       if [ -z "${S3_BUCKET:-}" ]; then
         S3_BUCKET="S3_BUCKET_${ENV_PROFILE}"
       fi
+      if [[ ! "$S3_BUCKET" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ ]]; then
+        echo "❌ S3_BUCKET에는 실제 버킷명이 아닌 CI 변수명이 필요합니다. S3_BUCKET 재정의 여부를 확인하세요."
+        exit 1
+      fi
+      if [ -z "${!S3_BUCKET}" ]; then
+        echo "❌ ${S3_BUCKET} 값이 비어 있습니다. CI 변수의 값, Environment scope, Protected 설정을 확인하세요."
+        echo "job=${CI_JOB_NAME} environment=${CI_ENVIRONMENT_NAME} ref=${CI_COMMIT_REF_NAME} protected=${CI_COMMIT_REF_PROTECTED}"
+        exit 1
+      fi
   script:
     - export
     - echo 'Deploying to S3:' ${!S3_BUCKET}
