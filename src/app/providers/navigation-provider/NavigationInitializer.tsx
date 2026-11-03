@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { type ReactNode, useCallback, useLayoutEffect, useMemo } from "react";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 
 import { extraPageRoutes } from "@/app/router/extra-page-routes";
 import type { TMenuPermission } from "@/entities/user";
@@ -9,8 +9,10 @@ import { API_ERROR_PAGE_PATHS } from "@/shared/lib/api-error";
 import {
   clearNavigation,
   clearScreenRouteResolver,
+  getRememberedNavigationSearch,
   initNavigation,
   initScreenRouteResolver,
+  rememberNavigationSearch,
   type ScreenRoutePathParams,
 } from "@/shared/lib/navigation";
 import { flattenTree } from "@/shared/lib/utils";
@@ -48,10 +50,7 @@ const createScreenPathMap = (menuPermissions: TMenuPermission[]) => {
   return screenPathMap;
 };
 
-const applyPathParams = (
-  path: string,
-  pathParams?: ScreenRoutePathParams,
-) => {
+const applyPathParams = (path: string, pathParams?: ScreenRoutePathParams) => {
   const missingParamNames = new Set<string>();
   const resolvedPath = path.replaceAll(
     PATH_PARAM_PATTERN,
@@ -80,8 +79,19 @@ const applyPathParams = (
   return resolvedPath;
 };
 
-export const NavigationInitializer = () => {
+export const NavigationInitializer = ({
+  children,
+}: {
+  children?: ReactNode;
+}) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const rememberedSearch = getRememberedNavigationSearch(location);
+  const shouldRestoreSearch =
+    navigationType === "POP" &&
+    rememberedSearch !== undefined &&
+    rememberedSearch !== location.search;
   const { menuPermissions, isMainInfoInitialized } = useMainInfo();
   const screenPathMap = useMemo(
     () => createScreenPathMap(menuPermissions),
@@ -110,7 +120,7 @@ export const NavigationInitializer = () => {
     [isMainInfoInitialized, navigate, screenPathMap],
   );
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     initNavigation(navigate);
 
     return () => {
@@ -118,7 +128,7 @@ export const NavigationInitializer = () => {
     };
   }, [navigate]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isMainInfoInitialized) {
       clearScreenRouteResolver();
       return;
@@ -131,5 +141,23 @@ export const NavigationInitializer = () => {
     };
   }, [isMainInfoInitialized, resolveScreenPath]);
 
-  return null;
+  useLayoutEffect(() => {
+    if (shouldRestoreSearch) {
+      // POP으로 복원된 과거 쿼리가 마지막 값을 덮어쓰지 않도록 먼저 대체합니다.
+      void navigate(
+        {
+          pathname: location.pathname,
+          search: rememberedSearch,
+          hash: location.hash,
+        },
+        { replace: true, state: location.state },
+      );
+      return;
+    }
+
+    rememberNavigationSearch(location);
+  }, [location, navigate, rememberedSearch, shouldRestoreSearch]);
+
+  // 화면이 과거 쿼리로 필터를 초기화하거나 API를 호출하지 않도록 복원을 기다립니다.
+  return shouldRestoreSearch ? null : children;
 };

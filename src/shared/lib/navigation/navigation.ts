@@ -28,7 +28,7 @@ const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//;
 
 let navigateFunction: NavigateFunction | null = null;
 let screenRouteResolver: ScreenRouteResolver | null = null;
-const screenSearchById = new Map<ScreenIdValues, string>();
+const searchByPath = new Map<string, string>();
 
 /** navigation service 내부 오류를 앱 런타임을 중단하지 않는 방식으로 알립니다. */
 const reportNavigationError = (message: string) => {
@@ -81,7 +81,7 @@ const guardInternalTo = (to: To) => {
   return false;
 };
 
-/** screen 이동 옵션에서 React Router navigate에 전달하지 않을 pathParams만 제거합니다. */
+/** screen 이동 옵션에서 React Router 전용이 아닌 옵션을 제거합니다. */
 const getNavigateOptions = (options?: ScreenNavigateOptions) => {
   if (!options) {
     return;
@@ -197,27 +197,27 @@ const applySearchTo = (to: To, search: string): To => {
   };
 };
 
-/** screenId별 마지막 search를 기록/해제합니다. */
-const syncScreenSearchMemory = (
-  screenId: ScreenIdValues,
-  path: To,
-  queryParams?: ScreenRouteQueryParams,
-) => {
-  const search = getToSearch(path);
+/** path params가 적용된 실제 경로별로 쿼리를 구분합니다. */
+const getSearchMemoryKey = (to: To) => {
+  const path = getStringPath(to);
 
-  if (queryParams !== undefined) {
-    if (search) {
-      screenSearchById.set(screenId, search);
-      return;
-    }
+  return path?.split(/[?#]/, 1)[0];
+};
 
-    screenSearchById.delete(screenId);
-    return;
+/** 실제 URL의 마지막 search를 기록합니다. 쿼리 삭제도 빈 문자열로 기억합니다. */
+export const rememberNavigationSearch = (to: To) => {
+  const key = getSearchMemoryKey(to);
+
+  if (key) {
+    searchByPath.set(key, getToSearch(to));
   }
+};
 
-  if (search) {
-    screenSearchById.set(screenId, search);
-  }
+/** 아직 방문하지 않은 경로는 undefined, 쿼리를 지운 경로는 빈 문자열을 반환합니다. */
+export const getRememberedNavigationSearch = (to: To) => {
+  const key = getSearchMemoryKey(to);
+
+  return key ? searchByPath.get(key) : undefined;
 };
 
 /** app 레이어의 NavigationInitializer가 React Router navigate 함수를 주입할 때 사용합니다. */
@@ -241,7 +241,7 @@ export const clearNavigation = (navigate?: NavigateFunction) => {
 export const clearScreenRouteResolver = (resolver?: ScreenRouteResolver) => {
   if (!resolver || screenRouteResolver === resolver) {
     screenRouteResolver = null;
-    screenSearchById.clear();
+    searchByPath.clear();
   }
 };
 
@@ -290,9 +290,9 @@ const screenPath = (
     return pathWithQuery;
   }
 
-  const rememberedSearch = screenSearchById.get(screenId);
+  const rememberedSearch = getRememberedNavigationSearch(pathWithQuery);
 
-  if (!rememberedSearch || getToSearch(pathWithQuery)) {
+  if (rememberedSearch === undefined || getToSearch(pathWithQuery)) {
     return pathWithQuery;
   }
 
@@ -309,8 +309,6 @@ export const navigateToScreen = (
   if (!path) {
     return;
   }
-
-  syncScreenSearchMemory(screenId, path, options?.queryParams);
 
   navigateTo(path, getNavigateOptions(options));
 };
@@ -339,8 +337,6 @@ export const replaceToScreen = (
   if (!path) {
     return;
   }
-
-  syncScreenSearchMemory(screenId, path, options?.queryParams);
 
   replaceTo(path, getNavigateOptions(options));
 };

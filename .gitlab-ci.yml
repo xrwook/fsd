@@ -1,0 +1,59 @@
+include:
+  - local: '.gitlab/ci/common.yml'
+
+stages:
+  - merge-request
+  - danger
+  - workflow-ai
+  - validate-release-label
+  - deploy
+  - quality-scan
+  - workflow-tag
+
+workflow-ai:
+  stage: workflow-ai
+  allow_failure: true
+  trigger:
+    include: .gitlab/ci/common/workflow-ai.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+    - when: never
+
+validate-release-label:
+  stage: validate-release-label
+  trigger:
+    include: .gitlab/ci/common/validate-release-label.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
+      when: on_success
+    - when: never
+
+quality-scan:
+  stage: quality-scan
+  trigger:
+    include: .gitlab/ci/common/quality-scan.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "stage" || $CI_COMMIT_BRANCH == "quality"'
+      when: always
+
+workflow-tag:
+  stage: workflow-tag
+  trigger:
+    include: .gitlab/ci/common/workflow-tag.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: always
+
+deploy:
+  stage: deploy
+  trigger:
+    include: .gitlab/ci/deploy/aws-assume.gitlab-ci.yml
+    strategy: depend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(develop|main)$/ || $CI_COMMIT_TAG =~ /^hotfix\//'
+      when: always
