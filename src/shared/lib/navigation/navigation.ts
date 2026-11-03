@@ -8,12 +8,23 @@ import type { ScreenIdValues } from "@/shared/config";
 
 export type ExternalNavigationTarget = "_self" | "_blank";
 export type ScreenRoutePathParams = Record<string, string | number>;
+export type ScreenRouteQueryParamValue =
+  | string
+  | number
+  | boolean
+  | null
+  | undefined;
+export type ScreenRouteQueryParams = Record<
+  string,
+  ScreenRouteQueryParamValue | ScreenRouteQueryParamValue[]
+>;
 export type ScreenRouteResolver = (
   screenId: ScreenIdValues,
   pathParams?: ScreenRoutePathParams,
 ) => To | null;
 export type ScreenNavigateOptions = NavigateOptions & {
   pathParams?: ScreenRoutePathParams;
+  queryParams?: ScreenRouteQueryParams;
 };
 
 const EXTERNAL_URL_PROTOCOL_PATTERN = /^(https?:\/\/|mailto:|tel:)/i;
@@ -81,8 +92,72 @@ const getNavigateOptions = (options?: ScreenNavigateOptions) => {
 
   const navigateOptions = { ...options };
   delete navigateOptions.pathParams;
+  delete navigateOptions.queryParams;
 
   return navigateOptions;
+};
+
+/** URLSearchParams에 query params를 병합한 search 문자열을 만듭니다. */
+const mergeSearchWithQueryParams = (
+  search: string,
+  queryParams?: ScreenRouteQueryParams,
+) => {
+  if (!queryParams) {
+    return search;
+  }
+
+  const normalizedSearch = search.startsWith("?") ? search.slice(1) : search;
+  const searchParams = new URLSearchParams(normalizedSearch);
+
+  for (const [key, value] of Object.entries(queryParams)) {
+    searchParams.delete(key);
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item == null) {
+          continue;
+        }
+
+        searchParams.append(key, String(item));
+      }
+
+      continue;
+    }
+
+    if (value == null) {
+      continue;
+    }
+
+    searchParams.set(key, String(value));
+  }
+
+  const nextSearch = searchParams.toString();
+
+  return nextSearch ? `?${nextSearch}` : "";
+};
+
+/** 해석된 screen 경로(To)에 query params를 병합합니다. */
+const appendScreenQueryParams = (
+  path: To,
+  queryParams?: ScreenRouteQueryParams,
+): To => {
+  if (!queryParams) {
+    return path;
+  }
+
+  if (typeof path === "string") {
+    const [pathWithoutHash = "", hash = ""] = path.split("#", 2);
+    const [pathname = "", search = ""] = pathWithoutHash.split("?", 2);
+    const nextSearch = mergeSearchWithQueryParams(search, queryParams);
+    const hashSuffix = hash ? `#${hash}` : "";
+
+    return `${pathname}${nextSearch}${hashSuffix}`;
+  }
+
+  return {
+    ...path,
+    search: mergeSearchWithQueryParams(path.search ?? "", queryParams),
+  };
 };
 
 /** app 레이어의 NavigationInitializer가 React Router navigate 함수를 주입할 때 사용합니다. */
@@ -136,6 +211,7 @@ export const navigateTo = (to: To, options?: NavigateOptions) => {
 const screenPath = (
   screenId: ScreenIdValues,
   pathParams?: ScreenRoutePathParams,
+  queryParams?: ScreenRouteQueryParams,
 ) => {
   const resolver = getScreenRouteResolver();
 
@@ -149,7 +225,7 @@ const screenPath = (
     return null;
   }
 
-  return path;
+  return appendScreenQueryParams(path, queryParams);
 };
 
 /** API 메뉴에서 받은 screenId 기준으로 SPA 페이지 이동을 수행합니다. */
@@ -157,7 +233,11 @@ export const navigateToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = screenPath(screenId, options?.pathParams);
+  const path = screenPath(
+    screenId,
+    options?.pathParams,
+    options?.queryParams,
+  );
 
   if (!path) {
     return;
@@ -185,7 +265,11 @@ export const replaceToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = screenPath(screenId, options?.pathParams);
+  const path = screenPath(
+    screenId,
+    options?.pathParams,
+    options?.queryParams,
+  );
 
   if (!path) {
     return;

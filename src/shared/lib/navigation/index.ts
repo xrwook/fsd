@@ -1,6 +1,8 @@
 export type {
   ExternalNavigationTarget,
   ScreenNavigateOptions,
+  ScreenRouteQueryParams,
+  ScreenRouteQueryParamValue,
   ScreenRoutePathParams,
   ScreenRouteResolver,
 } from "./navigation";
