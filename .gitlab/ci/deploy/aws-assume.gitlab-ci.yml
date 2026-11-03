@@ -21,32 +21,63 @@ stages:
 variables:
   ARTIFACTS_PATH: 'dist'
 
-.build-common-before-script:
+.build-common-before-script: &build-common-before-script
+  - |
+    if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
+      export MODE="prod"
+    elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
+      export MODE="stg"
+    elif [[ "$CI_COMMIT_REF_NAME" =~ "develop" ]]; then
+      export MODE="dev"
+    else
+      export MODE="error"
+    fi
+    echo "ENV: $MODE"
+  - corepack enable
+  - >
+    COREPACK_NPM_REGISTRY=https://nexus.auto-hmg.io/repository/npm-group
+    corepack prepare pnpm@9.6.0 --activate
+  - pnpm config set store-dir .pnpm-store
+  - pnpm install --no-frozen-lockfile
+
+####################################################################################
+# stage: initialize
+####################################################################################
+
+initialize:
+  stage: initialize
+  image: 'node:24.16.0'
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(develop|stage|main)$/
+      when: always
+  script:
+    - node .gitlab/scripts/workflow-initialize.cjs --output=workflow-variables.env --gitlab-base-url="$CI_SERVER_URL"
+  artifacts:
+    reports:
+      dotenv: workflow-variables.env
+
+####################################################################################
+# stage: build
+####################################################################################
+
+build: &build-common
+  stage: build
+  image: node:24.16.0
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+      when: always
+    - if: $CI_COMMIT_TAG =~ /^hotfix.*/
+      when: always
+  interruptible: true
   before_script:
     - echo "🚀 빌드 준비 단계 시작..."
-    - |
-      if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
-        export MODE="prod"
-      elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
-        export MODE="stg"
-      elif [[ "$CI_COMMIT_REF_NAME" =~ "develop" ]]; then
-        export MODE="dev"
-      else
-        export MODE="error"
-      fi
-      echo "ENV: $MODE"
-    - corepack enable
-    - >
-      COREPACK_NPM_REGISTRY=https://nexus.auto-hmg.io/repository/npm-group
-      corepack prepare pnpm@9.6.0 --activate
-    - pnpm config set store-dir .pnpm-store
-    - pnpm install --no-frozen-lockfile
+    - *build-common-before-script
     - echo "✅ 빌드 준비 단계 완료"
-
-.build-common:
-  extends: .build-common-before-script
-  image: node:24.16.0
-  interruptible: true
+  script:
+    - echo "🏗️ $MODE 빌드 시작"
+    - pnpm run build:$MODE
+    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
+    - echo "✅ 빌드 완료"
   artifacts:
     paths:
       - $ARTIFACTS_PATH
@@ -55,52 +86,110 @@ variables:
     reports:
       dotenv: build_id.env
 
-.deploy-s3-assume-role:
+build stg emsp:
+  <<: *build-common
+  rules:
+    - if: $CI_COMMIT_BRANCH == "stage"
+      when: always
+  script:
+    - echo "🏗️ stg emsp 빌드 시작"
+    - pnpm run build:stg:emsp
+    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
+    - echo "✅ 빌드 완료"
+
+build stg cpos:
+  <<: *build-common
+  rules:
+    - if: $CI_COMMIT_BRANCH == "stage"
+      when: always
+  script:
+    - echo "🏗️ stg cpos 빌드 시작"
+    - pnpm run build:stg:cpos
+    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
+    - echo "✅ 빌드 완료"
+
+build prd emsp:
+  <<: *build-common
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+  script:
+    - echo "🏗️ prd emsp 빌드 시작"
+    - pnpm run build:prod:emsp
+    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
+    - echo "✅ 빌드 완료"
+
+build prd cpos:
+  <<: *build-common
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: always
+  script:
+    - echo "🏗️ prd cpos 빌드 시작"
+    - pnpm run build:prod:cpos
+    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
+    - echo "✅ 빌드 완료"
+
+####################################################################################
+# AssumeRole 권한 부여 함수
+####################################################################################
+
+.assume-role-function: &assume-role-function
+  - |
+    echo "🔐 AssumeRole 인증 시작..."
+    if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
+      ENV_SUFFIX="PRD"
+    elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
+      ENV_SUFFIX="STG"
+    else
+      ENV_SUFFIX="DEV"
+    fi
+    ACCESS_KEY_VAR="AWS_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
+    SECRET_KEY_VAR="AWS_SECRET_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
+    export AWS_ACCESS_KEY_ID="${!ACCESS_KEY_VAR}"
+    export AWS_SECRET_ACCESS_KEY="${!SECRET_KEY_VAR}"
+    aws sts get-caller-identity || {
+      echo "❌ AWS 기본 자격 증명 확인 실패"
+      exit 1
+    }
+
+    ASSUME_OUTPUT=$(aws sts assume-role \
+      --role-arn "$ROLE_ARN" \
+      --role-session-name "gitlab-${CI_PIPELINE_ID}" \
+      --external-id "$EXTERNAL_ID" \
+      --duration-seconds 3600 \
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
+      --output text)
+
+    if [ $? -ne 0 ]; then
+      echo "❌ AssumeRole 실행 실패"
+      exit 1
+    fi
+
+    read AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN <<< "$ASSUME_OUTPUT"
+
+    export AWS_ACCESS_KEY_ID
+    export AWS_SECRET_ACCESS_KEY
+    export AWS_SESSION_TOKEN
+
+    echo "✅ AssumeRole 인증 완료"
+
+####################################################################################
+# stage: deploy
+####################################################################################
+
+.deploy-s3-assume-role: &deploy-s3-assume-role
   stage: deploy
   image:
     name: amazon/aws-cli:latest
     entrypoint: ['']
+  needs:
+    - job: build
+      artifacts: true
   before_script:
+    - *assume-role-function
+    - echo "🚀 배포 준비 단계 시작..."
     - |
-      echo "🔐 AssumeRole 인증 시작..."
-      if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
-        ENV_SUFFIX="PRD"
-      elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
-        ENV_SUFFIX="STG"
-      else
-        ENV_SUFFIX="DEV"
-      fi
-      ACCESS_KEY_VAR="AWS_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
-      SECRET_KEY_VAR="AWS_SECRET_ACCESS_KEY_ASSUME_${ENV_SUFFIX}"
-      export AWS_ACCESS_KEY_ID="${!ACCESS_KEY_VAR}"
-      export AWS_SECRET_ACCESS_KEY="${!SECRET_KEY_VAR}"
-      aws sts get-caller-identity || {
-        echo "❌ AWS 기본 자격 증명 확인 실패"
-        exit 1
-      }
-
-      ASSUME_OUTPUT=$(aws sts assume-role \
-        --role-arn "$ROLE_ARN" \
-        --role-session-name "gitlab-${CI_PIPELINE_ID}" \
-        --external-id "$EXTERNAL_ID" \
-        --duration-seconds 3600 \
-        --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]' \
-        --output text)
-
-      if [ $? -ne 0 ]; then
-        echo "❌ AssumeRole 실행 실패"
-        exit 1
-      fi
-
-      read AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN <<< "$ASSUME_OUTPUT"
-
-      export AWS_ACCESS_KEY_ID
-      export AWS_SECRET_ACCESS_KEY
-      export AWS_SESSION_TOKEN
-
-      echo "✅ AssumeRole 인증 완료"
-    - |
-      echo "🚀 배포 준비 단계 시작..."
       if [[ "$CI_COMMIT_REF_NAME" =~ "main" ]]; then
         export ENV_PROFILE="PRD"
       elif [[ "$CI_COMMIT_REF_NAME" =~ "stage" ]]; then
@@ -110,16 +199,14 @@ variables:
       else
         export ENV_PROFILE="error"
       fi
-      echo "🌎 환경: $ENV_PROFILE"
+    - echo "🌎 환경:$ENV_PROFILE"
+    - |
       if [ -z "${S3_BUCKET:-}" ]; then
-        S3_BUCKET_VAR="S3_BUCKET_${ENV_PROFILE}"
-        export S3_BUCKET="${!S3_BUCKET_VAR}"
+        S3_BUCKET="S3_BUCKET_${ENV_PROFILE}"
       fi
-      echo "🪣 S3_BUCKET: $S3_BUCKET"
-      echo "✅ 배포 준비 단계 완료"
   script:
     - export
-    - 'echo "Deploying to S3: ${S3_BUCKET}"'
+    - echo 'Deploying to S3:' ${!S3_BUCKET}
 
     # METADATAS 처리를 위한 JSON 변환 로직
     - |
@@ -174,7 +261,7 @@ variables:
         exit 1
       fi
 
-      aws s3 cp ${ARTIFACTS_PATH}/assets/ s3://${S3_BUCKET}/${TO_PATH}/assets/ \
+      aws s3 cp ${ARTIFACTS_PATH}/assets/ s3://${!S3_BUCKET}/${TO_PATH#/}/assets/ \
         --recursive \
         --cache-control "public, max-age=31536000, immutable" \
         ${CONTENT_ENCODING_OPT} \
@@ -184,7 +271,7 @@ variables:
     # 2단계: index.html 제외 나머지 파일 업로드
     # CMD 문자열 내 단따옴표: eval 실행 시 word splitting 방지 (${META_JSON}은 CMD 빌드 시 이미 치환됨)
     - |
-      CMD="aws s3 cp ${ARTIFACTS_PATH} s3://${S3_BUCKET}/${TO_PATH}/ \
+      CMD="aws s3 cp ${ARTIFACTS_PATH} s3://${!S3_BUCKET}/${TO_PATH#/}/ \
         --recursive \
         --exclude 'assets/*' \
         --exclude 'index.html' \
@@ -202,7 +289,7 @@ variables:
 
     # 3단계: index.html 마지막 업로드 (atomic swap, no-cache)
     - |
-      aws s3 cp ${ARTIFACTS_PATH}/index.html s3://${S3_BUCKET}/${TO_PATH}/index.html \
+      aws s3 cp ${ARTIFACTS_PATH}/index.html s3://${!S3_BUCKET}/${TO_PATH#/}/index.html \
         --cache-control "no-cache, no-store, must-revalidate" \
         ${CONTENT_ENCODING_OPT} \
         --metadata "${META_JSON}"
@@ -210,93 +297,10 @@ variables:
   after_script:
     - unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 
-####################################
-# stage: initialize
-####################################
-
-initialize:
-  stage: initialize
-  image: 'node:24.16.0'
-  rules:
-    - if: $CI_COMMIT_BRANCH =~ /^(develop|stage|main)$/
-      when: always
-  script:
-    - node .gitlab/scripts/workflow-initialize.cjs --output=workflow-variables.env --gitlab-base-url="$CI_SERVER_URL"
-  artifacts:
-    reports:
-      dotenv: workflow-variables.env
-
-####################################
-# stage: build
-####################################
-
-build dev:
-  extends: .build-common
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "develop"
-      when: always
-  script:
-    - echo "🛠️ dev 빌드 시작"
-    - pnpm run build:dev
-    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
-    - echo "✅ dev 빌드 완료"
-
-build stg emsp:
-  extends: .build-common
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "stage"
-      when: always
-  script:
-    - echo "🛠️ stg emsp 빌드 시작"
-    - pnpm run build:stg:emsp
-    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
-    - echo "✅ stg emsp 빌드 완료"
-
-build stg cpos:
-  extends: .build-common
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "stage"
-      when: always
-  script:
-    - echo "🛠️ stg cpos 빌드 시작"
-    - pnpm run build:stg:cpos
-    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
-    - echo "✅ stg cpos 빌드 완료"
-
-build prd emsp:
-  extends: .build-common
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: always
-  script:
-    - echo "🛠️ prod emsp 빌드 시작"
-    - pnpm run build:prod:emsp
-    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
-    - echo "✅ prod emsp 빌드 완료"
-
-build prd cpos:
-  extends: .build-common
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "main"
-      when: always
-  script:
-    - echo "🛠️ prod cpos 빌드 시작"
-    - pnpm run build:prod:cpos
-    - echo "BUILD_JOB_ID=$CI_JOB_ID" >> build_id.env
-    - echo "✅ prod cpos 빌드 완료"
-
 deploy dev:
-  extends: .deploy-s3-assume-role
+  <<: *deploy-s3-assume-role
   environment:
     name: dev
-  needs:
-    - job: build dev
-      artifacts: true
   variables:
     ROLE_ARN: $AWS_ROLE_ARN_DEV
     EXTERNAL_ID: $AWS_EXTERNAL_ID
@@ -305,61 +309,61 @@ deploy dev:
       when: on_success
 
 deploy stg emsp:
-  extends: .deploy-s3-assume-role
+  <<: *deploy-s3-assume-role
   environment:
-    name: stg-emsp
+    name: stg
   needs:
     - job: build stg emsp
       artifacts: true
   variables:
     ROLE_ARN: $AWS_ROLE_ARN_STG
     EXTERNAL_ID: $AWS_EXTERNAL_ID
-    S3_BUCKET: $S3_BUCKET_EMSP_STG
+    S3_BUCKET: S3_BUCKET_EMSP_STG
   rules:
     - if: $CI_COMMIT_BRANCH == "stage"
       when: on_success
 
 deploy stg cpos:
-  extends: .deploy-s3-assume-role
+  <<: *deploy-s3-assume-role
   environment:
-    name: stg-cpos
+    name: stg
   needs:
     - job: build stg cpos
       artifacts: true
   variables:
     ROLE_ARN: $AWS_ROLE_ARN_STG
     EXTERNAL_ID: $AWS_EXTERNAL_ID
-    S3_BUCKET: $S3_BUCKET_CPOS_STG
+    S3_BUCKET: S3_BUCKET_CPOS_STG
   rules:
     - if: $CI_COMMIT_BRANCH == "stage"
       when: on_success
 
 deploy prd emsp:
-  extends: .deploy-s3-assume-role
+  <<: *deploy-s3-assume-role
   environment:
-    name: prd-emsp
+    name: prd
   needs:
     - job: build prd emsp
       artifacts: true
   variables:
     ROLE_ARN: $AWS_ROLE_ARN_PRD
     EXTERNAL_ID: $AWS_EXTERNAL_ID
-    S3_BUCKET: $S3_BUCKET_EMSP_PRD
+    S3_BUCKET: S3_BUCKET_EMSP_PRD
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success
 
 deploy prd cpos:
-  extends: .deploy-s3-assume-role
+  <<: *deploy-s3-assume-role
   environment:
-    name: prd-cpos
+    name: prd
   needs:
     - job: build prd cpos
       artifacts: true
   variables:
     ROLE_ARN: $AWS_ROLE_ARN_PRD
     EXTERNAL_ID: $AWS_EXTERNAL_ID
-    S3_BUCKET: $S3_BUCKET_CPOS_PRD
+    S3_BUCKET: S3_BUCKET_CPOS_PRD
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: on_success

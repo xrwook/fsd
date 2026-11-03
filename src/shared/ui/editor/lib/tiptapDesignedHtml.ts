@@ -1,5 +1,6 @@
 import { Extension, mergeAttributes, Node } from "@tiptap/core";
 import { Plugin } from "@tiptap/pm/state";
+import DOMPurify, { type Config } from "dompurify";
 
 const BLOCK_CONTAINER_TAGS = [
   "article",
@@ -35,7 +36,7 @@ const KNOWN_BLOCK_CHILD_TAGS = new Set([
   "ul",
 ]);
 
-const SAFE_STYLE_NAME = /^(?:--[\w-]+|[a-z][\w-]*)$/i;
+const SAFE_STYLE_NAME = /^[a-z][\w-]*$/i;
 const UNSAFE_STYLE_VALUE =
   /(?:expression\s*\(|javascript\s*:|vbscript\s*:|data\s*:\s*text\/html|@import|\bbehavior\s*:|-moz-binding)/i;
 const URL_STYLE_VALUE = /\burl\s*\(/i;
@@ -88,6 +89,8 @@ const sanitizeStyle = (value: unknown) => {
         !property ||
         !propertyValue ||
         !SAFE_STYLE_NAME.test(property) ||
+        property.toLowerCase() === "behavior" ||
+        /[\\@<>]/.test(propertyValue) ||
         UNSAFE_STYLE_VALUE.test(propertyValue) ||
         URL_STYLE_VALUE.test(propertyValue)
       ) {
@@ -214,7 +217,7 @@ const getProseMirrorParagraphContent = (
   if (!fragment.includes("data-pm-slice")) return null;
 
   const template = document.createElement("template");
-  template.innerHTML = fragment;
+  template.innerHTML = sanitizeDesignedHtml(fragment);
 
   const nodes = [...template.content.childNodes].filter((node) => {
     const textContent = node.textContent?.trim();
@@ -409,6 +412,7 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
     return [
       new Plugin({
         props: {
+          transformPastedHTML: (html) => sanitizeDesignedHtml(html),
           handlePaste: (_view, event) => {
             const plainText = event.clipboardData?.getData("text/plain");
             const htmlText = plainText?.trim();
@@ -419,7 +423,9 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
 
             if (proseMirrorParagraphContent) {
               event.preventDefault();
-              this.editor.commands.insertContent(proseMirrorParagraphContent);
+              this.editor.commands.insertContent(
+                sanitizeDesignedHtml(proseMirrorParagraphContent),
+              );
               return true;
             }
 
@@ -428,7 +434,7 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
             }
 
             event.preventDefault();
-            this.editor.commands.insertContent(htmlText);
+            this.editor.commands.insertContent(sanitizeDesignedHtml(htmlText));
             return true;
           },
         },
@@ -436,24 +442,6 @@ export const DesignedHtmlPlainTextPaste = Extension.create({
     ];
   },
 });
-
-const SANITIZED_HTML_REMOVAL_TAGS = new Set([
-  "base",
-  "embed",
-  "form",
-  "iframe",
-  "input",
-  "link",
-  "meta",
-  "object",
-  "option",
-  "script",
-  "select",
-  "style",
-  "svg",
-  "template",
-  "textarea",
-]);
 
 const SANITIZED_HTML_ALLOWED_ATTRIBUTES = new Set([
   "alt",
@@ -466,7 +454,31 @@ const SANITIZED_HTML_ALLOWED_ATTRIBUTES = new Set([
   "title",
   "type",
   "width",
+  "start",
+  "data-color",
+  "data-imgid",
 ]);
+
+// 에디터가 사용하는 HTML만 허용합니다. SVG/MathML, 임의의 data-* 속성,
+// 폼/임베드 요소 등은 DOMPurify 기본 허용 목록에 있어도 허용하지 않습니다.
+const DESIGNED_HTML_POLICY: Config = {
+  ALLOWED_TAGS: [
+    ...CONTAINER_TAGS,
+    "a", "b", "blockquote", "br", "button", "code", "col", "colgroup",
+    "em", "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6",
+    "hr", "i", "img", "li", "mark", "ol", "p", "pre", "s", "span",
+    "strong", "sub", "sup", "table", "tbody", "td", "tfoot", "th",
+    "thead", "tr", "u", "ul",
+  ],
+  ALLOWED_ATTR: [
+    ...SANITIZED_HTML_ALLOWED_ATTRIBUTES,
+    "class", "id", "role", "style", "href", "src", "data-href",
+    "data-file-detail-id", "aria-label", "aria-describedby",
+  ],
+  ALLOWED_NAMESPACES: ["http://www.w3.org/1999/xhtml"],
+  ALLOW_ARIA_ATTR: false,
+  ALLOW_DATA_ATTR: false,
+};
 
 const sanitizeViewerAttribute = (element: Element, name: string) => {
   const value = element.getAttribute(name);
@@ -538,12 +550,11 @@ const sanitizeElementAttributes = (element: Element) => {
 };
 
 const sanitizeElement = (element: Element) => {
-  if (SANITIZED_HTML_REMOVAL_TAGS.has(element.tagName.toLowerCase())) {
-    element.remove();
-    return;
-  }
-
   sanitizeElementAttributes(element);
+
+  if (element.tagName.toLowerCase() === "button") {
+    element.setAttribute("type", "button");
+  }
 
   if (element.tagName.toLowerCase() === "a") {
     const target = element.getAttribute("target");
@@ -554,15 +565,20 @@ const sanitizeElement = (element: Element) => {
 };
 
 export const sanitizeDesignedHtml = (html: string) => {
-  if (!html || typeof DOMParser === "undefined") return "";
+  if (!html || !DOMPurify.isSupported) return "";
 
-  const document = new DOMParser().parseFromString(html, "text/html");
+  const body = DOMPurify.sanitize(html, {
+    ...DESIGNED_HTML_POLICY,
+    RETURN_DOM: true,
+  });
+  if (!(body instanceof HTMLElement)) return "";
 
-  for (const element of document.body.querySelectorAll("*")) {
+  for (const element of body.querySelectorAll("*")) {
     sanitizeElement(element);
   }
 
-  return document.body.innerHTML;
+  // 속성 정규화 뒤에도 최종 직렬화된 HTML을 다시 정제합니다.
+  return DOMPurify.sanitize(body.innerHTML, DESIGNED_HTML_POLICY);
 };
 
 export const DesignedHtmlExtensions = [

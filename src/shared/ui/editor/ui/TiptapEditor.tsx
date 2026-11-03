@@ -21,7 +21,10 @@ import {
 } from "react";
 
 import { uploadEditorImage } from "../api/editor.service";
-import { DesignedHtmlExtensions } from "../lib/tiptapDesignedHtml";
+import {
+  DesignedHtmlExtensions,
+  sanitizeDesignedHtml,
+} from "../lib/tiptapDesignedHtml";
 import {
   type ImageUploadResult,
   removeImageElements,
@@ -89,12 +92,13 @@ export default function TiptapEditor({
   uploadImage = uploadEditorImage,
   allowImageUpload = true,
 }: TiptapEditorProps) {
+  const sanitizedValue = useMemo(() => sanitizeDesignedHtml(value), [value]);
   const [uploadCount, setUploadCount] = useState(0);
   const [uploadError, setUploadError] = useState("");
-  const [htmlSource, setHtmlSource] = useState(value);
+  const [htmlSource, setHtmlSource] = useState(sanitizedValue);
   const [htmlSourceMode, setHtmlSourceMode] =
     useState<HtmlSourceMode>("editor");
-  const emittedValueRef = useRef(value);
+  const emittedValueRef = useRef(sanitizedValue);
   const onChangeRef = useRef(onChange);
   const onEmptyChangeRef = useRef(onEmptyChange);
   const onSubmitRef = useRef(onSubmit);
@@ -191,7 +195,7 @@ export default function TiptapEditor({
         }),
         imageUploadExtension,
       ],
-      content: value,
+      content: sanitizedValue,
       editable: !disabled,
       immediatelyRender: true,
       shouldRerenderOnTransaction: true,
@@ -199,7 +203,9 @@ export default function TiptapEditor({
         onEmptyChangeRef.current?.(currentEditor.isEmpty);
       },
       onUpdate: ({ editor: currentEditor }) => {
-        const nextValue = currentEditor.isEmpty ? "" : currentEditor.getHTML();
+        const nextValue = currentEditor.isEmpty
+          ? ""
+          : sanitizeDesignedHtml(currentEditor.getHTML());
 
         emittedValueRef.current = nextValue;
         onChangeRef.current?.(nextValue);
@@ -217,8 +223,12 @@ export default function TiptapEditor({
   const applyHtmlSourceToEditor = useCallback(() => {
     if (!editor) return false;
 
-    editor.commands.setContent(htmlSource, { emitUpdate: false });
-    const normalizedValue = editor.isEmpty ? "" : editor.getHTML();
+    editor.commands.setContent(sanitizeDesignedHtml(htmlSource), {
+      emitUpdate: false,
+    });
+    const normalizedValue = editor.isEmpty
+      ? ""
+      : sanitizeDesignedHtml(editor.getHTML());
     setHtmlSource(normalizedValue);
     emittedValueRef.current = normalizedValue;
     onChangeRef.current?.(normalizedValue);
@@ -234,19 +244,27 @@ export default function TiptapEditor({
   }, [applyHtmlSourceToEditor, disabled, htmlSourceMode]);
 
   useEffect(() => {
-    if (!editor || value === emittedValueRef.current) return;
+    if (!editor) return;
 
-    emittedValueRef.current = value;
-    setHtmlSource(value);
-    editor.commands.setContent(value, { emitUpdate: false });
+    // 기존 저장 데이터도 수정 없이 다시 저장할 때 원문이 전달되지 않게 합니다.
+    if (value !== sanitizedValue) {
+      onChangeRef.current?.(sanitizedValue);
+    }
+    if (sanitizedValue === emittedValueRef.current) return;
+
+    emittedValueRef.current = sanitizedValue;
+    setHtmlSource(sanitizedValue);
+    editor.commands.setContent(sanitizedValue, { emitUpdate: false });
     onEmptyChangeRef.current?.(editor.isEmpty);
-  }, [editor, value]);
+  }, [editor, sanitizedValue, value]);
 
   const handleHtmlSourceChange = (nextSource: string) => {
+    // 입력 중인 원문은 textarea에만 보관하고, 폼에는 정제한 HTML만 전달합니다.
+    const nextValue = sanitizeDesignedHtml(nextSource);
     setHtmlSource(nextSource);
-    emittedValueRef.current = nextSource;
-    onChangeRef.current?.(nextSource);
-    onEmptyChangeRef.current?.(!nextSource.trim());
+    emittedValueRef.current = nextValue;
+    onChangeRef.current?.(nextValue);
+    onEmptyChangeRef.current?.(!nextValue.trim());
   };
 
   // 소스 모드에서는 클립보드의 HTML 표현을 우선 보존합니다.
