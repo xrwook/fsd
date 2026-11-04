@@ -4,6 +4,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { isCancel } from "axios";
 import type { PropsWithChildren } from "react";
 
 import { classifyApiError, showApiErrorPage } from "@/shared/lib/api-error";
@@ -37,7 +38,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      // 수정: 세션 만료 처리 - 로그인 이동으로 취소한 요청은 재시도하지 않습니다.
+      retry: (failureCount, error) => !isCancel(error) && failureCount < 1,
     },
   },
 });

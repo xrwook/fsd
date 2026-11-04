@@ -1,4 +1,4 @@
-import { isAxiosError } from "axios";
+import { isAxiosError, isCancel } from "axios";
 import { create } from "zustand";
 
 export type ApiErrorPageType =
@@ -39,6 +39,11 @@ export const classifyApiError = (
   error: unknown,
   accessType: ApiErrorAccessType = "accessDenied",
 ): ApiErrorPageType | null => {
+  // 수정: 세션 만료 처리 - 로그인 이동/요청 취소는 네트워크·시스템 오류가 아닙니다.
+  if (isCancel(error)) {
+    return null;
+  }
+
   if (!isAxiosError(error)) {
     return "temporary";
   }

@@ -96,10 +96,13 @@ export const KeycloakProvider = ({ children }: Props) => {
         setAuthenticatedState();
       };
       keycloak.onAuthLogout = () => {
-        // keycloak-js의 clearToken()이 login-required 모드에서 자체적으로
-        // login redirect를 시작하므로 여기서 login()을 다시 호출하지 않습니다.
-        // 자동 만료 복구 로그인은 현재 페이지가 아닌 루트로 돌아옵니다.
-        markKeycloakRedirecting();
+        // 수정: 세션 만료 처리 - 자동 로그인은 login-required 모드에서만 시작됩니다.
+        if (env.keycloak.onLoad === "login-required") {
+          markKeycloakRedirecting();
+        } else {
+          // check-sso에서는 표시만 켜면 loginKeycloak의 중복 방지 조건에 막힙니다.
+          loginKeycloak().catch(handleLoginRecoveryError);
+        }
       };
       keycloak.onAuthRefreshSuccess = () => {
         setState((currentState) => ({

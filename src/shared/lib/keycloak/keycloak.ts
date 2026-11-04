@@ -93,6 +93,7 @@ export const initializeKeycloak = () => {
     return Promise.resolve(false);
   }
 
+  // 수정: 세션 만료 처리 - 초기화 오류는 빈 catch로 삼키지 않고 Provider에 전달합니다.
   initKeycloak ??= keycloak.init(getInitOptions());
 
   return initKeycloak;
@@ -108,21 +109,25 @@ export const loginKeycloak = async () => {
     return;
   }
 
+  // 수정: 세션 만료 처리 - 동시 요청도 진행 중인 로그인의 성공/실패를 함께 기다립니다.
+  if (loginKeycloakRequest) {
+    return loginKeycloakRequest;
+  }
+
   if (keycloakRedirecting) {
     return;
   }
 
   keycloakRedirecting = true;
-  loginKeycloakRequest ??= keycloak
-    .login()
-    .catch((error) => {
-      // 실제 redirect가 시작되지 않은 경우에만 다시 시도할 수 있도록 상태를 되돌립니다.
-      keycloakRedirecting = false;
-      loginKeycloakRequest = null;
-      throw error;
-    });
-
-  await loginKeycloakRequest;
+  try {
+    loginKeycloakRequest = keycloak.login();
+    await loginKeycloakRequest;
+  } catch (error) {
+    // 실제 redirect가 시작되지 않은 경우에만 다시 시도할 수 있도록 상태를 되돌립니다.
+    keycloakRedirecting = false;
+    loginKeycloakRequest = null;
+    throw error;
+  }
 };
 
 /**
