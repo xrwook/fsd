@@ -101,7 +101,7 @@ export const initializeKeycloak = () => {
 /**
  * Keycloak 로그인 페이지로 이동합니다.
  */
-export const loginKeycloak = async (redirectUri?: string) => {
+export const loginKeycloak = async () => {
   const keycloak = getKeycloakInstance();
 
   if (!keycloak) {
@@ -114,7 +114,7 @@ export const loginKeycloak = async (redirectUri?: string) => {
 
   keycloakRedirecting = true;
   loginKeycloakRequest ??= keycloak
-    .login(redirectUri ? { redirectUri } : undefined)
+    .login()
     .catch((error) => {
       // 실제 redirect가 시작되지 않은 경우에만 다시 시도할 수 있도록 상태를 되돌립니다.
       keycloakRedirecting = false;

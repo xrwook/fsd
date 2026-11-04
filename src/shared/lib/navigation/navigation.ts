@@ -1,5 +1,4 @@
 import type {
-  Location,
   NavigateFunction,
   NavigateOptions,
   To,
@@ -25,7 +24,6 @@ export type ScreenRouteResolver = (
 ) => To | null;
 export type ScreenNavigateOptions = NavigateOptions & {
   pathParams?: ScreenRoutePathParams;
-  /** 목적지에 전달하며, 새 history entry로 이동할 때 출발 화면에도 저장합니다. */
   queryParams?: ScreenRouteQueryParams;
 };
 
@@ -33,9 +31,7 @@ const EXTERNAL_URL_PROTOCOL_PATTERN = /^(https?:\/\/|mailto:|tel:)/i;
 const PROTOCOL_RELATIVE_URL_PATTERN = /^\/\//;
 
 let navigateFunction: NavigateFunction | null = null;
-let navigationLocation: Location | null = null;
 let screenRouteResolver: ScreenRouteResolver | null = null;
-const searchByPath = new Map<string, string>();
 
 /** navigation service 내부 오류를 앱 런타임을 중단하지 않는 방식으로 알립니다. */
 const reportNavigationError = (message: string) => {
@@ -88,7 +84,7 @@ const guardInternalTo = (to: To) => {
   return false;
 };
 
-/** screen 이동 옵션에서 React Router 전용이 아닌 옵션을 제거합니다. */
+/** screen 이동 옵션에서 React Router navigate에 전달하지 않을 pathParams만 제거합니다. */
 const getNavigateOptions = (options?: ScreenNavigateOptions) => {
   if (!options) {
     return;
@@ -164,80 +160,15 @@ const appendScreenQueryParams = (
   };
 };
 
-/** To 경로에서 search 문자열을 추출해 "?" 접두사를 보장합니다. */
-const getToSearch = (to: To) => {
-  if (typeof to === "string") {
-    const [pathWithoutHash = ""] = to.split("#", 2);
-    const [, search = ""] = pathWithoutHash.split("?", 2);
-
-    return search ? `?${search}` : "";
-  }
-
-  const search = to.search ?? "";
-
-  if (!search) {
-    return "";
-  }
-
-  return search.startsWith("?") ? search : `?${search}`;
-};
-
-/** To 경로에 search 문자열을 설정합니다. */
-const applySearchTo = (to: To, search: string): To => {
-  let normalizedSearch = "";
-
-  if (search) {
-    normalizedSearch = search.startsWith("?") ? search : `?${search}`;
-  }
-
-  if (typeof to === "string") {
-    const [pathWithoutHash = "", hash = ""] = to.split("#", 2);
-    const [pathname = ""] = pathWithoutHash.split("?", 2);
-    const hashSuffix = hash ? `#${hash}` : "";
-
-    return `${pathname}${normalizedSearch}${hashSuffix}`;
-  }
-
-  return {
-    ...to,
-    search: normalizedSearch,
-  };
-};
-
-/** path params가 적용된 실제 경로별로 쿼리를 구분합니다. */
-const getSearchMemoryKey = (to: To) => {
-  const path = getStringPath(to);
-
-  return path?.split(/[?#]/, 1)[0];
-};
-
-/** 실제 URL의 마지막 search를 기록합니다. 쿼리 삭제도 빈 문자열로 기억합니다. */
-export const rememberNavigationSearch = (to: To) => {
-  const key = getSearchMemoryKey(to);
-
-  if (key) {
-    searchByPath.set(key, getToSearch(to));
-  }
-};
-
-/** 아직 방문하지 않은 경로는 undefined, 쿼리를 지운 경로는 빈 문자열을 반환합니다. */
-export const getRememberedNavigationSearch = (to: To) => {
-  const key = getSearchMemoryKey(to);
-
-  return key ? searchByPath.get(key) : undefined;
-};
-
 /** app 레이어의 NavigationInitializer가 React Router navigate 함수를 주입할 때 사용합니다. */
-export const initNavigation = (
-  navigate: NavigateFunction,
-  location: Location,
-) => {
+export const initNavigation = (navigate: NavigateFunction) => {
   navigateFunction = navigate;
-  navigationLocation = location;
 };
 
 /** app 레이어의 NavigationInitializer가 API 메뉴 기반 screenId route resolver를 주입할 때 사용합니다. */
-export const initScreenRouteResolver = (resolver: ScreenRouteResolver) => {
+export const initScreenRouteResolver = (
+  resolver: ScreenRouteResolver,
+) => {
   screenRouteResolver = resolver;
 };
 
@@ -245,7 +176,6 @@ export const initScreenRouteResolver = (resolver: ScreenRouteResolver) => {
 export const clearNavigation = (navigate?: NavigateFunction) => {
   if (!navigate || navigateFunction === navigate) {
     navigateFunction = null;
-    navigationLocation = null;
   }
 };
 
@@ -253,7 +183,6 @@ export const clearNavigation = (navigate?: NavigateFunction) => {
 export const clearScreenRouteResolver = (resolver?: ScreenRouteResolver) => {
   if (!resolver || screenRouteResolver === resolver) {
     screenRouteResolver = null;
-    searchByPath.clear();
   }
 };
 
@@ -296,19 +225,7 @@ const screenPath = (
     return null;
   }
 
-  const pathWithQuery = appendScreenQueryParams(path, queryParams);
-
-  if (queryParams !== undefined) {
-    return pathWithQuery;
-  }
-
-  const rememberedSearch = getRememberedNavigationSearch(pathWithQuery);
-
-  if (rememberedSearch === undefined || getToSearch(pathWithQuery)) {
-    return pathWithQuery;
-  }
-
-  return applySearchTo(pathWithQuery, rememberedSearch);
+  return appendScreenQueryParams(path, queryParams);
 };
 
 /** API 메뉴에서 받은 screenId 기준으로 SPA 페이지 이동을 수행합니다. */
@@ -316,53 +233,17 @@ export const navigateToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = screenPath(screenId, options?.pathParams, options?.queryParams);
+  const path = screenPath(
+    screenId,
+    options?.pathParams,
+    options?.queryParams,
+  );
 
   if (!path) {
     return;
   }
 
-  if (options?.queryParams !== undefined && !options.replace) {
-    return navigateWithPreservedQueryParams(path, options);
-  }
-
   navigateTo(path, getNavigateOptions(options));
-};
-
-/** 전달받은 쿼리를 출발 화면의 history entry에도 저장한 뒤 목적지로 이동합니다. */
-const navigateWithPreservedQueryParams = async (
-  path: To,
-  options: ScreenNavigateOptions,
-) => {
-  const navigate = getNavigationInit();
-  const location = navigationLocation;
-
-  if (!navigate || !location || !guardInternalTo(path)) {
-    return;
-  }
-
-  const returnSearch = mergeSearchWithQueryParams(
-    location.search,
-    options.queryParams,
-  );
-
-  if (returnSearch !== location.search) {
-    await navigate(
-      {
-        pathname: location.pathname,
-        search: returnSearch,
-        hash: location.hash,
-      },
-      {
-        replace: true,
-        state: location.state,
-        preventScrollReset: true,
-        flushSync: true,
-      },
-    );
-  }
-
-  await navigate(path, getNavigateOptions(options));
 };
 
 /** 내부 React Router 경로로 현재 history entry를 대체하며 이동합니다. */
@@ -384,7 +265,11 @@ export const replaceToScreen = (
   screenId: ScreenIdValues,
   options?: ScreenNavigateOptions,
 ) => {
-  const path = screenPath(screenId, options?.pathParams, options?.queryParams);
+  const path = screenPath(
+    screenId,
+    options?.pathParams,
+    options?.queryParams,
+  );
 
   if (!path) {
     return;

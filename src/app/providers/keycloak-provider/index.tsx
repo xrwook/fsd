@@ -39,14 +39,6 @@ const toError = (error: unknown) => {
   return error instanceof Error ? error : new Error(String(error));
 };
 
-const getAuthRecoveryRedirectUri = () => {
-  if (typeof window === "undefined") {
-    return "/";
-  }
-
-  return `${window.location.origin}/`;
-};
-
 // 앱 본문보다 먼저 Keycloak 인증 상태를 확정해 권한 API와 라우터가 토큰 없이 실행되지 않게 합니다.
 export const KeycloakProvider = ({ children }: Props) => {
   const [state, setState] = useState<KeycloakProviderState>(getInitialState);
@@ -95,7 +87,7 @@ export const KeycloakProvider = ({ children }: Props) => {
       // 토큰 갱신 실패는 세션 만료/일시적인 네트워크 오류일 수 있습니다.
       // 화면을 error 상태로 전환하지 않고 로그인 복구만 시도합니다.
       console.warn("[Keycloak] Token refresh failed; redirecting to login.", error);
-      loginKeycloak(getAuthRecoveryRedirectUri()).catch(handleLoginRecoveryError);
+      loginKeycloak().catch(handleLoginRecoveryError);
     };
 
     if (keycloak) {
@@ -107,7 +99,6 @@ export const KeycloakProvider = ({ children }: Props) => {
         // keycloak-js의 clearToken()이 login-required 모드에서 자체적으로
         // login redirect를 시작하므로 여기서 login()을 다시 호출하지 않습니다.
         // 자동 만료 복구 로그인은 현재 페이지가 아닌 루트로 돌아옵니다.
-        keycloak.redirectUri = getAuthRecoveryRedirectUri();
         markKeycloakRedirecting();
       };
       keycloak.onAuthRefreshSuccess = () => {
@@ -118,7 +109,7 @@ export const KeycloakProvider = ({ children }: Props) => {
       };
       keycloak.onAuthRefreshError = () => {
         // 갱신 실패 메시지는 일시적인 복구 과정이므로 화면에 노출하지 않습니다.
-        loginKeycloak(getAuthRecoveryRedirectUri()).catch(
+        loginKeycloak().catch(
           handleLoginRecoveryError,
         );
       };

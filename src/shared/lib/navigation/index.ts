@@ -9,7 +9,6 @@ export type {
 export {
   clearNavigation,
   clearScreenRouteResolver,
-  getRememberedNavigationSearch,
   goBack,
   goForward,
   initNavigation,
@@ -18,7 +17,6 @@ export {
   navigateTo,
   navigateToScreen,
   openExternalUrl,
-  rememberNavigationSearch,
   replaceTo,
   replaceToScreen,
 } from "./navigation";

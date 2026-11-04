@@ -32,6 +32,8 @@ const App = () => {
 const AppLayout = () => {
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      <NavigationInitializer />
+
       <AppBar
         position="fixed"
         elevation={0}
@@ -64,11 +66,9 @@ const AppLayout = () => {
           mt: 8,
         }}
       >
-        <NavigationInitializer>
-          <Suspense fallback={null}>
-            <AppRouter />
-          </Suspense>
-        </NavigationInitializer>
+        <Suspense fallback={null}>
+          <AppRouter />
+        </Suspense>
       </Box>
     </Box>
   );
