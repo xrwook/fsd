@@ -4,9 +4,73 @@
 
 사진으로 확인한 처리상의 빈틈을 보완한 수정입니다. 실제 내부망의 실패 응답과 SDK 버전은 확인하지 못했으므로, 내부망 증상의 원인이 모두 해결됐다고 확정할 수는 없습니다. 특히 사진의 keycloak.ts는 loginKeycloak 중간에서 끝나므로 나머지 구현과 비교가 필요합니다.
 
+## 추가 수정: 권한 미부여 계정의 401 무한 로그인
+
+내부망 API는 로그인에 성공했지만 업무 권한이 없는 계정에도 401을 반환합니다. 이전의 `401 → 무조건 loginKeycloak()` 처리가 SSO 로그인과 앱 복귀를 반복하게 했습니다. `enabled=true`, `login-required` 설정은 그대로 유지합니다.
+
+이번 실행 코드 변경은 **axiosInstance.ts 한 파일**입니다. `수정: 승인 대기 401 무한 로그인 방지` 주석을 검색하세요.
+
+- 401을 받으면 강제 토큰 갱신으로 Keycloak 세션을 확인합니다. 동시 401은 진행 중인 확인 요청을 공유합니다.
+- 갱신 성공 + 토큰 있음: 로그인/업무 API 재전송 없이 **원래 401을 reject**합니다. 기존 `classifyApiError(mainInfoError, 'approvalPending')` 또는 `accessErrorPageType: 'approvalPending'`이 승인 대기 화면으로 보냅니다.
+- 갱신 실패/토큰 없음: 기존 로그인 복구 처리를 수행합니다. 갱신 실패가 항상 세션 만료라는 뜻은 아니며, 갱신 실패 시 로그인 복구를 시도하는 기존 정책을 유지합니다.
+- 정상 세션의 일반 API 401은 기존 accessType에 따라 accessDenied로 분류됩니다. 모든 401을 승인 대기로 보내는 변경은 아닙니다.
+
+내부망에 적용할 코드는 다음과 같습니다. 기존 요청 인터셉터는 유지하고 **응답 인터셉터**를 교체합니다. 함수 이름은 사진에 나온 `isKeycloakRedirect`, `redirectToLoginCancel` 기준입니다.
+
+```ts
+// 기존 Keycloak import 목록에 추가합니다.
+import { forceRefreshKeycloakToken } from '@/shared/lib/keycloak';
+
+// 인터셉터 바깥, 모듈 범위에 추가합니다.
+let sessionValidationRequest: Promise<string | null> | null = null;
+
+const validateKeycloakSession = () => {
+  sessionValidationRequest ??= forceRefreshKeycloakToken().finally(() => {
+    sessionValidationRequest = null;
+  });
+  return sessionValidationRequest;
+};
+
+defaultAxios.interceptors.response.use(
+  response => response,
+  async (error: unknown) => {
+    // 수정: 승인 대기 401 무한 로그인 방지
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      if (isKeycloakRedirect()) {
+        return redirectToLoginCancel();
+      }
+
+      let accessToken: string | null;
+      try {
+        accessToken = await validateKeycloakSession();
+      } catch {
+        return redirectToLoginCancel();
+      }
+
+      if (!accessToken || isKeycloakRedirect()) {
+        return redirectToLoginCancel();
+      }
+      // 로그인은 유효합니다. 원래 401을 아래에서 그대로 전달합니다.
+    }
+
+    throw error;
+  },
+);
+```
+
+`forceRefreshKeycloakToken`은 **토큰 문자열 또는 null을 반환**해야 합니다. 내부망에 없다면 keycloak.ts에 아래 함수를 추가하고 keycloak/index.ts에서도 export합니다. 기존 refreshKeycloakToken이 갱신 실패를 삼키지 않고 토큰 문자열/null을 반환하는지도 확인합니다.
+
+```ts
+export const forceRefreshKeycloakToken = async () => {
+  return refreshKeycloakToken(-1);
+};
+```
+
+이 패치만으로 서버의 모든 401 원인을 판별하는 것은 아닙니다. 여기서는 Keycloak 세션의 유효성을 확인하고, 세션이 유효하면 기존 API별 권한 오류 정책에 맡깁니다. 권한 조회 API(`/permissions`, 내부망의 main-info 역할)에는 `accessErrorPageType: 'approvalPending'`을 유지하세요. 사진의 AppAccessGuard에도 이미 mainInfoError를 approvalPending으로 분류하는 코드가 있습니다.
+
 ## 변경 이유
 
-- 기존 Axios 응답 인터셉터는 401도 그대로 reject하고, 공통 분류기는 이를 접근 오류로 처리합니다. Keycloak 활성화 시 401은 로그인 이동을 먼저 시작하도록 변경했습니다.
+- Keycloak 활성화 시 401은 세션을 확인합니다. 유효한 세션의 권한 오류는 기존 공통 분류로 전달하고, 갱신 실패/미인증 상태에서는 로그인 복구를 시도합니다.
 - 요청 직전 토큰 갱신이 실패하면 일반 예외가 일시적 오류 페이지로 이어질 수 있습니다. 로그인 복구를 시도한 뒤 해당 API를 Axios CanceledError로 중단합니다.
 - 로그인 이동으로 취소한 요청을 공통 오류 분류와 Query 재시도에서 제외했습니다. Promise는 실패 상태로 종료되며, 성공 응답을 만들어내거나 API를 자동 재전송하지 않습니다.
 - check-sso에서는 onAuthLogout에서 이동 표시만 켜면 후속 loginKeycloak이 중복 방지 조건에 막힐 수 있습니다. 이 경우에는 직접 loginKeycloak을 호출합니다.
@@ -102,7 +166,7 @@ import {
 
 기존 baseURL, paramsSerializer, 화면 ID 헤더 처리는 유지합니다. 요청 인터셉터의 `const accessToken = await ...` 한 줄을 fsd-test의 토큰 취득/취소 블록으로 교체합니다. 응답 인터셉터의 error 타입은 `unknown`으로 두고 `axios.isAxiosError(error)`로 확인합니다.
 
-401 조건에 403을 추가하지 않습니다. 내부망에서 세션 만료를 별도 업무 코드나 403으로 반환한다면, 실제 응답을 보고 그 만료 조건만 별도로 구별해야 합니다.
+401 처리에는 문서 상단의 추가 수정을 함께 적용합니다. 401 조건에 403을 추가하지 않습니다. 내부망에서 세션 만료를 별도 업무 코드나 403으로 반환한다면, 실제 응답을 보고 그 만료 조건만 별도로 구별해야 합니다.
 
 ### 4. api/error.ts — 반드시 함께 적용
 
@@ -140,6 +204,7 @@ retry: (failureCount, error) => !isCancel(error) && failureCount < 1,
 3. 토큰 만료 후 갱신 가능한 세션은 갱신되어 정상 요청되는지 확인합니다. Access Token 만료와 Keycloak 세션 종료는 다릅니다.
 4. 정상 로그인 상태의 권한 부족 403은 기존 접근 오류 화면으로, 일반 API 500/네트워크 오류는 기존 오류 화면으로 가는지 확인합니다.
 5. 인증 서버 자체의 로그인 시작이 실패하면 오류가 취소로 숨겨지지 않는지 확인합니다.
+6. 권한 미부여 계정으로 최초 로그인합니다. 권한 API의 401 후 토큰 갱신이 성공하면 재로그인 없이 approvalPending으로 이동하는지 확인합니다.
 
 이 변경은 앱의 공통 오류 페이지로 잘못 이동하는 경로를 다룹니다. Keycloak 서버 자체의 error 화면이라면 해당 화면 문구와 실패 요청을 추가 확인해야 합니다. 로그인 후에도 정상 토큰으로 계속 401이 반환되면 백엔드의 토큰 검증/클라이언트 설정도 확인해야 합니다.
 
@@ -147,7 +212,7 @@ retry: (failureCount, error) => !isCancel(error) && failureCount < 1,
 
 ## 로컬 검증 결과
 
-- 새 세션 복구/Provider 테스트와 기존 AppAccessGuard 테스트: 3개 파일, 25개 테스트 통과. 인증 서버와 API 전송은 모의 객체로 검증했습니다.
+- 세션 복구/Provider/AppAccessGuard 테스트: 3개 파일, 29개 테스트 통과. 권한 미부여 401, 동시 401 세션 확인 공유, 실제 세션 종료, 승인 대기 페이지 이동을 포함합니다. 인증 서버와 API 전송은 모의 객체로 검증했습니다.
 - 변경 TypeScript 파일 ESLint 검사 및 git diff 공백 검사 완료.
-- 전체 타입 검사는 기존 사내 패키지 누락 등으로 실패합니다. TypeScript 컴파일러로 수정 전 HEAD 소스와 현재 소스를 비교했으며, 두 경우 모두 오류 282개로 이번 변경에서 추가된 진단은 없습니다.
+- 전체 타입 검사는 기존 사내 패키지 누락 등으로 실패합니다. 이번 401 분기 변경의 수정 전후 TypeScript 진단을 비교한 결과 모두 오류 282개이며 추가 진단은 없습니다.
 - 실제 내부망 Keycloak 서버와 브라우저 로그인 이동은 위 확인 순서에 따라 별도 검증해야 합니다.

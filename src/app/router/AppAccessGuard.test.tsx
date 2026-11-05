@@ -91,9 +91,9 @@ describe("AppAccessGuard", () => {
     expect(layoutRender).not.toHaveBeenCalled();
   });
 
-  it("권한 조회 오류가 승인 대기이면 레이아웃을 거치지 않는다", async () => {
-    const error = new AxiosError("Forbidden");
-    error.response = { status: 403 } as NonNullable<AxiosError["response"]>;
+  it.each([401, 403])("권한 조회 %s 오류는 승인 대기로 이동한다", async (status) => {
+    const error = new AxiosError("Access not granted");
+    error.response = { status } as NonNullable<AxiosError["response"]>;
     setMainInfo({ mainInfoError: error });
     render(<TestApp />);
 

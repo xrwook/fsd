@@ -2,6 +2,7 @@ import axios, { CanceledError } from "axios";
 
 import { IS_MOCK_MODE } from "@/shared/config";
 import {
+  forceRefreshKeycloakToken,
   getKeycloakAccessToken,
   isKeycloakEnabled,
   isKeycloakRedirecting,
@@ -29,6 +30,16 @@ export const defaultAxios = axios.create({
 const redirectToLoginAndCancel = async (): Promise<never> => {
   await loginKeycloak();
   throw new CanceledError("Keycloak login redirect started.");
+};
+
+// 수정: 승인 대기 401 무한 로그인 방지 - 동시 401은 진행 중인 세션 확인을 공유합니다.
+let sessionValidationRequest: Promise<string | null> | null = null;
+
+const validateKeycloakSession = () => {
+  sessionValidationRequest ??= forceRefreshKeycloakToken().finally(() => {
+    sessionValidationRequest = null;
+  });
+  return sessionValidationRequest;
 };
 
 defaultAxios.interceptors.request.use(
@@ -82,17 +93,33 @@ defaultAxios.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error: unknown) => {
-    // 수정: 세션 만료 처리 - 인증 실패(401)는 로그인으로 복구하고, 권한 부족(403)은 유지합니다.
+  async (error: unknown) => {
+    // 수정: 승인 대기 401 무한 로그인 방지 - 이 API는 권한 미부여에도 401을 반환합니다.
+    // 강제 토큰 갱신이 성공하면 재로그인하지 않고 원래 오류를 공통 분류기에 전달합니다.
     if (
       isKeycloakEnabled() &&
       axios.isAxiosError(error) &&
       error.response?.status === 401
     ) {
-      return redirectToLoginAndCancel();
+      if (isKeycloakRedirecting()) {
+        return redirectToLoginAndCancel();
+      }
+
+      let accessToken: string | null;
+      try {
+        accessToken = await validateKeycloakSession();
+      } catch {
+        return redirectToLoginAndCancel();
+      }
+
+      if (!accessToken || isKeycloakRedirecting()) {
+        return redirectToLoginAndCancel();
+      }
+      // main-info의 accessErrorPageType: "approvalPending"을 유지합니다.
+      // 업무 API는 여기서 자동 재전송하지 않습니다.
     }
 
-    return Promise.reject(error);
+    throw error;
   },
 );
 
