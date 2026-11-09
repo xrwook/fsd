@@ -149,7 +149,7 @@ export const NavigationInitializer = () => {
 
     const getMenuScreenId = (pathname: string) => {
       const screenId = matchRoutes(screenRoutes, pathname)?.at(-1)?.route.id;
-      if (!screenId) return undefined;
+      if (!screenId) return ;
 
       // 상세/등록/수정 화면은 라우트에 등록된 상위 메뉴와 같은 메뉴로 판단합니다.
       return (

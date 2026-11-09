@@ -23,6 +23,12 @@ const TemporaryErrorPage = () => {
     navigate(retryPath, { replace: true });
   };
 
+  const handleGoHome = () => {
+    // 홈의 접근 검사에서 이전 오류로 다시 리다이렉트되지 않도록 해제합니다.
+    clearApiErrorPage();
+    navigate("/", { replace: true });
+  };
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 text-center">
       <p className="text-sm font-medium uppercase tracking-[0.2em] text-amber-600">
@@ -41,6 +47,13 @@ const TemporaryErrorPage = () => {
           type="button"
         >
           다시 시도
+        </button>
+        <button
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white"
+          onClick={handleGoHome}
+          type="button"
+        >
+          홈으로
         </button>
       </div>
     </main>
