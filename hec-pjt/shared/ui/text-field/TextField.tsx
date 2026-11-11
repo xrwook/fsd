@@ -1,7 +1,6 @@
 import { IconButton, TextField as HdsTextField } from "@hae-fe/elements";
 import { IconClose } from "@hae-fe/icon-library/react";
 import type { TextFieldProps as MuiTextFieldProps } from "@mui/material/TextField";
-import { useForkRef } from "@mui/material/utils";
 import type { ChangeEvent, MouseEvent, ReactNode } from "react";
 import { useRef, useState } from "react";
 
@@ -14,7 +13,7 @@ type TextFieldChangeEvent = ChangeEvent<HTMLInputElement | HTMLTextAreaElement>;
 
 export interface TextFieldProps extends Omit<
   MuiTextFieldProps<"outlined">,
-  "variant"
+  "variant" | "inputRef"
 > {
   after?: ReactNode;
   before?: ReactNode;
@@ -86,7 +85,6 @@ export const TextField = ({
   clearable = true,
   defaultValue,
   hdsProps,
-  inputRef,
   maxLength,
   numberOnly = false,
   onChange,
@@ -96,7 +94,6 @@ export const TextField = ({
   ...props
 }: TextFieldProps) => {
   const inputElementRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
-  const mergedInputRef = useForkRef(inputElementRef, inputRef);
   const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue ?? "");
   const currentValue = value === undefined ? uncontrolledValue : value;
   const shouldUseNumberOnly = numberOnly || withComma;
@@ -152,7 +149,7 @@ export const TextField = ({
       {before}
       <HdsTextField
         {...props}
-        inputRef={mergedInputRef}
+        inputRef={inputElementRef}
         defaultValue={getDisplayValue({
           value: defaultValue,
           numberOnly: shouldUseNumberOnly,
