@@ -94,7 +94,8 @@ const normalizePickerValue = (
   }
 
   if (mode === 'time') {
-    return normalizeTimeValue(value);
+    // 수정: 외부 시간 값은 dateFormat으로 먼저 읽고 기존 시간 형식도 허용한다.
+    return normalizeDateTimeValue(value, dateFormat) ?? normalizeTimeValue(value);
   }
   return normalizeDateTimeValue(value, dateFormat);
 };
