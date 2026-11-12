@@ -1,25 +1,17 @@
-import clsx from "clsx";
-import {
-  type ChangeEventHandler,
-  type FocusEventHandler,
-  forwardRef,
-  type KeyboardEventHandler,
-  type MouseEventHandler,
-  useImperativeHandle,
-  useRef,
-} from "react";
 
-import DateTimeCalendarIcon from "../assets/icons/calendar.svg?react";
-import DateTimeClockIcon from "../assets/icons/clock.svg?react";
-import DateTimeCloseIcon from "../assets/icons/close.svg?react";
+import { IconCalendar, IconClock, IconClose } from '@hae-fe/icon-library/react';
+import clsx from 'clsx';
+import type { ChangeEventHandler, FocusEventHandler, KeyboardEventHandler, MouseEventHandler } from 'react';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
 
 type DateTimeInputProps = {
   ariaLabel?: string;
+  iconType?: 'calendar' | 'time';
   className?: string;
   disabled?: boolean;
-  iconType?: "calendar" | "time";
   isOpen: boolean;
   onBlur?: FocusEventHandler<HTMLInputElement>;
+  // onChange?: ChangeEventHandler<HTMLInputElement>;
   onClear: () => void;
   onClick?: MouseEventHandler<HTMLInputElement>;
   onFocus?: FocusEventHandler<HTMLInputElement>;
@@ -27,78 +19,73 @@ type DateTimeInputProps = {
   onInputValueChange?: (value: string) => void;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   placeholder?: string;
-  showClearButton?: boolean; //
-  outsideClickIgnoreClassName?: string;
   value?: string;
+  outsideClickIgnoreClass?: string;
+  clearable: boolean;
 };
 
-/** react-datepicker의 customInput으로 쓰이는 날짜/시간 입력 영역이다. */
 export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
   (
     {
-      ariaLabel = "날짜 시간",
+      ariaLabel = '날짜 시간',
+      iconType = 'calendar',
       className,
       disabled,
-      iconType = "calendar",
       isOpen,
       onBlur,
+      // onChange,
       onClear,
       onClick,
       onFocus,
+      onKeyDown,
       onInputCommit,
       onInputValueChange,
-      onKeyDown,
-      outsideClickIgnoreClassName,
-      placeholder = "YYYY-MM-DD HH:MM",
-      showClearButton = false, //
-      value = "",
+      placeholder = 'YYYY-MM-DD HH:MM',
+      value = '',
+      outsideClickIgnoreClass,
+      clearable,
     },
     ref,
   ) => {
     const inputRef = useRef<HTMLInputElement>(null);
-    const Icon = iconType === "time" ? DateTimeClockIcon : DateTimeCalendarIcon;
-
-    useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
+    useImperativeHandle(ref, () => inputRef.current! as HTMLInputElement);
 
     const handleClear = () => {
       onClear();
     };
 
-    const handleMouseDown: MouseEventHandler<HTMLDivElement> = (event) => {
+    const handleMouseDown: MouseEventHandler<HTMLDivElement> = event => {
       if (disabled) {
         event.preventDefault();
         return;
       }
 
-      if (
-        event.target instanceof HTMLElement &&
-        event.target.closest(".dateTimeClearButton")
-      ) {
+      if (event.target instanceof Element && event.target.closest('.dateTimeClearButton')) {
         return;
       }
 
       inputRef.current?.focus({ preventScroll: true });
     };
 
-    const handleClick: MouseEventHandler<HTMLDivElement> = (event) => {
-      if (disabled || event.target === inputRef.current) return;
-
+    const handleClick: MouseEventHandler<HTMLDivElement> = event => {
+      const isClearButton = event.target instanceof Element && event.target.closest('.dateTimeClearButton');
+      if (disabled || event.target === inputRef.current || isClearButton) {
+        return;
+      }
       inputRef.current?.click();
     };
 
-    const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+    const handleInputChange: ChangeEventHandler<HTMLInputElement> = event => {
       onInputValueChange?.(event.currentTarget.value);
     };
 
-    const handleInputBlur: FocusEventHandler<HTMLInputElement> = (event) => {
+    const handleInputBlur: FocusEventHandler<HTMLInputElement> = event => {
       onInputCommit?.(event.currentTarget.value);
       onBlur?.(event);
     };
 
-    const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (
-      event,
-    ) => {
-      if (event.key === "Enter") {
+    const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = event => {
+      if (event.key === 'Enter') {
         event.preventDefault();
         event.currentTarget.blur();
         return;
@@ -109,22 +96,31 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
 
     return (
       <div
+        role="button"
         aria-disabled={disabled}
         className={clsx(
-          "dateTimeInput",
+          'dateTimeInput',
           {
             dateTimeInputActive: isOpen && !disabled,
             dateTimeInputDisabled: disabled,
           },
           className,
-          outsideClickIgnoreClassName,
+          outsideClickIgnoreClass,
         )}
         onClick={handleClick}
         onMouseDown={handleMouseDown}
+        tabIndex={disabled ? -1 : 0}
+        onKeyDown={event => {
+          if (disabled || event.target !== event.currentTarget) return;
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            event.currentTarget.click();
+          }
+        }}
       >
         <input
           aria-label={ariaLabel}
-          className={clsx("dateTimeInputField", outsideClickIgnoreClassName)}
+          className={clsx('dateTimeInputField', outsideClickIgnoreClass)}
           disabled={disabled}
           onBlur={disabled ? undefined : handleInputBlur}
           onChange={disabled ? undefined : handleInputChange}
@@ -135,32 +131,30 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
           ref={inputRef}
           value={value}
         />
-
-        {showClearButton && value && !disabled ? (
-          <button
-            aria-label="날짜 시간 초기화"
-            className={clsx("dateTimeClearButton", outsideClickIgnoreClassName)}
-            onClick={(event) => {
-              event.stopPropagation();
-              handleClear();
-            }}
-            onMouseDown={(event) => event.preventDefault()}
-            type="button"
-          >
-            <DateTimeCloseIcon
-              aria-hidden="true"
-              className={clsx("dateTimeCloseIcon", outsideClickIgnoreClassName)}
-            />
-          </button>
-        ) : null}
-
-        <Icon
-          aria-hidden="true"
-          className={clsx("dateTimeCalendarIcon", outsideClickIgnoreClassName)}
-        />
+        <div className="flex items-center justify-end">
+          {value && !disabled && clearable ? (
+            <button
+              className={clsx('dateTimeClearButton', outsideClickIgnoreClass)}
+              onClick={event => {
+                event.stopPropagation();
+                handleClear();
+              }}
+              onMouseDown={event => event.preventDefault()}
+              type="button"
+            >
+              <IconClose size={16} type="outline" className={clsx('dateTimeCloseIcon', outsideClickIgnoreClass)} />
+            </button>
+          ) : null}
+          {iconType === 'calendar' ? (
+            <IconCalendar size={16} type="outline" className={clsx('dateTimeCalendarIcon', outsideClickIgnoreClass)} />
+          ) : (
+            <IconClock size={16} type="outline" className={clsx('dateTimeCalendarIcon', outsideClickIgnoreClass)} />
+          )}
+        </div>
       </div>
     );
   },
 );
+
 
 DateTimeInput.displayName = "DateTimeInput";
