@@ -56,7 +56,7 @@ export type DateTimePickerProps = {
   clearable?: boolean;
   /** onChange 시 return format type */
   outputFormat?: DateFormatType;
-  /** yyyy-MM-dd HH:mm return. */
+  /** 수정: outputFormat 지정 시 해당 형식으로 반환하며, 값을 지우면 빈 문자열을 반환한다. */
   onChange: (value: string) => void;
 };
 
@@ -88,7 +88,9 @@ const normalizePickerValue = (
   outputFormat?: DateFormatType
 ) => {
   if (outputFormat) {
-    return normalizeDateTimeValue(value, dateFormat);
+    // 수정
+    const outputDate = normalizeDateTimeValue(value, outputFormat);
+    if (outputDate) return outputDate;
   }
 
   if (mode === 'time') {
@@ -117,7 +119,11 @@ export const DateTimePicker = ({
   const rootRef = useRef<HTMLDivElement>(null);
   const pickerRef = useRef<ReactDatePicker>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const externalSelectedDate = useMemo(() => normalizePickerValue(mode, value, dateFormat), [mode, value, dateFormat]);
+  // 수정
+  const externalSelectedDate = useMemo(
+    () => normalizePickerValue(mode, value, dateFormat, outputFormat),
+    [mode, value, dateFormat, outputFormat],
+  );
   const displayValue = formatPickerValue(mode, externalSelectedDate, dateFormat);
   const [selectedDate, setSelectedDate] = useState<Date | null>(() => externalSelectedDate);
   const [inputValue, setInputValue] = useState(displayValue);
@@ -175,9 +181,9 @@ export const DateTimePicker = ({
       setInputValue(nextValue);
       if (nextValue === selectedDisplayValue) return;
 
-      onChange(nextValue);
+      onChange(outputFormat ? formatDateTime(nextDate, outputFormat) : nextValue); // 수정
     },
-    [disabled, isDateSelectable, mode, onChange, selectedDisplayValue, dateFormat],
+    [disabled, isDateSelectable, mode, onChange, selectedDisplayValue, dateFormat, outputFormat], // 수정
   );
 
   const closePicker = useCallback(() => {
@@ -206,9 +212,9 @@ export const DateTimePicker = ({
 
       setSelectedDate(nextDate);
       setInputValue(nextValue);
-      onChange(nextValue);
+      onChange(outputFormat ? formatDateTime(nextDate, outputFormat) : nextValue); // 수정
     },
-    [mode, onChange, dateFormat],
+    [mode, onChange, dateFormat, outputFormat], // 수정
   );
 
   const handleDateChange = useCallback(
